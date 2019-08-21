@@ -1,0 +1,4 @@
+CREATE DOMAIN NONEMPTYTEXT
+    AS TEXT
+    CONSTRAINT not_empty
+        CHECK (VALUE <> '');
