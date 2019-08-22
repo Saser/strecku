@@ -39,6 +39,31 @@ load(
 
 gazelle_dependencies()
 
+PROTOBUF_VERSION = "3.9.1"
+
+http_archive(
+    name = "com_google_protobuf",
+    sha256 = "98e615d592d237f94db8bf033fba78cd404d979b0b70351a9e5aaff725398357",
+    strip_prefix = "protobuf-{version}".format(version = PROTOBUF_VERSION),
+    url = "https://github.com/protocolbuffers/protobuf/archive/v{version}.tar.gz".format(version = PROTOBUF_VERSION),
+)
+
+load(
+    "@com_google_protobuf//:protobuf_deps.bzl",
+    "protobuf_deps",
+)
+
+protobuf_deps()
+
+BAZEL_BUILDTOOLS_VERSION = "0.28.0"
+
+http_archive(
+    name = "com_github_bazelbuild_buildtools",
+    sha256 = "6ec71602e9b458b01717fab1d37492154c1c12ea83f881c745dbd88e9b2098d8",
+    strip_prefix = "buildtools-{version}".format(version = BAZEL_BUILDTOOLS_VERSION),
+    url = "https://github.com/bazelbuild/buildtools/archive/{version}.tar.gz".format(version = BAZEL_BUILDTOOLS_VERSION),
+)
+
 go_repository(
     name = "co_honnef_go_tools",
     importpath = "honnef.co/go/tools",
