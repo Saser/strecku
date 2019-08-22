@@ -3,8 +3,19 @@ all: \
 	bazel-build \
 	bazel-test
 
+.PHONY: \
+	build/tools/bazel \
+	build/tools/circleci
+build/tools/bazel \
+build/tools/circleci:
+	git submodule update --init --recursive '$@'
+
 include build/tools/bazel/Makefile
+build/tools/bazel/Makefile: build/tools/bazel
+	@# included in submodule: build/tools/bazel
 include build/tools/circleci/Makefile
+build/tools/circleci/Makefile: build/tools/circleci
+	@# included in submodule: build/tools/circleci
 
 # bazel-info: display information about the Bazel server.
 .PHONY: bazel-info
