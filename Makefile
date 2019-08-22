@@ -4,6 +4,7 @@ all: \
 	bazel-test
 
 include build/tools/bazel/Makefile
+include build/tools/circleci/Makefile
 
 # bazel-info: display information about the Bazel server.
 .PHONY: bazel-info
@@ -30,3 +31,8 @@ bazel-test: $(BAZEL)
 .PHONY: bazel-buildifier
 bazel-buildifier: $(BAZEL)
 	$(BAZEL) run //:buildifier
+
+# circleci-build: run the `build` job using a local CircleCI executor.
+.PHONY: circleci-build
+circleci-build: $(CIRCLECI)
+	$(CIRCLECI) local execute --job build
