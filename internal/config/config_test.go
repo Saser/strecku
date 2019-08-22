@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	valid                = "testdata/valid.toml"
-	invalid_syntax       = "testdata/invalid_syntax.toml"
-	invalid_logger_level = "testdata/invalid_logger_level.toml"
+	valid              = "testdata/valid.toml"
+	invalidSyntax      = "testdata/invalid_syntax.toml"
+	invalidLoggerLevel = "testdata/invalid_logger_level.toml"
 )
 
 func TestLoadFile(t *testing.T) {
@@ -24,8 +24,8 @@ func TestLoadFile(t *testing.T) {
 	})
 	t.Run("invalid", func(t *testing.T) {
 		for _, file := range []string{
-			invalid_syntax,
-			invalid_logger_level,
+			invalidSyntax,
+			invalidLoggerLevel,
 		} {
 			file := file
 			t.Run(fmt.Sprintf("file=%v", file), func(t *testing.T) {
