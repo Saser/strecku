@@ -1,0 +1,22 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.12.9
+    steps:
+      - checkout
+      - run:
+          name: "Install `patch` (needed by Bazel)"
+          command: sudo apt install patch
+      - run:
+          name: "Install Bazel"
+          command: make install-bazel
+      - run:
+          name: "Start Bazel server"
+          command: make bazel-info
+      - run:
+          name: "Build project"
+          command: make bazel-build
+      - run:
+          name: "Test project"
+          command: make bazel-test

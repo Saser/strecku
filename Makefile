@@ -5,6 +5,11 @@ all: \
 
 include build/tools/bazel/Makefile
 
+# bazel-info: display information about the Bazel server.
+.PHONY: bazel-info
+bazel-info: $(BAZEL)
+	$(BAZEL) info
+
 # bazel-gazelle: generate `BUILD.bazel` files using `gazelle`.
 .PHONY: bazel-gazelle
 bazel-gazelle: $(BAZEL)
