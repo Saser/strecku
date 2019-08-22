@@ -1,4 +1,4 @@
-package viperextra
+package viper
 
 import (
 	"reflect"

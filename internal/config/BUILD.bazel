@@ -6,7 +6,7 @@ go_library(
     importpath = "github.com/Saser/strecku/internal/config",
     visibility = ["//:__subpackages__"],
     deps = [
-        "//internal/viperextra:go_default_library",
+        "//internal/viper:go_default_library",
         "@com_github_mitchellh_mapstructure//:go_default_library",
         "@com_github_spf13_viper//:go_default_library",
         "@org_golang_x_xerrors//:go_default_library",

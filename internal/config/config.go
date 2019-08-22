@@ -3,7 +3,7 @@ package config
 import (
 	"strings"
 
-	"github.com/Saser/strecku/internal/viperextra"
+	internalviper "github.com/Saser/strecku/internal/viper"
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -30,7 +30,7 @@ func LoadFile(filePath string, cfg *Config) error {
 	unmarshal := func(dc *mapstructure.DecoderConfig) {
 		dc.ErrorUnused = true
 	}
-	hook := viper.DecodeHook(viperextra.ZapAtomicLevelDecodeHookFunc)
+	hook := viper.DecodeHook(internalviper.ZapAtomicLevelDecodeHookFunc)
 	if err := v.Unmarshal(cfg, unmarshal, hook); err != nil {
 		return xerrors.Errorf("load file: %w", err)
 	}
