@@ -25,7 +25,7 @@ bazel-info: $(BAZEL)
 # bazel-gazelle: generate `BUILD.bazel` files using `gazelle`.
 .PHONY: bazel-gazelle
 bazel-gazelle: $(BAZEL)
-	$(BAZEL) run //:gazelle
+	$(BAZEL) run //:gazelle -- fix
 	$(BAZEL) run //:gazelle -- update-repos -from_file=go.mod
 
 # bazel-build: build the entire project using `bazel`.
