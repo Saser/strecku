@@ -3,6 +3,10 @@ all: \
 	bazel-build \
 	bazel-test
 
+GIT_LS_FILES := git ls-files --exclude-standard --cached --others
+
+BUILD_FILES := $(shell $(GIT_LS_FILES) -- '*BUILD.bazel')
+
 .PHONY: \
 	build/tools/bazel \
 	build/tools/circleci
@@ -42,6 +46,21 @@ bazel-test: $(BAZEL)
 .PHONY: bazel-buildifier
 bazel-buildifier: $(BAZEL)
 	$(BAZEL) run //:buildifier
+
+# bazel-lint-gazelle: check that re-generating build files does not create any modifications to committed files.
+.PHONY: bazel-lint-gazelle
+bazel-lint-gazelle: bazel-gazelle
+	scripts/git-verify-no-diff.bash \
+		WORKSPACE \
+		$(BUILD_FILES)
+
+# bazel-lint-buildifier: check that formatting build files does not create any modifications to committed files.
+.PHONY: bazel-lint-buildifier
+bazel-lint-buildifier: bazel-buildifier $(BAZEL)
+	scripts/git-verify-no-diff.bash \
+		WORKSPACE \
+		$(BUILD_FILES)
+	$(BAZEL) $(BAZEL_FLAGS) run //:buildifier -- --lint=warn
 
 # circleci-build: run the `build` job using a local CircleCI executor.
 .PHONY: circleci-build

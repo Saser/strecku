@@ -15,6 +15,12 @@ jobs:
           name: "Start Bazel server"
           command: make bazel-info
       - run:
+          name: "Make sure build files are up to date"
+          command: make bazel-lint-gazelle
+      - run:
+          name: "Make sure build files are properly formatted"
+          command: make bazel-lint-buildifier
+      - run:
           name: "Build project"
           command: make bazel-build
       - run:
