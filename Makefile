@@ -10,14 +10,14 @@ all: \
 .PHONY: fix
 fix: \
 	bazel-gazelle \
-	bazel-gofumports \
+	gofumports \
 	go-mod-fix
 
 # lint: run linters for build files, Go files, etc.
 .PHONY: lint
 lint: \
 	bazel-lint-gazelle \
-	bazel-lint-gofumports \
+	lint-gofumports \
 	go-lint-mod-fix
 
 # build: build the entire project.
@@ -88,11 +88,6 @@ bazel-build: $(BAZEL)
 bazel-test: $(BAZEL)
 	$(BAZEL) $(BAZEL_FLAGS) test //...
 
-# bazel-gofumports: run the `gofumports` Go code formatter.
-.PHONY: bazel-gofumports
-bazel-gofumports: $(BAZEL)
-	$(BAZEL) $(BAZEL_FLAGS) run @cc_mvdan_gofumpt//gofumports -- -w $(WD)
-
 # bazel-buildifier: run the `buildifier` tool to format Bazel build files.
 .PHONY: bazel-buildifier
 bazel-buildifier: $(BAZEL)
@@ -113,9 +108,28 @@ bazel-lint-buildifier: bazel-buildifier $(BAZEL)
 		$(BUILD_FILES)
 	$(BAZEL) $(BAZEL_FLAGS) run //:buildifier -- --lint=warn
 
-# bazel-lint-gofumports: check that formatting Go files does not create any modifications to committed files.
-.PHONY: bazel-lint-gofumports
-bazel-lint-gofumports: bazel-gofumports
+GOBIN_CACHE_DIR := build/.gobincache
+$(GOBIN_CACHE_DIR):
+	mkdir --parent '$@'
+
+GOFUMPORTS_VERSION := 96300e3d49fbb3b7bc9c6dc74f8a5cc0ef46f84b
+GOFUMPORTS_CACHE_DIR := $(GOBIN_CACHE_DIR)/gofumports/$(GOFUMPORTS_VERSION)
+GOFUMPORTS := $(GOFUMPORTS_CACHE_DIR)/gofumports
+
+$(GOFUMPORTS_CACHE_DIR):
+	mkdir --parent '$@'
+
+$(GOFUMPORTS): $(GOBIN) | $(GOFUMPORTS_CACHE_DIR)
+	GOBIN=$(GOFUMPORTS_CACHE_DIR) $(GOBIN) mvdan.cc/gofumpt/gofumports@$(GOFUMPORTS_VERSION)
+
+# gofumports: run the `gofumports` Go code formatter.
+.PHONY: gofumports
+gofumports: $(GOFUMPORTS)
+	$(GOFUMPORTS) -w '$(WD)'
+
+# lint-gofumports: check that formatting Go files does not create any modifications to committed files.
+.PHONY: lint-gofumports
+lint-gofumports: gofumports
 	scripts/git-verify-no-diff.bash \
 		$(GO_FILES)
 

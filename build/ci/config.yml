@@ -19,7 +19,7 @@ jobs:
           command: make bazel-lint-gazelle
       - run:
           name: "Make sure Go files are properly formatted"
-          command: make bazel-lint-gofumports
+          command: make lint-gofumports
       - run:
           name: "Build project"
           command: make bazel-build
