@@ -10,6 +10,7 @@ all: \
 .PHONY: fix
 fix: \
 	bazel-gazelle \
+	buildifier \
 	gofumports \
 	go-mod-fix
 
@@ -17,6 +18,7 @@ fix: \
 .PHONY: lint
 lint: \
 	bazel-lint-gazelle \
+	lint-buildifier \
 	lint-gofumports \
 	go-lint-mod-fix
 
@@ -88,25 +90,12 @@ bazel-build: $(BAZEL)
 bazel-test: $(BAZEL)
 	$(BAZEL) $(BAZEL_FLAGS) test //...
 
-# bazel-buildifier: run the `buildifier` tool to format Bazel build files.
-.PHONY: bazel-buildifier
-bazel-buildifier: $(BAZEL)
-	$(BAZEL) $(BAZEL_FLAGS) run //:buildifier
-
 # bazel-lint-gazelle: check that re-generating build files does not create any modifications to committed files.
 .PHONY: bazel-lint-gazelle
 bazel-lint-gazelle: bazel-gazelle
 	scripts/git-verify-no-diff.bash \
 		WORKSPACE \
 		$(BUILD_FILES)
-
-# bazel-lint-buildifier: check that formatting build files does not create any modifications to committed files.
-.PHONY: bazel-lint-buildifier
-bazel-lint-buildifier: bazel-buildifier $(BAZEL)
-	scripts/git-verify-no-diff.bash \
-		WORKSPACE \
-		$(BUILD_FILES)
-	$(BAZEL) $(BAZEL_FLAGS) run //:buildifier -- --lint=warn
 
 GOBIN_CACHE_DIR := build/.gobincache
 $(GOBIN_CACHE_DIR):
@@ -132,6 +121,31 @@ gofumports: $(GOFUMPORTS)
 lint-gofumports: gofumports
 	scripts/git-verify-no-diff.bash \
 		$(GO_FILES)
+
+BUILDIFIER_VERSION := 0.28.0
+BUILDIFIER_CACHE_DIR := $(GOBIN_CACHE_DIR)/buildifier/$(BUILDIFIER_VERSION)
+BUILDIFIER := $(BUILDIFIER_CACHE_DIR)/buildifier
+
+$(BUILDIFIER_CACHE_DIR):
+	mkdir --parent '$@'
+
+$(BUILDIFIER): $(GOBIN) | $(BUILDIFIER_CACHE_DIR)
+	GOBIN=$(BUILDIFIER_CACHE_DIR) $(GOBIN) github.com/bazelbuild/buildtools/buildifier@$(BUILDIFIER_VERSION)
+
+# buildifier: run the `buildifier` tool to format Bazel build files.
+.PHONY: buildifier
+buildifier: $(BUILDIFIER)
+	$(BUILDIFIER) -r '$(WD)'
+
+# lint-buildifier: check that formatting build files does not create any modifications to committed files.
+.PHONY: lint-buildifier
+lint-buildifier: buildifier $(BUILDIFIER)
+	scripts/git-verify-no-diff.bash \
+		WORKSPACE \
+		$(BUILD_FILES)
+	$(BUILDIFIER) \
+		--lint=warn \
+		-r '$(WD)'
 
 # circleci-build: run the `build` job using a local CircleCI executor.
 .PHONY: circleci-build
