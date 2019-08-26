@@ -4,3 +4,6 @@
 [submodule "build/tools/circleci"]
 	path = build/tools/circleci
 	url = git@github.com:Saser/mk-circleci.git
+[submodule "build/tools/gobin"]
+	path = build/tools/gobin
+	url = git@github.com:Saser/mk-gobin.git

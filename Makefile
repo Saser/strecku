@@ -50,9 +50,11 @@ BAZEL_FLAGS := \
 
 .PHONY: \
 	build/tools/bazel \
-	build/tools/circleci
+	build/tools/circleci \
+	build/tools/gobin
 build/tools/bazel \
-build/tools/circleci:
+build/tools/circleci \
+build/tools/gobin:
 	git submodule update --init --recursive '$@'
 
 include build/tools/bazel/Makefile
@@ -61,6 +63,9 @@ build/tools/bazel/Makefile: build/tools/bazel
 include build/tools/circleci/Makefile
 build/tools/circleci/Makefile: build/tools/circleci
 	@# included in submodule: build/tools/circleci
+include build/tools/gobin/Makefile
+build/tools/gobin/Makefile: build/tools/gobin
+	@# included in submodule: build/tools/gobin
 
 # bazel-info: display information about the Bazel server.
 .PHONY: bazel-info
