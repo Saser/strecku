@@ -16,7 +16,7 @@ jobs:
           command: make bazel-info
       - run:
           name: "Make sure build files are up to date"
-          command: make bazel-lint-gazelle
+          command: make lint-gazelle
       - run:
           name: "Make sure build files are properly formatted and linted"
           command: make lint-buildifier

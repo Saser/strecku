@@ -1,7 +1,1 @@
-load(
-    "@bazel_gazelle//:def.bzl",
-    "gazelle",
-)
-
 # gazelle:prefix github.com/Saser/strecku
-gazelle(name = "gazelle")

@@ -9,7 +9,7 @@ all: \
 # fix: run tools that generate build files, fix formatting, etc.
 .PHONY: fix
 fix: \
-	bazel-gazelle \
+	gazelle \
 	buildifier \
 	gofumports \
 	go-mod-fix
@@ -17,7 +17,7 @@ fix: \
 # lint: run linters for build files, Go files, etc.
 .PHONY: lint
 lint: \
-	bazel-lint-gazelle \
+	lint-gazelle \
 	lint-buildifier \
 	lint-gofumports \
 	go-lint-mod-fix
@@ -74,12 +74,6 @@ build/tools/gobin/Makefile: build/tools/gobin
 bazel-info: $(BAZEL)
 	$(BAZEL) $(BAZEL_FLAGS) info
 
-# bazel-gazelle: generate `BUILD.bazel` files using `gazelle`.
-.PHONY: bazel-gazelle
-bazel-gazelle: $(BAZEL)
-	$(BAZEL) $(BAZEL_FLAGS) run //:gazelle -- fix
-	$(BAZEL) $(BAZEL_FLAGS) run //:gazelle -- update-repos -from_file=go.mod -prune
-
 # bazel-build: build the entire project using `bazel`.
 .PHONY: bazel-build
 bazel-build: $(BAZEL)
@@ -90,16 +84,34 @@ bazel-build: $(BAZEL)
 bazel-test: $(BAZEL)
 	$(BAZEL) $(BAZEL_FLAGS) test //...
 
-# bazel-lint-gazelle: check that re-generating build files does not create any modifications to committed files.
-.PHONY: bazel-lint-gazelle
-bazel-lint-gazelle: bazel-gazelle
-	scripts/git-verify-no-diff.bash \
-		WORKSPACE \
-		$(BUILD_FILES)
-
 GOBIN_CACHE_DIR := build/.gobincache
 $(GOBIN_CACHE_DIR):
 	mkdir --parent '$@'
+
+GAZELLE_VERSION := 0.18.2
+GAZELLE_CACHE_DIR := $(GOBIN_CACHE_DIR)/gazelle/$(GAZELLE_VERSION)
+GAZELLE := $(GAZELLE_CACHE_DIR)/gazelle
+
+$(GAZELLE_CACHE_DIR):
+	mkdir --parent '$@'
+
+$(GAZELLE): $(GOBIN) | $(GAZELLE_CACHE_DIR)
+	GOBIN=$(GAZELLE_CACHE_DIR) $(GOBIN) github.com/bazelbuild/bazel-gazelle/cmd/gazelle@$(GAZELLE_VERSION)
+
+# gazelle: generate `BUILD.bazel` files using `gazelle`.
+.PHONY: gazelle
+gazelle: $(GAZELLE)
+	$(GAZELLE) fix
+	$(GAZELLE) update-repos \
+		-from_file=go.mod \
+		-prune
+
+# lint-gazelle: check that re-generating build files does not create any modifications to committed files.
+.PHONY: lint-gazelle
+lint-gazelle: gazelle
+	scripts/git-verify-no-diff.bash \
+		WORKSPACE \
+		$(BUILD_FILES)
 
 GOFUMPORTS_VERSION := 96300e3d49fbb3b7bc9c6dc74f8a5cc0ef46f84b
 GOFUMPORTS_CACHE_DIR := $(GOBIN_CACHE_DIR)/gofumports/$(GOFUMPORTS_VERSION)
