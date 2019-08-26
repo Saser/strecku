@@ -26,3 +26,6 @@ jobs:
       - run:
           name: "Test project"
           command: make bazel-test
+      - run:
+          name: "Make sure all commits in branch passes CI"
+          command: scripts/keep-master-green.bash
