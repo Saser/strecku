@@ -21,6 +21,9 @@ jobs:
           name: "Make sure build files are properly formatted"
           command: make bazel-lint-buildifier
       - run:
+          name: "Make sure Go files are properly formatted"
+          command: make bazel-lint-gofumports
+      - run:
           name: "Build project"
           command: make bazel-build
       - run:

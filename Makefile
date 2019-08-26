@@ -3,9 +3,15 @@ all: \
 	bazel-build \
 	bazel-test
 
+# WD: the absolute path to the current working directory. It is used for referring to the root directory of this project
+# instead of using e.g. `.` to refer to "this directory". This is necessary when invoking tools such as `gofumports`
+# using Bazel.
+WD := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+
 GIT_LS_FILES := git ls-files --exclude-standard --cached --others
 
 BUILD_FILES := $(shell $(GIT_LS_FILES) -- '*BUILD.bazel')
+GO_FILES := $(shell $(GIT_LS_FILES) -- '*.go')
 
 .PHONY: \
 	build/tools/bazel \
@@ -42,6 +48,11 @@ bazel-build: $(BAZEL)
 bazel-test: $(BAZEL)
 	$(BAZEL) test --test_output=errors //...
 
+# bazel-gofumports: run the `gofumports` Go code formatter.
+.PHONY: bazel-gofumports
+bazel-gofumports: $(BAZEL)
+	$(BAZEL) run @cc_mvdan_gofumpt//gofumports -- -w $(WD)
+
 # bazel-buildifier: run the `buildifier` tool to format Bazel build files.
 .PHONY: bazel-buildifier
 bazel-buildifier: $(BAZEL)
@@ -61,6 +72,12 @@ bazel-lint-buildifier: bazel-buildifier $(BAZEL)
 		WORKSPACE \
 		$(BUILD_FILES)
 	$(BAZEL) $(BAZEL_FLAGS) run //:buildifier -- --lint=warn
+
+# bazel-lint-gofumports: check that formatting Go files does not create any modifications to committed files.
+.PHONY: bazel-lint-gofumports
+bazel-lint-gofumports: bazel-gofumports
+	scripts/git-verify-no-diff.bash \
+		$(GO_FILES)
 
 # circleci-build: run the `build` job using a local CircleCI executor.
 .PHONY: circleci-build
