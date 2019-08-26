@@ -1,6 +1,33 @@
+# all: run everything needed for a complete build that passes CI.
 .PHONY: all
 all: \
-	bazel-build \
+	fix \
+	lint \
+	build \
+	test
+
+# fix: run tools that generate build files, fix formatting, etc.
+.PHONY: fix
+fix: \
+	bazel-gazelle \
+	bazel-gofumports \
+	go-mod-fix
+
+# lint: run linters for build files, Go files, etc.
+.PHONY: lint
+lint: \
+	bazel-lint-gazelle \
+	bazel-lint-gofumports \
+	go-lint-mod-fix
+
+# build: build the entire project.
+.PHONY: build
+build: \
+	bazel-build
+
+# test: test the entire project.
+.PHONY: test
+test: \
 	bazel-test
 
 # WD: the absolute path to the current working directory. It is used for referring to the root directory of this project
