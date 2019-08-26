@@ -18,9 +18,6 @@ jobs:
           name: "Make sure build files are up to date"
           command: make bazel-lint-gazelle
       - run:
-          name: "Make sure build files are properly formatted"
-          command: make bazel-lint-buildifier
-      - run:
           name: "Make sure Go files are properly formatted"
           command: make bazel-lint-gofumports
       - run:
