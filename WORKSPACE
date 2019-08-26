@@ -59,7 +59,7 @@ BAZEL_BUILDTOOLS_VERSION = "0.28.0"
 
 http_archive(
     name = "com_github_bazelbuild_buildtools",
-    sha256 = "6ec71602e9b458b01717fab1d37492154c1c12ea83f881c745dbd88e9b2098d8",
+    sha256 = "5ec71602e9b458b01717fab1d37492154c1c12ea83f881c745dbd88e9b2098d8",
     strip_prefix = "buildtools-{version}".format(version = BAZEL_BUILDTOOLS_VERSION),
     url = "https://github.com/bazelbuild/buildtools/archive/{version}.tar.gz".format(version = BAZEL_BUILDTOOLS_VERSION),
 )
