@@ -91,3 +91,16 @@ bazel-lint-gofumports: bazel-gofumports
 .PHONY: circleci-build
 circleci-build: $(CIRCLECI)
 	$(CIRCLECI) local execute --job build
+
+# go-mod-fix: update and format `go.mod` and `go.sum` files.
+.PHONY: go-mod-fix
+go-mod-fix:
+	go mod tidy -v
+	go mod edit -fmt
+
+# go-lint-mod: make sure the `go.mod` and `go.sum` files are properly formatted and up to date.
+.PHONY: go-lint-mod
+go-lint-mod-fix: go-mod-fix
+	scripts/git-verify-no-diff.bash \
+		go.mod \
+		go.sum
