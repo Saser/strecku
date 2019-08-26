@@ -13,6 +13,14 @@ GIT_LS_FILES := git ls-files --exclude-standard --cached --others
 BUILD_FILES := $(shell $(GIT_LS_FILES) -- '*BUILD.bazel')
 GO_FILES := $(shell $(GIT_LS_FILES) -- '*.go')
 
+ifeq ($(CI),true)
+	BAZELRC := build/ci/.bazelrc
+else
+	BAZELRC := .bazelrc
+endif
+BAZEL_FLAGS := \
+	--bazelrc=$(BAZELRC)
+
 .PHONY: \
 	build/tools/bazel \
 	build/tools/circleci
@@ -30,33 +38,33 @@ build/tools/circleci/Makefile: build/tools/circleci
 # bazel-info: display information about the Bazel server.
 .PHONY: bazel-info
 bazel-info: $(BAZEL)
-	$(BAZEL) info
+	$(BAZEL) $(BAZEL_FLAGS) info
 
 # bazel-gazelle: generate `BUILD.bazel` files using `gazelle`.
 .PHONY: bazel-gazelle
 bazel-gazelle: $(BAZEL)
-	$(BAZEL) run //:gazelle -- fix
-	$(BAZEL) run //:gazelle -- update-repos -from_file=go.mod -prune
+	$(BAZEL) $(BAZEL_FLAGS) run //:gazelle -- fix
+	$(BAZEL) $(BAZEL_FLAGS) run //:gazelle -- update-repos -from_file=go.mod -prune
 
 # bazel-build: build the entire project using `bazel`.
 .PHONY: bazel-build
 bazel-build: $(BAZEL)
-	$(BAZEL) build //...
+	$(BAZEL) $(BAZEL_FLAGS) build //...
 
 # bazel-test: run all tests in the entire project using `bazel`.
 .PHONY: bazel-test
 bazel-test: $(BAZEL)
-	$(BAZEL) test --test_output=errors //...
+	$(BAZEL) $(BAZEL_FLAGS) test //...
 
 # bazel-gofumports: run the `gofumports` Go code formatter.
 .PHONY: bazel-gofumports
 bazel-gofumports: $(BAZEL)
-	$(BAZEL) run @cc_mvdan_gofumpt//gofumports -- -w $(WD)
+	$(BAZEL) $(BAZEL_FLAGS) run @cc_mvdan_gofumpt//gofumports -- -w $(WD)
 
 # bazel-buildifier: run the `buildifier` tool to format Bazel build files.
 .PHONY: bazel-buildifier
 bazel-buildifier: $(BAZEL)
-	$(BAZEL) run //:buildifier
+	$(BAZEL) $(BAZEL_FLAGS) run //:buildifier
 
 # bazel-lint-gazelle: check that re-generating build files does not create any modifications to committed files.
 .PHONY: bazel-lint-gazelle

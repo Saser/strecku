@@ -1,0 +1,4 @@
+common --noshow_progress
+common --verbose_failures
+
+test --test_output=errors
