@@ -24,6 +24,9 @@ jobs:
           name: "Make sure Go files are properly formatted"
           command: make lint-gofumports
       - run:
+          name: "Lint Go files"
+          command: make lint-golangci-lint
+      - run:
           name: "Build project"
           command: make bazel-build
       - run:

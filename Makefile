@@ -20,6 +20,7 @@ lint: \
 	lint-gazelle \
 	lint-buildifier \
 	lint-gofumports \
+	lint-golangci-lint \
 	go-lint-mod-fix
 
 # build: build the entire project.
@@ -158,6 +159,24 @@ lint-buildifier: buildifier $(BUILDIFIER)
 	$(BUILDIFIER) \
 		--lint=warn \
 		-r '$(WD)'
+
+GOLANGCI_LINT_VERSION := v1.17.1
+GOLANGCI_LINT_CACHE_DIR := $(GOBIN_CACHE_DIR)/golangci-lint/$(GOLANGCI_LINT_VERSION)
+GOLANGCI_LINT := $(GOLANGCI_LINT_CACHE_DIR)/golangci-lint
+
+$(GOLANGCI_LINT_CACHE_DIR):
+	mkdir --parent '$@'
+
+$(GOLANGCI_LINT): $(GOBIN) | $(GOLANGCI_LINT_CACHE_DIR)
+	GOBIN=$(GOLANGCI_LINT_CACHE_DIR) $(GOBIN) github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+
+# lint-golangci-lint: lint Go files using a number of linters.
+.PHONY: lint-golangci-lint
+lint-golangci-lint: $(GOLANGCI_LINT)
+	@# interfacer: disabled since its author has deprecated it
+	$(GOLANGCI_LINT) run \
+		--enable-all \
+		--disable interfacer
 
 # circleci-build: run the `build` job using a local CircleCI executor.
 .PHONY: circleci-build
