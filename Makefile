@@ -26,12 +26,12 @@ lint: \
 # build: build the entire project.
 .PHONY: build
 build: \
-	bazel-build
+	go-build
 
 # test: test the entire project.
 .PHONY: test
 test: \
-	bazel-test
+	go-test
 
 # WD: the absolute path to the current working directory. It is used for referring to the root directory of this project
 # instead of using e.g. `.` to refer to "this directory". This is necessary when invoking tools such as `gofumports`
@@ -182,6 +182,16 @@ lint-golangci-lint: $(GOLANGCI_LINT)
 .PHONY: circleci-build
 circleci-build: $(CIRCLECI)
 	$(CIRCLECI) local execute --job build
+
+# go-build: builds the module using `go build`.
+.PHONY: go-build
+go-build:
+	go build ./...
+
+# go-test: tests the module using `go test`.
+.PHONY: go-test
+go-test:
+	go test -race -cover ./...
 
 # go-mod-fix: update and format `go.mod` and `go.sum` files.
 .PHONY: go-mod-fix

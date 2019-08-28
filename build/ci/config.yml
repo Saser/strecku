@@ -28,10 +28,10 @@ jobs:
           command: make lint-golangci-lint
       - run:
           name: "Build project"
-          command: make bazel-build
+          command: make go-build
       - run:
           name: "Test project"
-          command: make bazel-test
+          command: make go-test
       - run:
           name: "Make sure all commits in branch passes CI"
           command: scripts/keep-master-green.bash
