@@ -23,9 +23,27 @@ GOLANGCI_LINT := $(GOLANGCI_LINT_BINDIR)/golangci-lint
 $(GOLANGCI_LINT): | $(GOBIN) $(GOLANGCI_LINT_BINDIR)
 	GOBIN=$(GOLANGCI_LINT_BINDIR) $(GOBIN) github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 
+# `protoc-gen-go` is a tool that generates Go code from Protobuf files. The version below _must_ be kept in sync with
+# the `github.com/golang/protobuf` dependency of the project's Go module.
+PROTOC_GEN_GO_VERSION := v1.3.1
+PROTOC_GEN_GO_BINDIR := $(GOBIN_BINDIR)/protoc-gen-go/$(PROTOC_GEN_GO_VERSION)
+PROTOC_GEN_GO := $(PROTOC_GEN_GO_BINDIR)/protoc-gen-go
+$(PROTOC_GEN_GO): | $(GOBIN) $(PROTOC_GEN_GO_BINDIR)
+	GOBIN=$(PROTOC_GEN_GO_BINDIR) $(GOBIN) github.com/golang/protobuf/protoc-gen-go@$(PROTOC_GEN_GO_VERSION)
+
+# `prototool` is a tool from Uber for working with Protobuf files. It can create new files, format them, lint them, and
+# generate implementation code for them.
+PROTOTOOL_VERSION := v1.8.0
+PROTOTOOL_BINDIR := $(GOBIN_BINDIR)/prototool/$(PROTOTOOL_VERSION)
+PROTOTOOL := $(PROTOTOOL_BINDIR)/prototool
+$(PROTOTOOL): | $(GOBIN) $(PROTOTOOL_BINDIR)
+	GOBIN=$(PROTOTOOL_BINDIR) $(GOBIN) github.com/uber/prototool/cmd/prototool@$(PROTOTOOL_VERSION)
+
 BINDIRS := \
 	$(GOFUMPORTS_BINDIR) \
-	$(GOLANGCI_LINT_BINDIR)
+	$(GOLANGCI_LINT_BINDIR) \
+	$(PROTOC_GEN_GO_BINDIR) \
+	$(PROTOTOOL_BINDIR)
 $(BINDIRS):
 	mkdir --parent '$@'
 
@@ -35,4 +53,6 @@ $(BINDIRS):
 .PHONY: tools-all
 tools-all: | \
 	$(GOFUMPORTS) \
-	$(GOLANGCI_LINT)
+	$(GOLANGCI_LINT) \
+	$(PROTOC_GEN_GO) \
+	$(PROTOTOOL)

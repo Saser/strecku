@@ -16,6 +16,12 @@ jobs:
           paths:
             - build/tools/bin
       - run:
+          name: "Make sure Protobuf files are formatted and linted"
+          command: make lint-prototool
+      - run:
+          name: "Make sure generated Protobuf files are up to date"
+          command: make lint-prototool-generate
+      - run:
           name: "Make sure Go files are properly formatted"
           command: make lint-gofumports
       - run:
