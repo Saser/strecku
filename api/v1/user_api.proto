@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package strecku.v1;
+
+option csharp_namespace = "Strecku.V1";
+option go_package = "streckuv1";
+option java_multiple_files = true;
+option java_outer_classname = "UserApiProto";
+option java_package = "com.strecku.v1";
+option objc_class_prefix = "SXX";
+option php_namespace = "Strecku\\V1";
+
+import "v1/user.proto";
+
+// UserAPI manages User resources. It allows for listing, creating, updating, and deleting users.
+service UserAPI {
+  // ListUsers returns a list of users. The order is unspecified but deterministic.
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+}
+
+// Request message for UserAPI.ListUsers.
+message ListUsersRequest {}
+
+// Response message for UserAPI.ListUsers.
+message ListUsersResponse {
+  // The list of users.
+  repeated User users = 1;
+}

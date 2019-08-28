@@ -28,6 +28,9 @@ jobs:
           name: "Lint Go files"
           command: make lint-golangci-lint
       - run:
+          name: "Make sure Protobuf files are properly formatted and linted"
+          command: make lint-prototool
+      - run:
           name: "Build project"
           command: make go-build
       - run:

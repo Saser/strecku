@@ -59,7 +59,7 @@ include build/tools/circleci/Makefile
 # gofumports: run the `gofumports` Go code formatter.
 .PHONY: gofumports
 gofumports: $(GOFUMPORTS)
-	$(GOFUMPORTS) -w '$(WD)'
+	$(GOFUMPORTS) -w $(GO_FILES)
 
 # lint-gofumports: check that formatting Go files does not create any modifications to committed files.
 .PHONY: lint-gofumports

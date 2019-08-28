@@ -1,0 +1,16 @@
+protoc:
+  version: 3.9.1
+lint:
+  group: uber2
+create:
+  packages:
+    - directory: .
+      name: strecku
+generate:
+  go_options:
+    import_path: github.com/Saser/strecku/api
+  plugins:
+    - name: go
+      type: go
+      flags: plugins=grpc
+      output: ../internal/gen/go
