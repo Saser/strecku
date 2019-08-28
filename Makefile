@@ -30,55 +30,27 @@ test: \
 	go-test
 
 # WD: the absolute path to the current working directory. It is used for referring to the root directory of this project
-# instead of using e.g. `.` to refer to "this directory". This is necessary when invoking tools such as `gofumports`
-# using Bazel.
+# instead of using e.g. `.` to refer to "this directory". This is not strictly necessary for most tools, but it improves
+# the reliability of invoking them by using absolute paths instead of relative paths.
 WD := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
 GIT_LS_FILES := git ls-files --exclude-standard --cached --others
 
 GO_FILES := $(shell $(GIT_LS_FILES) -- '*.go')
 
-ifeq ($(CI),true)
-	BAZELRC := build/ci/.bazelrc
-else
-	BAZELRC := .bazelrc
-endif
-BAZEL_FLAGS := \
-	--bazelrc=$(BAZELRC)
-
 .PHONY: \
-	build/tools/bazel \
 	build/tools/circleci \
 	build/tools/gobin
-build/tools/bazel \
 build/tools/circleci \
 build/tools/gobin:
 	git submodule update --init --recursive '$@'
 
-include build/tools/bazel/Makefile
-build/tools/bazel/Makefile: build/tools/bazel
-	@# included in submodule: build/tools/bazel
 include build/tools/circleci/Makefile
 build/tools/circleci/Makefile: build/tools/circleci
 	@# included in submodule: build/tools/circleci
 include build/tools/gobin/Makefile
 build/tools/gobin/Makefile: build/tools/gobin
 	@# included in submodule: build/tools/gobin
-
-# bazel-info: display information about the Bazel server.
-.PHONY: bazel-info
-bazel-info: $(BAZEL)
-	$(BAZEL) $(BAZEL_FLAGS) info
-
-# bazel-build: build the entire project using `bazel`.
-.PHONY: bazel-build
-bazel-build: $(BAZEL)
-	$(BAZEL) $(BAZEL_FLAGS) build //...
-
-# bazel-test: run all tests in the entire project using `bazel`.
-.PHONY: bazel-test
-bazel-test: $(BAZEL)
-	$(BAZEL) $(BAZEL_FLAGS) test //...
 
 GOBIN_CACHE_DIR := build/.gobincache
 $(GOBIN_CACHE_DIR):
