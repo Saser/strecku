@@ -16,6 +16,8 @@ import "v1/user.proto";
 service UserAPI {
   // ListUsers returns a list of users. The order is unspecified but deterministic.
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  // CreateUser creates a new user. The new user must have a unique email address.
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
 }
 
 // Request message for UserAPI.ListUsers.
@@ -25,4 +27,16 @@ message ListUsersRequest {}
 message ListUsersResponse {
   // The list of users.
   repeated User users = 1;
+}
+
+// Request message for UserAPI.CreateUser.
+message CreateUserRequest {
+  // The user to create.
+  User user = 1;
+}
+
+// Response message for UserAPI.CreateUser.
+message CreateUserResponse {
+  // The user that was created.
+  User user = 1;
 }

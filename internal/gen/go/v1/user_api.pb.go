@@ -97,28 +97,115 @@ func (m *ListUsersResponse) GetUsers() []*User {
 	return nil
 }
 
+// Request message for UserAPI.CreateUser.
+type CreateUserRequest struct {
+	// The user to create.
+	User                 *User    `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateUserRequest) Reset()         { *m = CreateUserRequest{} }
+func (m *CreateUserRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateUserRequest) ProtoMessage()    {}
+func (*CreateUserRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6beeca62d8388557, []int{2}
+}
+
+func (m *CreateUserRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateUserRequest.Unmarshal(m, b)
+}
+func (m *CreateUserRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateUserRequest.Marshal(b, m, deterministic)
+}
+func (m *CreateUserRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateUserRequest.Merge(m, src)
+}
+func (m *CreateUserRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateUserRequest.Size(m)
+}
+func (m *CreateUserRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateUserRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateUserRequest proto.InternalMessageInfo
+
+func (m *CreateUserRequest) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
+// Response message for UserAPI.CreateUser.
+type CreateUserResponse struct {
+	// The user that was created.
+	User                 *User    `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateUserResponse) Reset()         { *m = CreateUserResponse{} }
+func (m *CreateUserResponse) String() string { return proto.CompactTextString(m) }
+func (*CreateUserResponse) ProtoMessage()    {}
+func (*CreateUserResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6beeca62d8388557, []int{3}
+}
+
+func (m *CreateUserResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateUserResponse.Unmarshal(m, b)
+}
+func (m *CreateUserResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateUserResponse.Marshal(b, m, deterministic)
+}
+func (m *CreateUserResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateUserResponse.Merge(m, src)
+}
+func (m *CreateUserResponse) XXX_Size() int {
+	return xxx_messageInfo_CreateUserResponse.Size(m)
+}
+func (m *CreateUserResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateUserResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateUserResponse proto.InternalMessageInfo
+
+func (m *CreateUserResponse) GetUser() *User {
+	if m != nil {
+		return m.User
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*ListUsersRequest)(nil), "strecku.v1.ListUsersRequest")
 	proto.RegisterType((*ListUsersResponse)(nil), "strecku.v1.ListUsersResponse")
+	proto.RegisterType((*CreateUserRequest)(nil), "strecku.v1.CreateUserRequest")
+	proto.RegisterType((*CreateUserResponse)(nil), "strecku.v1.CreateUserResponse")
 }
 
 func init() { proto.RegisterFile("v1/user_api.proto", fileDescriptor_6beeca62d8388557) }
 
 var fileDescriptor_6beeca62d8388557 = []byte{
-	// 196 bytes of a gzipped FileDescriptorProto
+	// 253 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x2c, 0x33, 0xd4, 0x2f,
 	0x2d, 0x4e, 0x2d, 0x8a, 0x4f, 0x2c, 0xc8, 0xd4, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x2a,
 	0x2e, 0x29, 0x4a, 0x4d, 0xce, 0x2e, 0xd5, 0x2b, 0x33, 0x94, 0xe2, 0x85, 0x4a, 0x43, 0xa4, 0x94,
 	0x84, 0xb8, 0x04, 0x7c, 0x32, 0x8b, 0x4b, 0x42, 0x8b, 0x53, 0x8b, 0x8a, 0x83, 0x52, 0x0b, 0x4b,
 	0x53, 0x8b, 0x4b, 0x94, 0xac, 0xb9, 0x04, 0x91, 0xc4, 0x8a, 0x0b, 0xf2, 0xf3, 0x8a, 0x53, 0x85,
 	0xd4, 0xb8, 0x58, 0x41, 0xda, 0x8a, 0x25, 0x18, 0x15, 0x98, 0x35, 0xb8, 0x8d, 0x04, 0xf4, 0x10,
-	0x66, 0xea, 0x81, 0x54, 0x06, 0x41, 0xa4, 0x8d, 0x82, 0xb9, 0xd8, 0x41, 0x5c, 0xc7, 0x00, 0x4f,
-	0x21, 0x0f, 0x2e, 0x4e, 0xb8, 0x39, 0x42, 0x32, 0xc8, 0x1a, 0xd0, 0xad, 0x94, 0x92, 0xc5, 0x21,
-	0x0b, 0xb1, 0xdc, 0xc9, 0x9b, 0x8b, 0x2f, 0x39, 0x3f, 0x17, 0x49, 0x8d, 0x13, 0x0f, 0xd8, 0x92,
-	0x82, 0xcc, 0x00, 0x90, 0x2f, 0x02, 0x18, 0xa3, 0x38, 0xa1, 0x72, 0x65, 0x86, 0x8b, 0x98, 0x98,
-	0x83, 0x23, 0x22, 0x56, 0x31, 0x71, 0x05, 0x43, 0x55, 0x87, 0x19, 0x9e, 0x82, 0x73, 0x62, 0xc2,
-	0x0c, 0x93, 0xd8, 0xc0, 0x3e, 0x37, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x23, 0x82, 0x2e, 0xda,
-	0x29, 0x01, 0x00, 0x00,
+	0x66, 0xea, 0x81, 0x54, 0x06, 0x41, 0xa4, 0x95, 0x2c, 0xb9, 0x04, 0x9d, 0x8b, 0x52, 0x13, 0x4b,
+	0x52, 0xc1, 0x82, 0x10, 0x13, 0x85, 0x54, 0xb8, 0x58, 0x40, 0xb2, 0x12, 0x8c, 0x0a, 0x8c, 0x58,
+	0xf5, 0x82, 0x65, 0x95, 0xac, 0xb8, 0x84, 0x90, 0xb5, 0x42, 0x2d, 0x26, 0x4a, 0xaf, 0xd1, 0x02,
+	0x46, 0x2e, 0x76, 0x10, 0xd7, 0x31, 0xc0, 0x53, 0xc8, 0x83, 0x8b, 0x13, 0xee, 0x7e, 0x21, 0x19,
+	0x64, 0x0d, 0xe8, 0x5e, 0x95, 0x92, 0xc5, 0x21, 0x0b, 0xb5, 0xdb, 0x9b, 0x8b, 0x0b, 0xe1, 0x22,
+	0x21, 0x14, 0xc5, 0x18, 0x9e, 0x94, 0x92, 0xc3, 0x25, 0x0d, 0x31, 0xcc, 0xc9, 0x9b, 0x8b, 0x2f,
+	0x39, 0x3f, 0x17, 0x49, 0x91, 0x13, 0x0f, 0xd8, 0xc5, 0x05, 0x99, 0x01, 0xa0, 0xa8, 0x08, 0x60,
+	0x8c, 0xe2, 0x84, 0xca, 0x95, 0x19, 0x2e, 0x62, 0x62, 0x0e, 0x8e, 0x88, 0x58, 0xc5, 0xc4, 0x15,
+	0x0c, 0x55, 0x1d, 0x66, 0x78, 0x0a, 0xce, 0x89, 0x09, 0x33, 0x4c, 0x62, 0x03, 0x47, 0x9f, 0x31,
+	0x20, 0x00, 0x00, 0xff, 0xff, 0x7c, 0x9d, 0xb4, 0xf4, 0xee, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -135,6 +222,8 @@ const _ = grpc.SupportPackageIsVersion4
 type UserAPIClient interface {
 	// ListUsers returns a list of users. The order is unspecified but deterministic.
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
+	// CreateUser creates a new user. The new user must have a unique email address.
+	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 }
 
 type userAPIClient struct {
@@ -154,10 +243,21 @@ func (c *userAPIClient) ListUsers(ctx context.Context, in *ListUsersRequest, opt
 	return out, nil
 }
 
+func (c *userAPIClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error) {
+	out := new(CreateUserResponse)
+	err := c.cc.Invoke(ctx, "/strecku.v1.UserAPI/CreateUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserAPIServer is the server API for UserAPI service.
 type UserAPIServer interface {
 	// ListUsers returns a list of users. The order is unspecified but deterministic.
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
+	// CreateUser creates a new user. The new user must have a unique email address.
+	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 }
 
 // UnimplementedUserAPIServer can be embedded to have forward compatible implementations.
@@ -166,6 +266,9 @@ type UnimplementedUserAPIServer struct {
 
 func (*UnimplementedUserAPIServer) ListUsers(ctx context.Context, req *ListUsersRequest) (*ListUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
+}
+func (*UnimplementedUserAPIServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
 
 func RegisterUserAPIServer(s *grpc.Server, srv UserAPIServer) {
@@ -190,6 +293,24 @@ func _UserAPI_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserAPI_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserAPIServer).CreateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/strecku.v1.UserAPI/CreateUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserAPIServer).CreateUser(ctx, req.(*CreateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _UserAPI_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "strecku.v1.UserAPI",
 	HandlerType: (*UserAPIServer)(nil),
@@ -197,6 +318,10 @@ var _UserAPI_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListUsers",
 			Handler:    _UserAPI_ListUsers_Handler,
+		},
+		{
+			MethodName: "CreateUser",
+			Handler:    _UserAPI_CreateUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
