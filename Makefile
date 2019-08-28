@@ -9,16 +9,12 @@ all: \
 # fix: run tools that generate build files, fix formatting, etc.
 .PHONY: fix
 fix: \
-	gazelle \
-	buildifier \
 	gofumports \
 	go-mod-fix
 
 # lint: run linters for build files, Go files, etc.
 .PHONY: lint
 lint: \
-	lint-gazelle \
-	lint-buildifier \
 	lint-gofumports \
 	lint-golangci-lint \
 	go-lint-mod-fix
@@ -40,7 +36,6 @@ WD := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
 GIT_LS_FILES := git ls-files --exclude-standard --cached --others
 
-BUILD_FILES := $(shell $(GIT_LS_FILES) -- '*BUILD.bazel')
 GO_FILES := $(shell $(GIT_LS_FILES) -- '*.go')
 
 ifeq ($(CI),true)
@@ -89,31 +84,6 @@ GOBIN_CACHE_DIR := build/.gobincache
 $(GOBIN_CACHE_DIR):
 	mkdir --parent '$@'
 
-GAZELLE_VERSION := 0.18.2
-GAZELLE_CACHE_DIR := $(GOBIN_CACHE_DIR)/gazelle/$(GAZELLE_VERSION)
-GAZELLE := $(GAZELLE_CACHE_DIR)/gazelle
-
-$(GAZELLE_CACHE_DIR):
-	mkdir --parent '$@'
-
-$(GAZELLE): $(GOBIN) | $(GAZELLE_CACHE_DIR)
-	GOBIN=$(GAZELLE_CACHE_DIR) $(GOBIN) github.com/bazelbuild/bazel-gazelle/cmd/gazelle@$(GAZELLE_VERSION)
-
-# gazelle: generate `BUILD.bazel` files using `gazelle`.
-.PHONY: gazelle
-gazelle: $(GAZELLE)
-	$(GAZELLE) fix
-	$(GAZELLE) update-repos \
-		-from_file=go.mod \
-		-prune
-
-# lint-gazelle: check that re-generating build files does not create any modifications to committed files.
-.PHONY: lint-gazelle
-lint-gazelle: gazelle
-	scripts/git-verify-no-diff.bash \
-		WORKSPACE \
-		$(BUILD_FILES)
-
 GOFUMPORTS_VERSION := 96300e3d49fbb3b7bc9c6dc74f8a5cc0ef46f84b
 GOFUMPORTS_CACHE_DIR := $(GOBIN_CACHE_DIR)/gofumports/$(GOFUMPORTS_VERSION)
 GOFUMPORTS := $(GOFUMPORTS_CACHE_DIR)/gofumports
@@ -134,31 +104,6 @@ gofumports: $(GOFUMPORTS)
 lint-gofumports: gofumports
 	scripts/git-verify-no-diff.bash \
 		$(GO_FILES)
-
-BUILDIFIER_VERSION := 0.28.0
-BUILDIFIER_CACHE_DIR := $(GOBIN_CACHE_DIR)/buildifier/$(BUILDIFIER_VERSION)
-BUILDIFIER := $(BUILDIFIER_CACHE_DIR)/buildifier
-
-$(BUILDIFIER_CACHE_DIR):
-	mkdir --parent '$@'
-
-$(BUILDIFIER): $(GOBIN) | $(BUILDIFIER_CACHE_DIR)
-	GOBIN=$(BUILDIFIER_CACHE_DIR) $(GOBIN) github.com/bazelbuild/buildtools/buildifier@$(BUILDIFIER_VERSION)
-
-# buildifier: run the `buildifier` tool to format Bazel build files.
-.PHONY: buildifier
-buildifier: $(BUILDIFIER)
-	$(BUILDIFIER) -r '$(WD)'
-
-# lint-buildifier: check that formatting build files does not create any modifications to committed files.
-.PHONY: lint-buildifier
-lint-buildifier: buildifier $(BUILDIFIER)
-	scripts/git-verify-no-diff.bash \
-		WORKSPACE \
-		$(BUILD_FILES)
-	$(BUILDIFIER) \
-		--lint=warn \
-		-r '$(WD)'
 
 GOLANGCI_LINT_VERSION := v1.17.1
 GOLANGCI_LINT_CACHE_DIR := $(GOBIN_CACHE_DIR)/golangci-lint/$(GOLANGCI_LINT_VERSION)

@@ -15,12 +15,6 @@ jobs:
           name: "Start Bazel server"
           command: make bazel-info
       - run:
-          name: "Make sure build files are up to date"
-          command: make lint-gazelle
-      - run:
-          name: "Make sure build files are properly formatted and linted"
-          command: make lint-buildifier
-      - run:
           name: "Make sure Go files are properly formatted"
           command: make lint-gofumports
       - run:
