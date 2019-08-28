@@ -1,6 +1,3 @@
-[submodule "build/tools/bazel"]
-	path = build/tools/bazel
-	url = git@github.com:Saser/mk-bazel.git
 [submodule "build/tools/circleci"]
 	path = build/tools/circleci
 	url = git@github.com:Saser/mk-circleci.git
