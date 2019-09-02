@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	_ "github.com/lib/pq" // blank import needed for PostgreSQL driver
 	"go.uber.org/zap"
 	"golang.org/x/xerrors"
 )
