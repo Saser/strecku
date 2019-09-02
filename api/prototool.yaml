@@ -13,4 +13,4 @@ generate:
     - name: go
       type: go
       flags: plugins=grpc
-      output: ../internal/gen/go
+      output: ../internal/api/gen
