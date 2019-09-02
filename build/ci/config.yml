@@ -5,6 +5,16 @@ jobs:
       - image: circleci/golang:1.12.9
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - tools-{{ checksum "tools.mk" }}
+      - run:
+          name: "Install all tools used in the build"
+          command: make -f tools.mk tools-all
+      - save_cache:
+          key: tools-{{ checksum "tools.mk" }}
+          paths:
+            - build/tools/bin
       - run:
           name: "Make sure Go files are properly formatted"
           command: make lint-gofumports
