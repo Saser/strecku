@@ -29,13 +29,13 @@ build: \
 test: \
 	go-test
 
-# `tools.mk` contains targets and recipes for building and installing all tools required by this Makefile.
-include tools.mk
-
 # WD: the absolute path to the current working directory. It is used for referring to the root directory of this project
 # instead of using e.g. `.` to refer to "this directory". This is not strictly necessary for most tools, but it improves
 # the reliability of invoking them by using absolute paths instead of relative paths.
 WD := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+
+# `tools.mk` contains targets and recipes for building and installing all tools required by this Makefile.
+include tools.mk
 
 GIT_LS_FILES := git ls-files --exclude-standard --cached --others
 
