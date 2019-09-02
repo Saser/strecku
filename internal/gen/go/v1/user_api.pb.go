@@ -8,6 +8,8 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -156,6 +158,14 @@ func (c *userAPIClient) ListUsers(ctx context.Context, in *ListUsersRequest, opt
 type UserAPIServer interface {
 	// ListUsers returns a list of users. The order is unspecified but deterministic.
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
+}
+
+// UnimplementedUserAPIServer can be embedded to have forward compatible implementations.
+type UnimplementedUserAPIServer struct {
+}
+
+func (*UnimplementedUserAPIServer) ListUsers(ctx context.Context, req *ListUsersRequest) (*ListUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
 }
 
 func RegisterUserAPIServer(s *grpc.Server, srv UserAPIServer) {

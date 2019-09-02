@@ -25,7 +25,7 @@ $(GOLANGCI_LINT): | $(GOBIN) $(GOLANGCI_LINT_BINDIR)
 
 # `protoc-gen-go` is a tool that generates Go code from Protobuf files. The version below _must_ be kept in sync with
 # the `github.com/golang/protobuf` dependency of the project's Go module.
-PROTOC_GEN_GO_VERSION := v1.3.1
+PROTOC_GEN_GO_VERSION := v1.3.2
 PROTOC_GEN_GO_BINDIR := $(GOBIN_BINDIR)/protoc-gen-go/$(PROTOC_GEN_GO_VERSION)
 PROTOC_GEN_GO := $(PROTOC_GEN_GO_BINDIR)/protoc-gen-go
 $(PROTOC_GEN_GO): | $(GOBIN) $(PROTOC_GEN_GO_BINDIR)
