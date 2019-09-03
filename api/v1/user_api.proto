@@ -33,6 +33,8 @@ message ListUsersResponse {
 message CreateUserRequest {
   // The user to create.
   User user = 1;
+  // The password that the user should be created with.
+  string password = 2;
 }
 
 // Response message for UserAPI.CreateUser.
