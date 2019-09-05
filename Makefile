@@ -32,7 +32,8 @@ build: \
 # test: test the entire project.
 .PHONY: test
 test: \
-	go-test
+	go-test \
+	integrationtest-run
 
 # WD: the absolute path to the current working directory. It is used for referring to the root directory of this project
 # instead of using e.g. `.` to refer to "this directory". This is not strictly necessary for most tools, but it improves
@@ -137,16 +138,34 @@ go-lint-mod-fix: go-mod-fix
 
 INTEGRATION_TEST_COMPOSEFILE := deployments/compose/integration_test.yml
 
-# compose-integrationtest-up: ensure all containers in the integration test environment are started.
-.PHONY: compose-integrationtest-up
-compose-integrationtest-up: $(DOCKER_COMPOSE)
+# integrationtest-build: builds all images required for the integration tests.
+.PHONY: integrationtest-build
+integrationtest-build: $(DOCKER_COMPOSE)
 	$(DOCKER_COMPOSE) \
 		--file '$(INTEGRATION_TEST_COMPOSEFILE)' \
-		up -d
+		build
 
-# compose-integrationtest-down: tears down and removes the integration test environment.
-.PHONY: compose-integrationtest-down
-compose-integrationtest-down: $(DOCKER_COMPOSE)
+# integrationtest-up: ensure all containers in the integration test environment are started, except for the
+# integration tests themselves.
+.PHONY: integrationtest-up
+integrationtest-up: $(DOCKER_COMPOSE)
+	$(DOCKER_COMPOSE) \
+		--file '$(INTEGRATION_TEST_COMPOSEFILE)' \
+		up -d \
+		postgres
+
+# integrationtest-down: tears down and removes the integration test environment, including the container for the
+# integration tests themselves.
+.PHONY: integrationtest-down
+integrationtest-down: $(DOCKER_COMPOSE)
 	$(DOCKER_COMPOSE) \
 		--file '$(INTEGRATION_TEST_COMPOSEFILE)' \
 		down
+
+# integrationtest-run: runs the integration tests in a separate container.
+.PHONY: integrationtest-run
+integrationtest-run: $(DOCKER_COMPOSE) integrationtest-build integrationtest-up
+	$(DOCKER_COMPOSE) \
+		--file '$(INTEGRATION_TEST_COMPOSEFILE)' \
+		run --rm \
+		integrationtest

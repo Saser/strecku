@@ -4,7 +4,20 @@ services:
   postgres:
     image: postgres:11.5
     environment:
-      - POSTGRES_USER=strecku_integrationtest
-      - POSTGRES_PASSWORD=strecku_integrationtest
-      - POSTGRES_DB=strecku_integrationtest
-    network_mode: host
+      - POSTGRES_USER=integrationtest
+      - POSTGRES_PASSWORD=integrationtest
+      - POSTGRES_DB=integrationtest
+    networks:
+      - integrationtest
+  integrationtest:
+    build:
+      context: ../../
+      dockerfile: build/package/Dockerfile
+    command: go test -race -cover -count=1 -tags=integrationtest ./...
+    depends_on:
+      - postgres
+    networks:
+      - integrationtest
+
+networks:
+  integrationtest:

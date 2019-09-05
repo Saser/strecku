@@ -31,11 +31,21 @@ jobs:
           name: "Make sure Protobuf files are properly formatted and linted"
           command: make lint-prototool
       - run:
-          name: "Build project"
+          name: "Build all Go packages"
           command: make go-build
       - run:
-          name: "Test project"
+          name: "Run Go unit tests"
           command: make go-test
+      - setup_remote_docker
+      - run:
+          name: "Build images required for integration tests"
+          command: make integrationtest-build
+      - run:
+          name: "Start containers for integration test environment"
+          command: make integrationtest-up
+      - run:
+          name: "Run integration tests"
+          command: make integrationtest-run
       - run:
           name: "Make sure all commits in branch passes CI"
           command: scripts/keep-master-green.bash
