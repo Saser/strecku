@@ -2,9 +2,11 @@ package provide
 
 import (
 	"log"
+	"testing"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest"
 	"golang.org/x/xerrors"
 )
 
@@ -24,4 +26,16 @@ func ZapDevelopmentLogger(
 	}
 	logger.Info("created zap development logger")
 	return logger, nil
+}
+
+func ZapTestLogger(
+	t *testing.T,
+) *zap.Logger {
+	t.Log("creating zap test logger")
+	options := []zap.Option{
+		zap.AddCaller(),
+	}
+	logger := zaptest.NewLogger(t, zaptest.WrapOptions(options...))
+	logger.Info("created zap test logger")
+	return logger
 }
