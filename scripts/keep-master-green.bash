@@ -22,16 +22,19 @@ range="$master..$reset"
 echo "Testing the following commits:"
 git --no-pager log --reverse --pretty='format:%H - %s' "$range"
 echo "" # The above `git` command appears to not always output the last newline, which is done with this `echo` instead.
+echo "------------"
 commits=$(git rev-list --reverse "$range")
 for commit in $commits; do
-    echo "$commit: checkout"
+    msg=$(git --no-pager log --pretty='format:%s' "$commit"^.."$commit")
+    echo "$commit - $msg"
+    echo "  * checkout"
     git checkout --quiet "$commit"
     logfile="$dir/$commit.log"
     errfile="$dir/$commit.err"
-    echo "$commit: build"
+    echo "  * build"
     set +e
     if ! $cmd 1>"$logfile" 2>"$errfile"; then
-        echo "$commit: build failed"
+        echo "  * build failed"
         echo "Output of \`$cmd\` on standard out:"
         cat "$logfile"
         echo ""
@@ -40,7 +43,7 @@ for commit in $commits; do
         exit 1
     fi
     set -e
-    echo "$commit: build passed"
+    echo "  * build passed"
 done
 echo "All commits from \`$master\` to \`$reset\` build successfully!"
 echo "Removing directory for build log files."
