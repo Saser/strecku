@@ -39,11 +39,20 @@ PROTOTOOL := $(PROTOTOOL_BINDIR)/prototool
 $(PROTOTOOL): | $(GOBIN) $(PROTOTOOL_BINDIR)
 	GOBIN=$(PROTOTOOL_BINDIR) $(GOBIN) github.com/uber/prototool/cmd/prototool@$(PROTOTOOL_VERSION)
 
+# `wire` is a tool to generate compile-time dependency injection code. The version below _must_ be kept in sync with the
+# `github.com/google/wire` dependency of the Go module.
+WIRE_VERSION := v0.3.0
+WIRE_BINDIR := $(GOBIN_BINDIR)/wire/$(WIRE_VERSION)
+WIRE := $(WIRE_BINDIR)/wire
+$(WIRE): | $(GOBIN) $(WIRE_BINDIR)
+	GOBIN=$(WIRE_BINDIR) $(GOBIN) github.com/google/wire/cmd/wire@$(WIRE_VERSION)
+
 BINDIRS := \
 	$(GOFUMPORTS_BINDIR) \
 	$(GOLANGCI_LINT_BINDIR) \
 	$(PROTOC_GEN_GO_BINDIR) \
-	$(PROTOTOOL_BINDIR)
+	$(PROTOTOOL_BINDIR) \
+	$(WIRE_BINDIR)
 $(BINDIRS):
 	mkdir --parent '$@'
 
@@ -55,4 +64,5 @@ tools-all: | \
 	$(GOFUMPORTS) \
 	$(GOLANGCI_LINT) \
 	$(PROTOC_GEN_GO) \
-	$(PROTOTOOL)
+	$(PROTOTOOL) \
+	$(WIRE)
