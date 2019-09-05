@@ -42,7 +42,7 @@ loop:
 		}
 	}
 	if pingErr != nil {
-		return nil, nil, xerrors.Errorf("provide DB pool: %w", err)
+		return nil, nil, xerrors.Errorf("provide DB pool: %w", pingErr)
 	}
 	cleanup := func() {
 		logger.Info("closing DB pool")
