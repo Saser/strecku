@@ -1,0 +1,13 @@
+[Logger]
+Level = "debug"
+
+[DB]
+ConnString = """\
+    host=postgres \
+    port=5432 \
+    user=integrationtest \
+    password=integrationtest \
+    dbname=integrationtest \
+    sslmode=disable \
+"""
+ConnTimeout = "20s"

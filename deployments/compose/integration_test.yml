@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+  postgres:
+    image: postgres:11.5
+    environment:
+      - POSTGRES_USER=strecku_integrationtest
+      - POSTGRES_PASSWORD=strecku_integrationtest
+      - POSTGRES_DB=strecku_integrationtest
+    network_mode: host
