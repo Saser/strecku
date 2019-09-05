@@ -3,6 +3,7 @@ package provide
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	_ "github.com/lib/pq" // blank import needed for PostgreSQL driver
 	"go.uber.org/zap"
@@ -13,13 +14,34 @@ func PostgresDBPool(
 	ctx context.Context,
 	logger *zap.Logger,
 	connString string,
+	connTimeout time.Duration,
 ) (*sql.DB, func(), error) {
 	logger.Info("creating new DB pool", zap.String("connString", connString))
 	db, err := sql.Open("postgres", connString)
 	if err != nil {
 		return nil, nil, xerrors.Errorf("provide DB pool: %w", err)
 	}
-	if err := db.PingContext(ctx); err != nil {
+	pingCtx, pingCancel := context.WithTimeout(ctx, connTimeout)
+	defer pingCancel()
+	var pingErr error
+	pingCtxDone := pingCtx.Done()
+	ticker := time.NewTicker(1 * time.Second)
+loop:
+	for {
+		select {
+		case <-pingCtxDone:
+			pingErr = pingCtx.Err()
+			break loop
+		case <-ticker.C:
+			if err := db.PingContext(pingCtx); err != nil {
+				logger.Warn("pinging DB failed, retrying", zap.Error(err))
+				continue
+			}
+			pingErr = nil
+			break loop
+		}
+	}
+	if pingErr != nil {
 		return nil, nil, xerrors.Errorf("provide DB pool: %w", err)
 	}
 	cleanup := func() {
