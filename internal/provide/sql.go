@@ -21,7 +21,9 @@ func DBPool(
 	if err != nil {
 		return nil, nil, xerrors.Errorf("provide DB pool: %w", err)
 	}
-	if err := db.Ping(); err != nil {
+	pingCtx, pingCancel := context.WithTimeout(ctx, timeout)
+	defer pingCancel()
+	if err := db.PingContext(pingCtx); err != nil {
 		return nil, nil, xerrors.Errorf("provide DB pool: %w", err)
 	}
 	cleanup := func() {
