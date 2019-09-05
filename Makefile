@@ -52,9 +52,12 @@ PB_GO_FILES := $(shell $(GIT_LS_FILES) -- '*.pb.go')
 # PROTO_FILES contains all Protobuf files not ignored by Git.
 PROTO_FILES := $(shell $(GIT_LS_FILES) -- '*.proto')
 
-build/tools/circleci/Makefile:
+TOOL_MAKEFILES := \
+	build/tools/circleci/Makefile \
+	build/tools/docker-compose/Makefile
+$(TOOL_MAKEFILES):
 	git submodule update --init --recursive '$(dir $@)'
-include build/tools/circleci/Makefile
+include $(TOOL_MAKEFILES)
 
 # gofumports: run the `gofumports` Go code formatter.
 .PHONY: gofumports

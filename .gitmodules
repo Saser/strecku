@@ -4,3 +4,6 @@
 [submodule "build/tools/gobin"]
 	path = build/tools/gobin
 	url = git@github.com:Saser/mk-gobin.git
+[submodule "build/tools/docker-compose"]
+	path = build/tools/docker-compose
+	url = git@github.com:Saser/mk-docker-compose.git
