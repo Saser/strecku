@@ -1,0 +1,2 @@
+[DB]
+ConnTimeout = "foobar" # this should be a valid duration, like "10s"

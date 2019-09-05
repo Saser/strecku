@@ -2,6 +2,7 @@ package config
 
 import (
 	"strings"
+	"time"
 
 	internalviper "github.com/Saser/strecku/internal/viper"
 	"github.com/mitchellh/mapstructure"
@@ -17,7 +18,8 @@ type Config struct {
 		Level zap.AtomicLevel
 	}
 	DB struct {
-		ConnString string
+		ConnString  string
+		ConnTimeout time.Duration
 	}
 }
 
@@ -33,7 +35,12 @@ func LoadFile(filePath string, cfg *Config) error {
 	unmarshal := func(dc *mapstructure.DecoderConfig) {
 		dc.ErrorUnused = true
 	}
-	hook := viper.DecodeHook(internalviper.ZapAtomicLevelDecodeHookFunc)
+	hook := viper.DecodeHook(
+		mapstructure.ComposeDecodeHookFunc(
+			internalviper.ZapAtomicLevelDecodeHookFunc,
+			mapstructure.StringToTimeDurationHookFunc(),
+		),
+	)
 	if err := v.Unmarshal(cfg, unmarshal, hook); err != nil {
 		return xerrors.Errorf("load file: %w", err)
 	}

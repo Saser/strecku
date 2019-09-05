@@ -3,3 +3,4 @@ Level = "debug"
 
 [DB]
 ConnString = "someConnString"
+ConnTimeout = "10s"
