@@ -134,3 +134,19 @@ go-lint-mod-fix: go-mod-fix
 	scripts/git-verify-no-diff.bash \
 		go.mod \
 		go.sum
+
+INTEGRATION_TEST_COMPOSEFILE := deployments/compose/integration_test.yml
+
+# compose-integrationtest-up: ensure all containers in the integration test environment are started.
+.PHONY: compose-integrationtest-up
+compose-integrationtest-up: $(DOCKER_COMPOSE)
+	$(DOCKER_COMPOSE) \
+		--file '$(INTEGRATION_TEST_COMPOSEFILE)' \
+		up -d
+
+# compose-integrationtest-down: tears down and removes the integration test environment.
+.PHONY: compose-integrationtest-down
+compose-integrationtest-down: $(DOCKER_COMPOSE)
+	$(DOCKER_COMPOSE) \
+		--file '$(INTEGRATION_TEST_COMPOSEFILE)' \
+		down
