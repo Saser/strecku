@@ -10,7 +10,7 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func DBPool(
+func PostgresDBPool(
 	ctx context.Context,
 	logger *zap.Logger,
 	connString string,
