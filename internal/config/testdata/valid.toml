@@ -1,2 +1,5 @@
 [Logger]
 Level = "debug"
+
+[DB]
+ConnString = "someConnString"

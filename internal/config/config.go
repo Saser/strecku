@@ -16,6 +16,9 @@ type Config struct {
 	Logger struct {
 		Level zap.AtomicLevel
 	}
+	DB struct {
+		ConnString string
+	}
 }
 
 func LoadFile(filePath string, cfg *Config) error {
