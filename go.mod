@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/cenkalti/backoff/v3 v3.0.0
+	github.com/golang-migrate/migrate/v4 v4.6.1
 	github.com/golang/protobuf v1.3.2
 	github.com/google/wire v0.3.0
 	github.com/lib/pq v1.2.0
