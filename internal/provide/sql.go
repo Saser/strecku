@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/cenkalti/backoff/v3"
 	_ "github.com/lib/pq" // blank import needed for PostgreSQL driver
 	"go.uber.org/zap"
 	"golang.org/x/xerrors"
@@ -23,26 +24,10 @@ func PostgresDBPool(
 	}
 	pingCtx, pingCancel := context.WithTimeout(ctx, connTimeout)
 	defer pingCancel()
-	var pingErr error
-	pingCtxDone := pingCtx.Done()
-	ticker := time.NewTicker(1 * time.Second)
-loop:
-	for {
-		select {
-		case <-pingCtxDone:
-			pingErr = pingCtx.Err()
-			break loop
-		case <-ticker.C:
-			if err := db.PingContext(pingCtx); err != nil {
-				logger.Warn("pinging DB failed, retrying", zap.Error(err))
-				continue
-			}
-			pingErr = nil
-			break loop
-		}
-	}
-	if pingErr != nil {
-		return nil, nil, xerrors.Errorf("provide DB pool: %w", pingErr)
+	operation := func() error { return db.PingContext(pingCtx) }
+	policy := backoff.WithContext(backoff.NewExponentialBackOff(), pingCtx)
+	if err := backoff.Retry(operation, policy); err != nil {
+		return nil, nil, xerrors.Errorf("provide DB pool: %w")
 	}
 	cleanup := func() {
 		logger.Info("closing DB pool")
