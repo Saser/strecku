@@ -1,1 +1,1 @@
-DROP TABLE stores;
+DROP TABLE IF EXISTS stores;

@@ -2,7 +2,7 @@ CREATE TYPE user_role AS ENUM (
     'customer'
 );
 
-CREATE TABLE has_role (
+CREATE TABLE IF NOT EXISTS has_role (
     "user" UUID -- Quoted since `user` is a reserved keyword in SQL.
         NOT NULL
         REFERENCES users (uuid),
