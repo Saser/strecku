@@ -6,10 +6,26 @@
 package inject
 
 import (
+	"context"
+	"database/sql"
 	"github.com/Saser/strecku/internal/config"
 	"github.com/Saser/strecku/internal/provide"
 	"go.uber.org/zap"
 )
+
+// Injectors from sql.go:
+
+func PostgresDBPoolFromConfig(ctx context.Context, logger *zap.Logger, config2 *config.Config) (*sql.DB, func(), error) {
+	string2 := provide.ConfigDBConnString(config2)
+	duration := provide.ConfigDBConnTimeout(config2)
+	db, cleanup, err := provide.PostgresDBPool(ctx, logger, string2, duration)
+	if err != nil {
+		return nil, nil, err
+	}
+	return db, func() {
+		cleanup()
+	}, nil
+}
 
 // Injectors from zap.go:
 
