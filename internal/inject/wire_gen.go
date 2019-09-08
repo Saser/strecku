@@ -14,7 +14,7 @@ import (
 // Injectors from zap.go:
 
 func ZapDevelopmentLoggerFromConfig(config2 *config.Config) (*zap.Logger, func(), error) {
-	atomicLevel := provide.LoggerLevelFromConfig(config2)
+	atomicLevel := provide.ConfigLoggerLevel(config2)
 	logger, err := provide.ZapDevelopmentLogger(atomicLevel)
 	if err != nil {
 		return nil, nil, err

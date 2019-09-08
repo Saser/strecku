@@ -5,7 +5,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func LoggerLevelFromConfig(
+func ConfigLoggerLevel(
 	config *config.Config,
 ) zap.AtomicLevel {
 	return config.Logger.Level

@@ -14,7 +14,7 @@ func ZapDevelopmentLoggerFromConfig(
 ) (*zap.Logger, func(), error) {
 	panic( // panic to be replaced by generated code
 		wire.Build(
-			provide.LoggerLevelFromConfig,
+			provide.ConfigLoggerLevel,
 			provide.ZapDevelopmentLogger,
 		),
 	)
