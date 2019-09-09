@@ -27,7 +27,7 @@ func PostgresDBPool(
 	operation := func() error { return db.PingContext(pingCtx) }
 	policy := backoff.WithContext(backoff.NewExponentialBackOff(), pingCtx)
 	if err := backoff.Retry(operation, policy); err != nil {
-		return nil, nil, xerrors.Errorf("provide DB pool: %w")
+		return nil, nil, xerrors.Errorf("provide DB pool: %w", err)
 	}
 	cleanup := func() {
 		logger.Info("closing DB pool")
