@@ -3,12 +3,12 @@ package provide
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/cenkalti/backoff/v3"
 	_ "github.com/lib/pq" // blank import needed for PostgreSQL driver
 	"go.uber.org/zap"
-	"golang.org/x/xerrors"
 )
 
 func PostgresDBPool(
@@ -20,14 +20,14 @@ func PostgresDBPool(
 	logger.Info("creating new DB pool", zap.String("connString", connString))
 	db, err := sql.Open("postgres", connString)
 	if err != nil {
-		return nil, nil, xerrors.Errorf("provide DB pool: %w", err)
+		return nil, nil, fmt.Errorf("provide DB pool: %w", err)
 	}
 	pingCtx, pingCancel := context.WithTimeout(ctx, connTimeout)
 	defer pingCancel()
 	operation := func() error { return db.PingContext(pingCtx) }
 	policy := backoff.WithContext(backoff.NewExponentialBackOff(), pingCtx)
 	if err := backoff.Retry(operation, policy); err != nil {
-		return nil, nil, xerrors.Errorf("provide DB pool: %w", err)
+		return nil, nil, fmt.Errorf("provide DB pool: %w", err)
 	}
 	cleanup := func() {
 		logger.Info("closing DB pool")

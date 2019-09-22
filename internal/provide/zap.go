@@ -1,13 +1,13 @@
 package provide
 
 import (
+	"fmt"
 	"log"
 	"testing"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
-	"golang.org/x/xerrors"
 )
 
 func ZapDevelopmentLogger(
@@ -22,7 +22,7 @@ func ZapDevelopmentLogger(
 	}
 	logger, err := cfg.Build(options...)
 	if err != nil {
-		return nil, xerrors.Errorf("provide zap development logger: %w", err)
+		return nil, fmt.Errorf("provide zap development logger: %w", err)
 	}
 	logger.Info("created zap development logger")
 	return logger, nil

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -8,7 +9,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
-	"golang.org/x/xerrors"
 )
 
 const Prefix = "strecku"
@@ -30,7 +30,7 @@ func LoadFile(filePath string, cfg *Config) error {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 	if err := v.ReadInConfig(); err != nil {
-		return xerrors.Errorf("load file: %w", err)
+		return fmt.Errorf("load file: %w", err)
 	}
 	unmarshal := func(dc *mapstructure.DecoderConfig) {
 		dc.ErrorUnused = true
@@ -42,7 +42,7 @@ func LoadFile(filePath string, cfg *Config) error {
 		),
 	)
 	if err := v.Unmarshal(cfg, unmarshal, hook); err != nil {
-		return xerrors.Errorf("load file: %w", err)
+		return fmt.Errorf("load file: %w", err)
 	}
 	return nil
 }
