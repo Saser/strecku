@@ -17,7 +17,7 @@ $(GOFUMPORTS): | $(GOBIN) $(GOFUMPORTS_BINDIR)
 	GOBIN=$(GOFUMPORTS_BINDIR) $(GOBIN) mvdan.cc/gofumpt/gofumports@$(GOFUMPORTS_VERSION)
 
 # `golangci-lint` is a tool to run numerous linters for Go code.
-GOLANGCI_LINT_VERSION := v1.17.1
+GOLANGCI_LINT_VERSION := v1.18.0
 GOLANGCI_LINT_BINDIR := $(GOBIN_BINDIR)/golangci-lint/$(GOLANGCI_LINT_VERSION)
 GOLANGCI_LINT := $(GOLANGCI_LINT_BINDIR)/golangci-lint
 $(GOLANGCI_LINT): | $(GOBIN) $(GOLANGCI_LINT_BINDIR)
@@ -33,7 +33,7 @@ $(PROTOC_GEN_GO): | $(GOBIN) $(PROTOC_GEN_GO_BINDIR)
 
 # `prototool` is a tool from Uber for working with Protobuf files. It can create new files, format them, lint them, and
 # generate implementation code for them.
-PROTOTOOL_VERSION := v1.8.0
+PROTOTOOL_VERSION := 7df3b957ffe3d09dc57fe4e1eb96694614db8c7a
 PROTOTOOL_BINDIR := $(GOBIN_BINDIR)/prototool/$(PROTOTOOL_VERSION)
 PROTOTOOL := $(PROTOTOOL_BINDIR)/prototool
 $(PROTOTOOL): | $(GOBIN) $(PROTOTOOL_BINDIR)
