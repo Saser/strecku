@@ -33,10 +33,10 @@ jobs:
       - run:
           name: "Build all Go packages"
           command: make go-build
+      - setup_remote_docker
       - run:
           name: "Run Go unit tests"
           command: make go-test
-      - setup_remote_docker
       - run:
           name: "Build images required for integration tests"
           command: make integrationtest-build
