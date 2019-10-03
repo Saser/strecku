@@ -48,7 +48,7 @@ func (p *Pool) PullOfficialImage(ctx context.Context, imageName string, tag stri
 	return nil
 }
 
-func (p *Pool) StartContainer(ctx context.Context, imageName string, tag string, publishAll bool) (string, error) {
+func (p *Pool) StartContainer(ctx context.Context, imageName string, tag string) (string, error) {
 	imageLogger := p.logger.With(
 		zap.String("imageName", imageName),
 		zap.String("tag", tag),
@@ -66,7 +66,7 @@ func (p *Pool) StartContainer(ctx context.Context, imageName string, tag string,
 		Image: fmt.Sprintf("%v:%v", imageName, tag),
 	}
 	hostConfig := &container.HostConfig{
-		PublishAllPorts: publishAll,
+		PublishAllPorts: true,
 	}
 	createResponse, err := p.cli.ContainerCreate(ctx, containerConfig, hostConfig, nil, "")
 	if err != nil {
@@ -76,7 +76,6 @@ func (p *Pool) StartContainer(ctx context.Context, imageName string, tag string,
 	idLogger := p.logger.With(zap.String("id", id))
 	idLogger.Info(
 		"created container, now starting it",
-		zap.Bool("publishAll", publishAll),
 	)
 	if err := p.cli.ContainerStart(ctx, id, types.ContainerStartOptions{}); err != nil {
 		return "", fmt.Errorf("start container: %w", err)
@@ -116,7 +115,6 @@ func (p *Pool) WithContainer(
 	ctx context.Context,
 	imageName string,
 	tag string,
-	publishAll bool,
 	stopTimeout time.Duration,
 	f func(string) error,
 ) (err error) {
@@ -125,7 +123,7 @@ func (p *Pool) WithContainer(
 		zap.String("imageName", imageName),
 		zap.String("tag", tag),
 	)
-	id, startErr := p.StartContainer(ctx, imageName, tag, publishAll)
+	id, startErr := p.StartContainer(ctx, imageName, tag)
 	if startErr != nil {
 		return fmt.Errorf("with container: %w", startErr)
 	}

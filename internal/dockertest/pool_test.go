@@ -60,7 +60,7 @@ func TestPool_StartContainer_StopContainer_ContainerExists(t *testing.T) {
 	} {
 		tt := tt
 		t.Run(fmt.Sprintf("image=%v,tag=%v,valid=%v", tt.image, tt.tag, tt.valid), func(t *testing.T) {
-			id, err := pool.StartContainer(ctx, tt.image, tt.tag, false)
+			id, err := pool.StartContainer(ctx, tt.image, tt.tag)
 			if tt.valid {
 				require.NoError(t, err)
 			} else {
@@ -118,7 +118,7 @@ func TestPool_WithContainer(t *testing.T) {
 	} {
 		tt := tt
 		t.Run(fmt.Sprintf("image=%v,tag=%v,valid=%v", tt.image, tt.tag, tt.valid), func(t *testing.T) {
-			err := pool.WithContainer(ctx, tt.image, tt.tag, false, stopTimeout, tt.f)
+			err := pool.WithContainer(ctx, tt.image, tt.tag, stopTimeout, tt.f)
 			if tt.valid {
 				require.NoError(t, err)
 			} else {
@@ -135,8 +135,7 @@ func TestPool_GetPortBinding(t *testing.T) {
 	defer cleanup()
 	ctx := context.Background()
 	stopTimeout := 10 * time.Second
-	publishAll := true
-	err := pool.WithContainer(ctx, "postgres", "11.5-alpine", publishAll, stopTimeout, func(id string) error {
+	err := pool.WithContainer(ctx, "postgres", "11.5-alpine", stopTimeout, func(id string) error {
 		ip, err := pool.GetPortBinding(ctx, id, "5432/tcp")
 		require.NoError(t, err)
 		require.NotEmpty(t, ip)
