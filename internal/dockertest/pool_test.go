@@ -60,7 +60,7 @@ func TestPool_StartContainer_StopContainer_ContainerExists(t *testing.T) {
 	} {
 		tt := tt
 		t.Run(fmt.Sprintf("image=%v,tag=%v,valid=%v", tt.image, tt.tag, tt.valid), func(t *testing.T) {
-			id, err := pool.StartContainer(ctx, tt.image, tt.tag)
+			id, err := pool.StartContainer(ctx, tt.image, tt.tag, false)
 			if tt.valid {
 				require.NoError(t, err)
 			} else {
@@ -118,7 +118,7 @@ func TestPool_WithContainer(t *testing.T) {
 	} {
 		tt := tt
 		t.Run(fmt.Sprintf("image=%v,tag=%v,valid=%v", tt.image, tt.tag, tt.valid), func(t *testing.T) {
-			err := pool.WithContainer(ctx, tt.image, tt.tag, stopTimeout, tt.f)
+			err := pool.WithContainer(ctx, tt.image, tt.tag, false, stopTimeout, tt.f)
 			if tt.valid {
 				require.NoError(t, err)
 			} else {
