@@ -44,7 +44,7 @@ func TestPool_PullOfficialImage(t *testing.T) {
 	}
 }
 
-func TestPool_StopContainer_StopContainer(t *testing.T) {
+func TestPool_StartContainer_StopContainer_ContainerExists(t *testing.T) {
 	logger := provide.ZapTestLogger(t)
 	pool, cleanup := pool(t, logger)
 	defer cleanup()
@@ -74,6 +74,9 @@ func TestPool_StopContainer_StopContainer(t *testing.T) {
 			policy := backoff.WithContext(backoff.NewExponentialBackOff(), stopCtx)
 			err = backoff.Retry(operation, policy)
 			require.NoError(t, err)
+			exists, err := pool.ContainerExists(ctx, id)
+			require.NoError(t, err)
+			require.False(t, exists)
 		})
 	}
 }

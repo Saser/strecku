@@ -9,6 +9,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
 	"go.uber.org/zap"
 )
 
@@ -91,4 +92,17 @@ func (p *Pool) StopContainer(ctx context.Context, containerID string, timeout ti
 	}
 	idLogger.Info("container removed")
 	return nil
+}
+
+func (p *Pool) ContainerExists(ctx context.Context, containerID string) (bool, error) {
+	idLogger := p.logger.With(zap.String("id", containerID))
+	idLogger.Info("checking if container exists by inspecting it")
+	_, err := p.cli.ContainerInspect(ctx, containerID)
+	if err != nil {
+		if client.IsErrContainerNotFound(err) {
+			return false, nil
+		}
+		return false, fmt.Errorf("container exists: %w", err)
+	}
+	return true, nil
 }
