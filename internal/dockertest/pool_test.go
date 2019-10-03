@@ -129,6 +129,23 @@ func TestPool_WithContainer(t *testing.T) {
 	}
 }
 
+func TestPool_GetPortBinding(t *testing.T) {
+	logger := provide.ZapTestLogger(t)
+	pool, cleanup := pool(t, logger)
+	defer cleanup()
+	ctx := context.Background()
+	stopTimeout := 10 * time.Second
+	publishAll := true
+	err := pool.WithContainer(ctx, "postgres", "11.5-alpine", publishAll, stopTimeout, func(id string) error {
+		ip, err := pool.GetPortBinding(ctx, id, "5432/tcp")
+		require.NoError(t, err)
+		require.NotEmpty(t, ip)
+		require.Contains(t, ip, ":")
+		return nil
+	})
+	require.NoError(t, err)
+}
+
 func pool(t *testing.T, logger *zap.Logger) (*Pool, func()) {
 	cli, cleanup, err := NewClient(logger)
 	require.NoError(t, err)

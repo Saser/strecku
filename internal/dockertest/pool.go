@@ -10,6 +10,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 	"go.uber.org/zap"
 )
 
@@ -137,4 +138,28 @@ func (p *Pool) WithContainer(
 		return fmt.Errorf("with container: %w", err)
 	}
 	return nil
+}
+
+func (p *Pool) GetPortBinding(ctx context.Context, containerID string, port string) (string, error) {
+	idLogger := p.logger.With(
+		zap.String("id", containerID),
+	)
+	idLogger.Info("inspecting container")
+	inspectResponse, err := p.cli.ContainerInspect(ctx, containerID)
+	if err != nil {
+		return "", fmt.Errorf("get bound port: %w", err)
+	}
+	idLogger.Info("inspected container")
+	portMappings := inspectResponse.NetworkSettings.Ports[nat.Port(port)]
+	if len(portMappings) == 0 {
+		return "", fmt.Errorf("get bound port: no mappings for port %v", port)
+	}
+	hostPort := portMappings[0].HostPort
+	portBinding := fmt.Sprintf("%v:%v", p.cli.Host, hostPort)
+	idLogger.Info(
+		"found port mapping",
+		zap.String("port", port),
+		zap.String("portBinding", portBinding),
+	)
+	return portBinding, nil
 }
