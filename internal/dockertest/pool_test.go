@@ -29,7 +29,7 @@ func TestPool_PullOfficialImage(t *testing.T) {
 		tag   string
 		valid bool
 	}{
-		{image: "postgres", tag: "11.5-alpine", valid: true},
+		{image: "hello-world", tag: "linux", valid: true},
 		{image: "invalid", tag: "invalid", valid: false},
 	} {
 		tt := tt
@@ -54,7 +54,7 @@ func TestPool_StopContainer_StopContainer(t *testing.T) {
 		tag   string
 		valid bool
 	}{
-		{image: "postgres", tag: "11.5-alpine", valid: true},
+		{image: "hello-world", tag: "linux", valid: true},
 		{image: "invalid", tag: "invalid", valid: false},
 	} {
 		tt := tt
