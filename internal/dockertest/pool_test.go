@@ -2,6 +2,7 @@ package dockertest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -77,6 +78,53 @@ func TestPool_StartContainer_StopContainer_ContainerExists(t *testing.T) {
 			exists, err := pool.ContainerExists(ctx, id)
 			require.NoError(t, err)
 			require.False(t, exists)
+		})
+	}
+}
+
+func TestPool_WithContainer(t *testing.T) {
+	logger := provide.ZapTestLogger(t)
+	pool, cleanup := pool(t, logger)
+	defer cleanup()
+	ctx := context.Background()
+	stopTimeout := 10 * time.Second
+	for _, tt := range []struct {
+		image string
+		tag   string
+		f     func(string) error
+		valid bool
+	}{
+		// Valid image, function that does not return error.
+		{
+			image: "hello-world",
+			tag:   "linux",
+			f:     func(id string) error { return nil },
+			valid: true,
+		},
+		// Valid image, function that does return an error.
+		{
+			image: "hello-world",
+			tag:   "linux",
+			f:     func(id string) error { return errors.New("error") },
+			valid: false,
+		},
+		// Invalid image.
+		{
+			image: "invalid",
+			tag:   "invalid",
+			f:     func(id string) error { return nil },
+			valid: false,
+		},
+	} {
+		tt := tt
+		t.Run(fmt.Sprintf("image=%v,tag=%v,valid=%v", tt.image, tt.tag, tt.valid), func(t *testing.T) {
+			err := pool.WithContainer(ctx, tt.image, tt.tag, stopTimeout, tt.f)
+			if tt.valid {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				return
+			}
 		})
 	}
 }

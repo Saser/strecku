@@ -106,3 +106,30 @@ func (p *Pool) ContainerExists(ctx context.Context, containerID string) (bool, e
 	}
 	return true, nil
 }
+
+func (p *Pool) WithContainer(
+	ctx context.Context,
+	imageName string,
+	tag string,
+	stopTimeout time.Duration,
+	f func(string) error,
+) (err error) {
+	p.logger.Info(
+		"running function with throwaway container",
+		zap.String("imageName", imageName),
+		zap.String("tag", tag),
+	)
+	id, startErr := p.StartContainer(ctx, imageName, tag)
+	if startErr != nil {
+		return fmt.Errorf("with container: %w", startErr)
+	}
+	defer func() {
+		if stopErr := p.StopContainer(ctx, id, stopTimeout); stopErr != nil {
+			err = stopErr
+		}
+	}()
+	if err := f(id); err != nil {
+		return fmt.Errorf("with container: %w", err)
+	}
+	return nil
+}
