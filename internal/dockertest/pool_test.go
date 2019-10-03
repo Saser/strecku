@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/Saser/strecku/internal/provide"
+	"github.com/cenkalti/backoff/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -38,6 +40,40 @@ func TestPool_PullOfficialImage(t *testing.T) {
 			} else {
 				assert.Error(t, err)
 			}
+		})
+	}
+}
+
+func TestPool_StopContainer_StopContainer(t *testing.T) {
+	logger := provide.ZapTestLogger(t)
+	pool, cleanup := pool(t, logger)
+	defer cleanup()
+	ctx := context.Background()
+	for _, tt := range []struct {
+		image string
+		tag   string
+		valid bool
+	}{
+		{image: "postgres", tag: "11.5-alpine", valid: true},
+		{image: "invalid", tag: "invalid", valid: false},
+	} {
+		tt := tt
+		t.Run(fmt.Sprintf("image=%v,tag=%v,valid=%v", tt.image, tt.tag, tt.valid), func(t *testing.T) {
+			id, err := pool.StartContainer(ctx, tt.image, tt.tag)
+			if tt.valid {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				return
+			}
+			totalTimeout := 1 * time.Minute
+			stopTimeout := 10 * time.Second
+			stopCtx, stopCancel := context.WithTimeout(ctx, totalTimeout)
+			defer stopCancel()
+			operation := func() error { return pool.StopContainer(stopCtx, id, stopTimeout) }
+			policy := backoff.WithContext(backoff.NewExponentialBackOff(), stopCtx)
+			err = backoff.Retry(operation, policy)
+			require.NoError(t, err)
 		})
 	}
 }
