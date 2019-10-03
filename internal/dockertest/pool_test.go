@@ -35,11 +35,12 @@ func TestPool_PullOfficialImage(t *testing.T) {
 	} {
 		tt := tt
 		t.Run(fmt.Sprintf("image=%v,tag=%v", tt.image, tt.tag), func(t *testing.T) {
-			assertFunction := assert.NoError
-			if !tt.valid {
-				assertFunction = assert.Error
+			err := pool.PullOfficialImage(ctx, tt.image, tt.tag)
+			if tt.valid {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
 			}
-			assertFunction(t, pool.PullOfficialImage(ctx, tt.image, tt.tag))
 		})
 	}
 }
