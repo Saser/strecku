@@ -8,22 +8,19 @@ import (
 	"github.com/Saser/strecku/internal/provide"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 func TestNewPool(t *testing.T) {
 	logger := provide.ZapTestLogger(t)
-	cli, cleanup, err := NewClient(logger)
-	require.NoError(t, err)
+	_, cleanup := pool(t, logger)
 	defer cleanup()
-	_ = NewPool(logger, cli)
 }
 
 func TestPool_PullOfficialImage(t *testing.T) {
 	logger := provide.ZapTestLogger(t)
-	cli, cleanup, err := NewClient(logger)
-	require.NoError(t, err)
+	pool, cleanup := pool(t, logger)
 	defer cleanup()
-	pool := NewPool(logger, cli)
 	ctx := context.Background()
 	for _, tt := range []struct {
 		image string
@@ -43,4 +40,11 @@ func TestPool_PullOfficialImage(t *testing.T) {
 			}
 		})
 	}
+}
+
+func pool(t *testing.T, logger *zap.Logger) (*Pool, func()) {
+	cli, cleanup, err := NewClient(logger)
+	require.NoError(t, err)
+	pool := NewPool(logger, cli)
+	return pool, cleanup
 }
