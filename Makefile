@@ -137,7 +137,7 @@ go-build:
 # go-test: tests the module using `go test`.
 .PHONY: go-test
 go-test:
-	go test -race -cover ./...
+	go test -v -race -cover ./...
 
 # go-mod-fix: update and format `go.mod` and `go.sum` files.
 .PHONY: go-mod-fix

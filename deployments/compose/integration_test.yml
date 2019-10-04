@@ -13,7 +13,7 @@ services:
     build:
       context: ../../
       dockerfile: build/package/Dockerfile
-    command: go test -race -cover -count=1 -tags=integrationtest ./...
+    command: go test -v -race -cover -count=1 -tags=integrationtest ./...
     depends_on:
       - postgres
     networks:
