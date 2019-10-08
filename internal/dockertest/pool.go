@@ -1,10 +1,9 @@
 package dockertest
 
 import (
+	"bufio"
 	"context"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -40,11 +39,16 @@ func (p *Pool) PullOfficialImage(ctx context.Context, imageName string, tag stri
 	if err != nil {
 		return fmt.Errorf("pull official image: %w", err)
 	}
-	_, err = io.Copy(ioutil.Discard, reader)
-	if err != nil {
-		return fmt.Errorf("pull official image: %w", err)
+	scanner := bufio.NewScanner(reader)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		msg := scanner.Text()
+		logger.Debug(msg)
 	}
 	logger.Info("pulled image")
+	if err := reader.Close(); err != nil {
+		return fmt.Errorf("pull official image: %w", err)
+	}
 	return nil
 }
 
