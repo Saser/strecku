@@ -125,8 +125,11 @@ func (c *Client) StopContainer(ctx context.Context, containerID string, timeout 
 	if err := c.dc.ContainerStop(ctx, containerID, &timeout); err != nil {
 		return fmt.Errorf("stop container: %w", err)
 	}
-	idLogger.Info("container stopped, now removing it")
-	if err := c.dc.ContainerRemove(ctx, containerID, types.ContainerRemoveOptions{}); err != nil {
+	idLogger.Info("container stopped, now removing it and its volumes")
+	opts := types.ContainerRemoveOptions{
+		RemoveVolumes: true,
+	}
+	if err := c.dc.ContainerRemove(ctx, containerID, opts); err != nil {
 		return fmt.Errorf("stop container: %w", err)
 	}
 	idLogger.Info("container removed")
