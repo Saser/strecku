@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"time"
@@ -149,26 +150,31 @@ func (c *Client) ContainerExists(ctx context.Context, containerID string) (bool,
 	return true, nil
 }
 
-func (c *Client) GetPortBinding(ctx context.Context, containerID string, port string) (string, error) {
+func (c *Client) GetTCPAddress(ctx context.Context, containerID string, port string) (*net.TCPAddr, error) {
 	idLogger := c.logger.With(
 		zap.String("id", containerID),
 	)
 	idLogger.Info("inspecting container")
 	inspectResponse, err := c.dc.ContainerInspect(ctx, containerID)
 	if err != nil {
-		return "", fmt.Errorf("get bound port: %w", err)
+		return nil, fmt.Errorf("get TCP address: %w", err)
 	}
-	idLogger.Info("inspected container")
-	portMappings := inspectResponse.NetworkSettings.Ports[nat.Port(port)]
-	if len(portMappings) == 0 {
-		return "", fmt.Errorf("get bound port: no mappings for port %v", port)
+	idLogger.Info("inspected container, looking up binding for port", zap.String("port", port))
+	portBindings := inspectResponse.NetworkSettings.Ports[nat.Port(port)]
+	if len(portBindings) == 0 {
+		return nil, fmt.Errorf("get TCP address: no bindings for port %v", port)
 	}
-	hostPort := portMappings[0].HostPort
-	portBinding := fmt.Sprintf("%v:%v", c.host, hostPort)
+	hostPort := portBindings[0].HostPort
 	idLogger.Info(
-		"found port mapping",
-		zap.String("port", port),
-		zap.String("portBinding", portBinding),
+		"found binding for port, now resolving TCP address",
+		zap.String("hostPort", hostPort),
+		zap.String("host", c.host),
 	)
-	return portBinding, nil
+	addressString := fmt.Sprintf("%v:%v", c.host, hostPort)
+	address, err := net.ResolveTCPAddr("tcp", addressString)
+	if err != nil {
+		return nil, fmt.Errorf("get TCP address: %w", err)
+	}
+	idLogger.Info("resolved TCP address", zap.Any("address", address))
+	return address, nil
 }

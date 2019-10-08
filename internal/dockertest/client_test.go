@@ -106,7 +106,7 @@ func TestClient_StartContainer_StopContainer_ContainerExists(t *testing.T) {
 	}
 }
 
-func TestClient_GetPortBinding(t *testing.T) {
+func TestClient_GetTCPAddress(t *testing.T) {
 	ctx := context.Background()
 	logger := provide.ZapTestLogger(t)
 	client, cleanup := client(ctx, t, logger)
@@ -118,10 +118,8 @@ func TestClient_GetPortBinding(t *testing.T) {
 		err := client.StopContainer(ctx, id, stopTimeout)
 		require.NoError(t, err)
 	}()
-	address, err := client.GetPortBinding(ctx, id, "5432/tcp")
+	_, err = client.GetTCPAddress(ctx, id, "5432/tcp")
 	require.NoError(t, err)
-	assert.NotEmpty(t, address)
-	assert.Contains(t, address, ":")
 }
 
 func client(ctx context.Context, t *testing.T, logger *zap.Logger) (*Client, func()) {
