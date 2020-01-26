@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package strecku.v1;
+
+option csharp_namespace = "Strecku.V1";
+option go_package = "streckuv1";
+option java_multiple_files = true;
+option java_outer_classname = "UserApiProto";
+option java_package = "com.strecku.v1";
+option objc_class_prefix = "SXX";
+option php_namespace = "Strecku\\V1";
+
+import "v1/user.proto";
+
+// The `UserAPI` provides RPCs to manage `User` resources.
+service UserAPI {
+  // The `GetUser` RPC gets a single user by its resource name.
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  // The `ListUsers` RPC lists `User` resources.
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  // The `CreateUser` RPC allows for the creation of new `User` resources.
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+}
+
+message GetUserRequest {
+  // The `name` field contains the resource name of the user.
+  string name = 1;
+}
+
+message GetUserResponse {
+  // The `user` field contains the `User` resource.
+  User user = 1;
+}
+
+message ListUsersRequest {}
+
+message ListUsersResponse {
+  // The `users` field contains all `User` resources.
+  repeated User users = 1;
+}
+
+message CreateUserRequest {
+  // The `User` resource to be created. The value of the `name` field of the
+  // `User` is ignored. It is an error to specify an empty value for
+  // `email_address` and/or `display_name`.
+  User user = 1;
+}
+
+message CreateUserResponse {
+  // The `User` resource that was created. It is equal to the `User` that was
+  // specified in the request, except for the `name` field which has now been
+  // set to contain the resource name of the user.
+  User user = 1;
+}
