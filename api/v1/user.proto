@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package strecku.v1;
+
+option csharp_namespace = "Strecku.V1";
+option go_package = "streckuv1";
+option java_multiple_files = true;
+option java_outer_classname = "UserProto";
+option java_package = "com.strecku.v1";
+option objc_class_prefix = "SXX";
+option php_namespace = "Strecku\\V1";
+
+// A `User` represents a user that can make purchases.
+message User {
+  // The `name` corresponds to the resource name of the user. It is of the form
+  // `users/*`.
+  string name = 1;
+  // The `display_name` contains the name of the user at it should be displayed
+  // to a human. For example: "John Smith".
+  string display_name = 2;
+  // The `email_address` contains the email address associated with the user. It
+  // is unique among all users.
+  string email_address = 3;
+}
