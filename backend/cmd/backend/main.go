@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"net"
 	"sync"
 
 	streckuv1 "github.com/Saser/strecku/backend/gen/api/v1"
 	"github.com/google/uuid"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -64,5 +67,17 @@ func (u *UserAPIImpl) CreateUser(_ context.Context, req *streckuv1.CreateUserReq
 }
 
 func main() {
-	fmt.Println("Hello, world!")
+	impl := &UserAPIImpl{
+		users: make(map[string]*streckuv1.User),
+	}
+	server := grpc.NewServer()
+	streckuv1.RegisterUserAPIServer(server, impl)
+	listener, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		log.Fatalf("error: %+v", err)
+	}
+	if err := server.Serve(listener); err != nil {
+		log.Fatalf("error: %+v", err)
+	}
+	log.Println("goodbye!")
 }
