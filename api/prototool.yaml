@@ -4,3 +4,11 @@ create:
   packages:
     - directory: .
       name: strecku
+generate:
+  go_options:
+    import_path: github.com/Saser/strecku/api
+  plugins:
+    - name: go
+      type: go
+      flags: plugins=grpc
+      output: ../backend/gen/api
