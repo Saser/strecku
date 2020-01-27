@@ -10,9 +10,10 @@ import (
 )
 
 func main() {
+	impl := inmemory.New()
 	server := grpc.NewServer()
-	streckuv1.RegisterUserAPIServer(server, inmemory.NewUserAPI())
-	streckuv1.RegisterStoreAPIServer(server, inmemory.NewStoreAPI())
+	streckuv1.RegisterUserAPIServer(server, impl)
+	streckuv1.RegisterStoreAPIServer(server, impl)
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatalf("error: %+v", err)
