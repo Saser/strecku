@@ -25,7 +25,7 @@ type User struct {
 	// The `name` corresponds to the resource name of the user. It is of the form
 	// `users/*`.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The `display_name` contains the name of the user at it should be displayed
+	// The `display_name` contains the name of the user as it should be displayed
 	// to a human. For example: "John Smith".
 	DisplayName string `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	// The `email_address` contains the email address associated with the user. It
