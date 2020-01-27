@@ -31,7 +31,7 @@ func (u *UserAPIImpl) GetUser(_ context.Context, req *streckuv1.GetUserRequest) 
 	}, nil
 }
 
-func (u *UserAPIImpl) ListUsers(_ context.Context, req *streckuv1.ListUsersRequest) (*streckuv1.ListUsersResponse, error) {
+func (u *UserAPIImpl) ListUsers(context.Context, *streckuv1.ListUsersRequest) (*streckuv1.ListUsersResponse, error) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	users := make([]*streckuv1.User, 0, len(u.users))
