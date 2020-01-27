@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package strecku.v1;
+
+option csharp_namespace = "Strecku.V1";
+option go_package = "streckuv1";
+option java_multiple_files = true;
+option java_outer_classname = "RoleApiProto";
+option java_package = "com.strecku.v1";
+option objc_class_prefix = "SXX";
+option php_namespace = "Strecku\\V1";
+
+import "v1/role.proto";
+
+// The `RoleAPI` provides RPCs to manage `Role` resources.
+service RoleAPI {
+  // The `ListRoles` RPC lists `Role` resources.
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse);
+  // The `GetRole` RPC gets a single role by its resource name.
+  rpc GetRole(GetRoleRequest) returns (GetRoleResponse);
+  // The `CreateRole` RPC allows for the creation of new `Role` resources.
+  rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse);
+}
+
+message ListRolesRequest {}
+
+message ListRolesResponse {
+  // The `roles` field contains all `Role` resources.
+  repeated Role roles = 1;
+}
+
+message GetRoleRequest {
+  // The `name` field contains the resource name of a role.
+  string name = 1;
+}
+
+message GetRoleResponse {
+  // The `role` field contains the `Role` resource.
+  Role role = 1;
+}
+
+message CreateRoleRequest {
+  // The `Role` resource to be created. The `user_name` field of the `Role` must
+  // contain a valid `User` resource name, and the `store_name` field must
+  // contain a valid `Store` resource name. Anything else is an error.
+  Role role = 1;
+}
+
+message CreateRoleResponse {
+  // The `Role` resource that was created. It is equal to the `Role` that was
+  // provided in the request, except for the `name` field which has now been set
+  // to the resource name of the newly created `Role` resource.
+  Role role = 1;
+}

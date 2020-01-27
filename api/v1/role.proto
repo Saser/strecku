@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package strecku.v1;
+
+option csharp_namespace = "Strecku.V1";
+option go_package = "streckuv1";
+option java_multiple_files = true;
+option java_outer_classname = "RoleProto";
+option java_package = "com.strecku.v1";
+option objc_class_prefix = "SXX";
+option php_namespace = "Strecku\\V1";
+
+// The `Role` resource represents a many-to-many mapping between `User` and
+// `Store` resources.
+message Role {
+  // The `name` field contains the resource name of the role. It is of the form
+  // `roles/*`.
+  string name = 1;
+  // The `user_name` field contains the resource name of the `User` resource
+  // this `Role` maps.
+  string user_name = 2;
+  // The `store_name` field contains the resource name of the `Store` resource
+  // this `Role` maps.
+  string store_name = 3;
+}
