@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package strecku.v1;
+
+option csharp_namespace = "Strecku.V1";
+option go_package = "streckuv1";
+option java_multiple_files = true;
+option java_outer_classname = "StoreProto";
+option java_package = "com.strecku.v1";
+option objc_class_prefix = "SXX";
+option php_namespace = "Strecku\\V1";
+
+// A `Store` represents a store which can have products, purchases, etc.
+message Store {
+  // The `name` corresponds to the resource name of the store. It is of the form
+  // `stores/*`.
+  string name = 1;
+  // The `display_name` contains the name of the store as it should be displayed
+  // to a human. For example: "Foobar Coffee".
+  string display_name = 2;
+}

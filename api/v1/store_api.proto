@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package strecku.v1;
+
+option csharp_namespace = "Strecku.V1";
+option go_package = "streckuv1";
+option java_multiple_files = true;
+option java_outer_classname = "StoreApiProto";
+option java_package = "com.strecku.v1";
+option objc_class_prefix = "SXX";
+option php_namespace = "Strecku\\V1";
+
+import "v1/store.proto";
+
+// The `StoreAPI` provides RPCs to manage `Store` resources.
+service StoreAPI {
+  // The `GetStore` RPC gets a single store by its resource name.
+  rpc GetStore(GetStoreRequest) returns (GetStoreResponse);
+  // The `ListStores` RPC lists `Store` resources.
+  rpc ListStores(ListStoresRequest) returns (ListStoresResponse);
+  // The `CreateStore` RPC allows for the creation of new `Store` resources.
+  rpc CreateStore(CreateStoreRequest) returns (CreateStoreResponse);
+}
+
+message GetStoreRequest {
+  // The `name` field contains the resource name of a store.
+  string name = 1;
+}
+
+message GetStoreResponse {
+  // The `store` field contains the `Store` resource.
+  Store store = 1;
+}
+
+message ListStoresRequest {}
+
+message ListStoresResponse {
+  // The `stores` field contains all `Store` resources.
+  repeated Store stores = 1;
+}
+
+message CreateStoreRequest {
+  // The `Store` resource to be created. The value of the `name` field of the
+  // provided resource is ignored. It is an error to specify an empty value for
+  // `display_name`.
+  Store store = 1;
+}
+
+message CreateStoreResponse {
+  // The `Store` resource that was created. It is equal to the `Store` that was
+  // provided in the request, except for the `name` field which has now been set
+  // to the resource name of newly created `Store` resource.
+  Store store = 1;
+}
