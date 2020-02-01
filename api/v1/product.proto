@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package strecku.v1;
+
+option csharp_namespace = "Strecku.V1";
+option go_package = "streckuv1";
+option java_multiple_files = true;
+option java_outer_classname = "ProductProto";
+option java_package = "com.strecku.v1";
+option objc_class_prefix = "SXX";
+option php_namespace = "Strecku\\V1";
+
+import "v1/money.proto";
+
+// The `Product` resource represents products that are available in a
+// store. `Product` resources are subresources of `Store` resources.
+message Product {
+  // The `name` field contains the resource name of the product. It is of the
+  // form `stores/*/products/*`.
+  string name = 1;
+  // The `display_name` field contains the name of the product as it should be
+  // presented to a human.
+  string display_name = 2;
+  // The `price` field contains the price of the product. The value must
+  // represent a negative amount of money.
+  Money price = 3;
+}
