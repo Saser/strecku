@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package strecku.v1;
+
+option csharp_namespace = "Strecku.V1";
+option go_package = "streckuv1";
+option java_multiple_files = true;
+option java_outer_classname = "MoneyProto";
+option java_package = "com.strecku.v1";
+option objc_class_prefix = "SXX";
+option php_namespace = "Strecku\\V1";
+
+// A `Money` represents an amount of money that is negative, zero, or
+// positive. It is assumed to be given in the currency of `SEK`.
+message Money {
+  // The `units` field represents the whole units of `SEK` of the amount. For
+  // example, if the amount is `5.50 SEK`, then `units` is 5. As another
+  // example, if the amount is `-4.75 SEK`, then `units` is -4.
+  int64 units = 1;
+  // The `cents` field represents the number of cents ("ören") of the
+  // amount. The value must be between -99 and +99, inclusive. The value can be
+  // negative, zero, or positive:
+  // * if `units` is negative, then `cents` must be zero or negative.
+  // * if `units` is zero, then `cents` can be negative, zero, or positive.
+  // * if `units` is positive, then `cents` must be zero or positive.
+  int32 cents = 2;
+}
