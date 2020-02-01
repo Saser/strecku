@@ -295,11 +295,11 @@ var fileDescriptor_6beeca62d8388557 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // UserAPIClient is the client API for UserAPI service.
 //
@@ -314,10 +314,10 @@ type UserAPIClient interface {
 }
 
 type userAPIClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewUserAPIClient(cc *grpc.ClientConn) UserAPIClient {
+func NewUserAPIClient(cc grpc.ClientConnInterface) UserAPIClient {
 	return &userAPIClient{cc}
 }
 
