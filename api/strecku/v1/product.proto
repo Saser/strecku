@@ -10,7 +10,7 @@ option java_package = "com.strecku.v1";
 option objc_class_prefix = "SXX";
 option php_namespace = "Strecku\\V1";
 
-import "v1/money.proto";
+import "strecku/v1/money.proto";
 
 // The `Product` resource represents products that are available in a
 // store. `Product` resources are subresources of `Store` resources.

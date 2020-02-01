@@ -3,7 +3,7 @@ package inmemory
 import (
 	"sync"
 
-	streckuv1 "github.com/Saser/strecku/backend/gen/api/v1"
+	streckuv1 "github.com/Saser/strecku/backend/gen/api/strecku/v1"
 )
 
 type Impl struct {

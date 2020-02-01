@@ -10,7 +10,7 @@ option java_package = "com.strecku.v1";
 option objc_class_prefix = "SXX";
 option php_namespace = "Strecku\\V1";
 
-import "v1/product.proto";
+import "strecku/v1/product.proto";
 
 // The `ProductAPI` provides RPCs to manage `Product` resources.
 service ProductAPI {

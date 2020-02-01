@@ -1,14 +1,14 @@
 syntax = "proto3";
 
-package strecku.testing.v1;
+package testing.v1;
 
-option csharp_namespace = "Strecku.Testing.V1";
+option csharp_namespace = "Testing.V1";
 option go_package = "testingv1";
 option java_multiple_files = true;
 option java_outer_classname = "ResetApiProto";
-option java_package = "com.strecku.testing.v1";
-option objc_class_prefix = "STX";
-option php_namespace = "Strecku\\Testing\\V1";
+option java_package = "com.testing.v1";
+option objc_class_prefix = "TXX";
+option php_namespace = "Testing\\V1";
 
 // The `ResetAPI` is a hack to be used in integration tests. An implementation
 // of another service can implement this API, and should then be able to reset

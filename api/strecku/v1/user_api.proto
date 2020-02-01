@@ -10,7 +10,7 @@ option java_package = "com.strecku.v1";
 option objc_class_prefix = "SXX";
 option php_namespace = "Strecku\\V1";
 
-import "v1/user.proto";
+import "strecku/v1/user.proto";
 
 // The `UserAPI` provides RPCs to manage `User` resources.
 service UserAPI {

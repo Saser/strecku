@@ -2,8 +2,10 @@ lint:
   group: uber2
 create:
   packages:
-    - directory: .
+    - directory: strecku
       name: strecku
+    - directory: testing
+      name: testing
 generate:
   go_options:
     import_path: github.com/Saser/strecku/api

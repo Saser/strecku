@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	streckuv1 "github.com/Saser/strecku/backend/gen/api/v1"
+	streckuv1 "github.com/Saser/strecku/backend/gen/api/strecku/v1"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
