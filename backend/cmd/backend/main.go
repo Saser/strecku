@@ -15,6 +15,7 @@ func main() {
 	streckuv1.RegisterUserAPIServer(server, impl)
 	streckuv1.RegisterStoreAPIServer(server, impl)
 	streckuv1.RegisterRoleAPIServer(server, impl)
+	streckuv1.RegisterProductAPIServer(server, impl)
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatalf("error: %+v", err)
