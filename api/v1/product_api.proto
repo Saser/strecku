@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package strecku.v1;
+
+option csharp_namespace = "Strecku.V1";
+option go_package = "streckuv1";
+option java_multiple_files = true;
+option java_outer_classname = "ProductApiProto";
+option java_package = "com.strecku.v1";
+option objc_class_prefix = "SXX";
+option php_namespace = "Strecku\\V1";
+
+import "v1/product.proto";
+
+// The `ProductAPI` provides RPCs to manage `Product` resources.
+service ProductAPI {
+  // The `ListProducts` RPC lists `Product` resources.
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+  // The `GetProduct` RPC returns a single `Product` by its resource name.
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse);
+  // The `CreateProduct` RPC allows for the creation of new `Product` resources
+  // belonging to a `Store` resource.
+  rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse);
+}
+
+message ListProductsRequest {
+  // The `parent` field contains the resource name of the `Store` resource from
+  // which `Product` resources should be listed.
+  string parent = 1;
+}
+
+message ListProductsResponse {
+  // The `products` field contains the `Product` resources.
+  repeated Product products = 1;
+}
+
+message GetProductRequest {
+  // The `name` field contains the resource name of the `Product`.
+  string name = 1;
+}
+
+message GetProductResponse {
+  // The `product` field contains the `Product` resource.
+  Product product = 1;
+}
+
+message CreateProductRequest {
+  // The `parent` field contains the resource name of the `Store` resource in
+  // which the `Product` resource should be created.
+  string parent = 1;
+  // The `product` field contains the `Product` resource to be created. The
+  // `display_name` field must not be empty, and the `price` field must
+  // represent a negative amount. Anything else is an error.
+  Product product = 2;
+}
+
+message CreateProductResponse {
+  // The `Product` resource that was created. It is equal to the `Product` that
+  // was provided in the request, except for the `name` field which has now been
+  // set to the resource name of thew newly created product.
+  Product product = 1;
+}
