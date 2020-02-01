@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 
+	testingv1 "github.com/Saser/strecku/backend/gen/api/testing/v1"
 	streckuv1 "github.com/Saser/strecku/backend/gen/api/v1"
 	"github.com/Saser/strecku/backend/internal/impl/inmemory"
 	"google.golang.org/grpc"
@@ -16,6 +17,7 @@ func main() {
 	streckuv1.RegisterStoreAPIServer(server, impl)
 	streckuv1.RegisterRoleAPIServer(server, impl)
 	streckuv1.RegisterProductAPIServer(server, impl)
+	testingv1.RegisterResetAPIServer(server, impl)
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatalf("error: %+v", err)

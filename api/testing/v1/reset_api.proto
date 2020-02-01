@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package strecku.testing.v1;
+
+option csharp_namespace = "Strecku.Testing.V1";
+option go_package = "testingv1";
+option java_multiple_files = true;
+option java_outer_classname = "ResetApiProto";
+option java_package = "com.strecku.testing.v1";
+option objc_class_prefix = "STX";
+option php_namespace = "Strecku\\Testing\\V1";
+
+// The `ResetAPI` is a hack to be used in integration tests. An implementation
+// of another service can implement this API, and should then be able to reset
+// its state such that the new state is equivalent to the state just after
+// startup of the other service. Intentionally a bit vague formulation, but
+// just try to reset everything as far as possible. For example, a reset could
+// mean dropping a database and then running database migrations again to bring
+// the schema up to date.
+service ResetAPI {
+  // The `Reset` RPC causes the state to be reset as per the description of this
+  // service.
+  rpc Reset(ResetRequest) returns (ResetResponse);
+}
+
+message ResetRequest {
+  string reason = 1;
+}
+
+message ResetResponse {}
