@@ -2,18 +2,12 @@ package inmemory
 
 import (
 	"context"
-	"os"
 
 	streckuv1 "github.com/Saser/strecku/backend/gen/api/strecku/v1"
 	testingv1 "github.com/Saser/strecku/backend/gen/api/testing/v1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func (i *Impl) Reset(context.Context, *testingv1.ResetRequest) (*testingv1.ResetResponse, error) {
-	if os.Getenv("STRECKU_INTEGRATION_TESTING") != "1" {
-		return nil, status.Error(codes.Unimplemented, "not implemented")
-	}
 	i.mu.Lock()
 	defer i.mu.Unlock()
 	i.users = make(map[string]*streckuv1.User)

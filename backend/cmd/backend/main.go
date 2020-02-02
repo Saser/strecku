@@ -4,20 +4,14 @@ import (
 	"log"
 	"net"
 
-	streckuv1 "github.com/Saser/strecku/backend/gen/api/strecku/v1"
-	testingv1 "github.com/Saser/strecku/backend/gen/api/testing/v1"
 	"github.com/Saser/strecku/backend/internal/impl/inmemory"
 	"google.golang.org/grpc"
 )
 
 func main() {
-	impl := inmemory.New()
 	server := grpc.NewServer()
-	streckuv1.RegisterUserAPIServer(server, impl)
-	streckuv1.RegisterStoreAPIServer(server, impl)
-	streckuv1.RegisterRoleAPIServer(server, impl)
-	streckuv1.RegisterProductAPIServer(server, impl)
-	testingv1.RegisterResetAPIServer(server, impl)
+	impl := inmemory.New()
+	registerServers(server, impl)
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatalf("error: %+v", err)
