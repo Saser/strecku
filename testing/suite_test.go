@@ -40,6 +40,16 @@ func (i *IntegrationTestSuite) SetupTest() {
 		})
 		i.Require().NoError(err)
 	}
+	{
+		c := streckuv1.NewStoreAPIClient(i.cc)
+		store := &streckuv1.Store{
+			DisplayName: "My Store",
+		}
+		_, err := c.CreateStore(ctx, &streckuv1.CreateStoreRequest{
+			Store: store,
+		})
+		i.Require().NoError(err)
+	}
 }
 
 func (i *IntegrationTestSuite) AfterTest(suiteName, testName string) {
