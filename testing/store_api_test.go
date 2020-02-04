@@ -19,15 +19,12 @@ func (i *IntegrationTestSuite) TestStoreAPI_ListStores() {
 func (i *IntegrationTestSuite) TestStoreAPI_GetStore() {
 	ctx := context.Background()
 	c := streckuv1.NewStoreAPIClient(i.cc)
-	listRes, err := c.ListStores(ctx, &streckuv1.ListStoresRequest{})
-	i.Require().NoError(err)
-	i.Assert().GreaterOrEqual(len(listRes.Stores), 1)
-	for _, store := range listRes.Stores {
-		getRes, err := c.GetStore(ctx, &streckuv1.GetStoreRequest{
+	for _, store := range i.stores {
+		res, err := c.GetStore(ctx, &streckuv1.GetStoreRequest{
 			Name: store.Name,
 		})
 		i.Require().NoError(err)
-		i.Assert().Truef(proto.Equal(store, getRes.Store), "store=%v,getRes.Store=%v", store, getRes.Store)
+		i.Assert().Truef(proto.Equal(store, res.Store), "store=%v,res.Store=%v", store, res.Store)
 	}
 }
 

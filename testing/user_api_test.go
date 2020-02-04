@@ -21,15 +21,12 @@ func (i *IntegrationTestSuite) TestUserAPI_ListUsers() {
 func (i *IntegrationTestSuite) TestUserAPI_GetUser() {
 	ctx := context.Background()
 	c := streckuv1.NewUserAPIClient(i.cc)
-	listRes, err := c.ListUsers(ctx, &streckuv1.ListUsersRequest{})
-	i.Require().NoError(err)
-	i.Assert().GreaterOrEqual(len(listRes.Users), 1)
-	for _, user := range listRes.Users {
-		getRes, err := c.GetUser(ctx, &streckuv1.GetUserRequest{
+	for _, user := range i.users {
+		res, err := c.GetUser(ctx, &streckuv1.GetUserRequest{
 			Name: user.Name,
 		})
 		i.Require().NoError(err)
-		i.Assert().Truef(proto.Equal(user, getRes.User), "user=%v,getRes.User=%v", user, getRes.User)
+		i.Assert().Truef(proto.Equal(user, res.User), "user=%v,res.User=%v", user, res.User)
 	}
 }
 

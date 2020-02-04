@@ -13,7 +13,9 @@ import (
 
 type IntegrationTestSuite struct {
 	suite.Suite
-	cc *grpc.ClientConn
+	cc     *grpc.ClientConn
+	users  []*streckuv1.User
+	stores []*streckuv1.Store
 }
 
 func (i *IntegrationTestSuite) SetupSuite() {
@@ -35,20 +37,22 @@ func (i *IntegrationTestSuite) SetupTest() {
 			DisplayName:  "Saser",
 			EmailAddress: "saser@saser.com",
 		}
-		_, err := c.CreateUser(ctx, &streckuv1.CreateUserRequest{
+		res, err := c.CreateUser(ctx, &streckuv1.CreateUserRequest{
 			User: user,
 		})
 		i.Require().NoError(err)
+		i.users = append(i.users, res.User)
 	}
 	{
 		c := streckuv1.NewStoreAPIClient(i.cc)
 		store := &streckuv1.Store{
 			DisplayName: "My Store",
 		}
-		_, err := c.CreateStore(ctx, &streckuv1.CreateStoreRequest{
+		res, err := c.CreateStore(ctx, &streckuv1.CreateStoreRequest{
 			Store: store,
 		})
 		i.Require().NoError(err)
+		i.stores = append(i.stores, res.Store)
 	}
 }
 
@@ -59,6 +63,8 @@ func (i *IntegrationTestSuite) AfterTest(suiteName, testName string) {
 		Reason: fmt.Sprintf("%s/%s", suiteName, testName),
 	})
 	i.Require().NoError(err)
+	i.users = nil
+	i.stores = nil
 }
 
 func TestIntegrationTestSuite(t *testing.T) {
