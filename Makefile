@@ -15,9 +15,12 @@ lint:
 generate: \
 	$(proto_files) \
 	$(protoc) \
-	$(protoc-gen-go)
+	$(protoc-gen-go) \
+	$(protoc-gen-go-grpc)
 generate:
 	$(protoc) \
 		--plugin='$(protoc-gen-go)' \
 		--go_out=. \
+		--plugin='$(protoc-gen-go-grpc)' \
+		--go-grpc_out=. \
 		$(proto_files)

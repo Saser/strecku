@@ -3,5 +3,6 @@
     - "**/*.proto"
 - disabled_rules:
     - "core::0123::resource-annotation"
+    - "core::0127::http-annotation"
     - "core::0203::output-only"
     - "core::0203::required"

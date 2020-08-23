@@ -49,3 +49,11 @@ $(protoc-gen-go): go.mod go.sum
 		build \
 		-o='$@' \
 		google.golang.org/protobuf/cmd/protoc-gen-go
+
+# protoc-gen-go-grpc: protoc plugin to generate Go code for protobuf services.
+protoc-gen-go-grpc := $(tools)/protoc-gen-go-grpc
+$(protoc-gen-go-grpc): go.mod go.sum
+	go \
+		build \
+		-o='$@' \
+		google.golang.org/grpc/cmd/protoc-gen-go-grpc
