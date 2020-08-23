@@ -18,7 +18,7 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StreckUClient interface {
 	// AuthenticateUser authenticates a user by their email address and password.
-	AuthenticateUser(ctx context.Context, in *AuthenticateUserRequest, opts ...grpc.CallOption) (*AuthenticateUserResponse, error)
+	AuthenticateUser(ctx context.Context, in *AuthenticateUserRequest, opts ...grpc.CallOption) (*User, error)
 }
 
 type streckUClient struct {
@@ -29,8 +29,8 @@ func NewStreckUClient(cc grpc.ClientConnInterface) StreckUClient {
 	return &streckUClient{cc}
 }
 
-func (c *streckUClient) AuthenticateUser(ctx context.Context, in *AuthenticateUserRequest, opts ...grpc.CallOption) (*AuthenticateUserResponse, error) {
-	out := new(AuthenticateUserResponse)
+func (c *streckUClient) AuthenticateUser(ctx context.Context, in *AuthenticateUserRequest, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
 	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/AuthenticateUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (c *streckUClient) AuthenticateUser(ctx context.Context, in *AuthenticateUs
 // for forward compatibility
 type StreckUServer interface {
 	// AuthenticateUser authenticates a user by their email address and password.
-	AuthenticateUser(context.Context, *AuthenticateUserRequest) (*AuthenticateUserResponse, error)
+	AuthenticateUser(context.Context, *AuthenticateUserRequest) (*User, error)
 	mustEmbedUnimplementedStreckUServer()
 }
 
@@ -51,7 +51,7 @@ type StreckUServer interface {
 type UnimplementedStreckUServer struct {
 }
 
-func (*UnimplementedStreckUServer) AuthenticateUser(context.Context, *AuthenticateUserRequest) (*AuthenticateUserResponse, error) {
+func (*UnimplementedStreckUServer) AuthenticateUser(context.Context, *AuthenticateUserRequest) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthenticateUser not implemented")
 }
 func (*UnimplementedStreckUServer) mustEmbedUnimplementedStreckUServer() {}

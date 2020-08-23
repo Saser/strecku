@@ -74,43 +74,33 @@ func TestServer_AuthenticateUser(t *testing.T) {
 	password := "password"
 	user := &streckuv1.User{
 		Name:         newUserName(),
-		EmailAddress: "user@example.com",
+		EmailAddress: emailAddress,
 		DisplayName:  "User",
 	}
 	f.backdoorCreateUser(t, user, password)
 	client := f.insecureClient(ctx, t)
 
-	t.Run("Correct", func(t *testing.T) {
-		resp, err := client.AuthenticateUser(ctx, &streckuv1.AuthenticateUserRequest{
-			EmailAddress: emailAddress,
-			Password:     password,
+	for _, test := range []struct {
+		name     string
+		req      *streckuv1.AuthenticateUserRequest
+		wantUser *streckuv1.User
+		wantCode codes.Code
+	}{
+		{name: "Correct", req: &streckuv1.AuthenticateUserRequest{EmailAddress: emailAddress, Password: password}, wantUser: user},
+		{name: "IncorrectEmailAddress", req: &streckuv1.AuthenticateUserRequest{EmailAddress: "incorrect@example.com", Password: password}, wantCode: codes.Unauthenticated},
+		{name: "IncorrectPassword", req: &streckuv1.AuthenticateUserRequest{EmailAddress: emailAddress, Password: "incorrect password"}, wantCode: codes.Unauthenticated},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			authUser, err := client.AuthenticateUser(ctx, test.req)
+			if err == nil {
+				if diff := cmp.Diff(test.wantUser, authUser, protocmp.Transform()); diff != "" {
+					t.Errorf("test.wantUser != authUser (-want +got):\n%v", diff)
+				}
+			} else {
+				if got := status.Code(err); got != test.wantCode {
+					t.Errorf("status.Code(err) = %v; want %v", got, test.wantCode)
+				}
+			}
 		})
-		if err != nil {
-			t.Fatal(err)
-		}
-		if diff := cmp.Diff(user, resp.User, protocmp.Transform()); diff != "" {
-			t.Errorf("user != resp.User (-want +got):\n%v", diff)
-		}
-		if got := resp.Token; got == "" {
-			t.Errorf("resp.Token = %q, want non-empty string", got)
-		}
-	})
-	t.Run("IncorrectEmailAddress", func(t *testing.T) {
-		_, err := client.AuthenticateUser(ctx, &streckuv1.AuthenticateUserRequest{
-			EmailAddress: "incorrect@user.com",
-			Password:     password,
-		})
-		if got, want := status.Code(err), codes.Unauthenticated; got != want {
-			t.Errorf("status.Code(err) = %v; want %v", got, want)
-		}
-	})
-	t.Run("IncorrectPassword", func(t *testing.T) {
-		_, err := client.AuthenticateUser(ctx, &streckuv1.AuthenticateUserRequest{
-			EmailAddress: emailAddress,
-			Password:     "incorrect password",
-		})
-		if got, want := status.Code(err), codes.Unauthenticated; got != want {
-			t.Errorf("status.Code(err) = %v; want %v", got, want)
-		}
-	})
+	}
 }

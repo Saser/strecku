@@ -12,7 +12,7 @@ option java_outer_classname = "StreckUProto";
 // StreckU is a service for buying things on credit.
 service StreckU {
   // AuthenticateUser authenticates a user by their email address and password.
-  rpc AuthenticateUser(AuthenticateUserRequest) returns (AuthenticateUserResponse);
+  rpc AuthenticateUser(AuthenticateUserRequest) returns (User);
 }
 
 // AuthenticateUserRequest is the request message for AuthenticateUser.
@@ -24,14 +24,4 @@ message AuthenticateUserRequest {
   // password contains the password of the user that authenticates.
   // Required.
   string password = 2;
-}
-
-// AuthenticateUserResponse is the response message for AuthenticateUser.
-message AuthenticateUserResponse {
-  // user is the user that was authenticated.
-  User user = 1;
-
-  // token is an opaque token that can be used to authenticate a request as this
-  // user.
-  string token = 2;
 }

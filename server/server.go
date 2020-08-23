@@ -29,13 +29,10 @@ func New() *Server {
 	}
 }
 
-func (s *Server) AuthenticateUser(_ context.Context, req *streckuv1.AuthenticateUserRequest) (*streckuv1.AuthenticateUserResponse, error) {
+func (s *Server) AuthenticateUser(_ context.Context, req *streckuv1.AuthenticateUserRequest) (*streckuv1.User, error) {
 	for _, user := range s.users {
 		if user.EmailAddress == req.EmailAddress && s.passwords[user.Name] == req.Password {
-			return &streckuv1.AuthenticateUserResponse{
-				User:  user,
-				Token: "a magic token",
-			}, nil
+			return user, nil
 		}
 	}
 	return nil, status.Error(codes.Unauthenticated, "Authentication failed.")
