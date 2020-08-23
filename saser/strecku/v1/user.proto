@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package saser.strecku.v1;
+
+option go_package = "saser/strecku/v1;streckuv1";
+option java_package = "se.saser.strecku.v1";
+option java_multiple_files = true;
+option java_outer_classname = "UserProto";
+
+// User represents a user in the system.
+message User {
+  // name is the resource name of the user.
+  // Format: users/{user}
+  // Output only.
+  string name = 1;
+
+  // email_address is the email address of the user.
+  // The email address is unique among all users.
+  // Required.
+  string email_address = 2;
+
+  // display_name is the name of the user as it would be displayed to a human.
+  // Required.
+  string display_name = 3;
+}
