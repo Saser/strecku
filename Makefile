@@ -19,5 +19,5 @@ generate: \
 generate:
 	$(protoc) \
 		--plugin='$(protoc-gen-go)' \
-		--go_out=genproto \
+		--go_out=. \
 		$(proto_files)
