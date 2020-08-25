@@ -64,31 +64,34 @@ func (f *fixture) client(ctx context.Context, t *testing.T, opts ...grpc.DialOpt
 	return streckuv1.NewStreckUClient(cc)
 }
 
-func (f *fixture) backdoorCreateUser(t *testing.T, user *streckuv1.User, password string) {
+func (f *fixture) backdoorCreateUser(t *testing.T, req *streckuv1.CreateUserRequest) *streckuv1.User {
 	t.Helper()
+	user := req.User
+	user.Name = newUserName()
 	f.srv.users = append(f.srv.users, user)
 	f.srv.userKeys[user.Name] = len(f.srv.users) - 1
 	t.Cleanup(func() {
 		delete(f.srv.userKeys, user.Name)
 	})
-	f.srv.passwords[user.Name] = password
+	f.srv.passwords[user.Name] = req.Password
 	t.Cleanup(func() {
 		delete(f.srv.passwords, user.Name)
 	})
+	return user
 }
 
 func TestServer_AuthenticateUser(t *testing.T) {
 	ctx := context.Background()
 
 	f := setUp(t)
-	emailAddress := "user@example.com"
 	password := "password"
-	user := &streckuv1.User{
-		Name:         newUserName(),
-		EmailAddress: emailAddress,
-		DisplayName:  "User",
-	}
-	f.backdoorCreateUser(t, user, password)
+	user := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "user@example.com",
+			DisplayName:  "User",
+		},
+		Password: password,
+	})
 	client := f.client(ctx, t)
 
 	for _, test := range []struct {
@@ -97,9 +100,9 @@ func TestServer_AuthenticateUser(t *testing.T) {
 		wantUser *streckuv1.User
 		wantCode codes.Code
 	}{
-		{name: "Correct", req: &streckuv1.AuthenticateUserRequest{EmailAddress: emailAddress, Password: password}, wantUser: user},
+		{name: "Correct", req: &streckuv1.AuthenticateUserRequest{EmailAddress: user.EmailAddress, Password: password}, wantUser: user},
 		{name: "IncorrectEmailAddress", req: &streckuv1.AuthenticateUserRequest{EmailAddress: "incorrect@example.com", Password: password}, wantCode: codes.Unauthenticated},
-		{name: "IncorrectPassword", req: &streckuv1.AuthenticateUserRequest{EmailAddress: emailAddress, Password: "incorrect password"}, wantCode: codes.Unauthenticated},
+		{name: "IncorrectPassword", req: &streckuv1.AuthenticateUserRequest{EmailAddress: user.EmailAddress, Password: "incorrect password"}, wantCode: codes.Unauthenticated},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			authUser, err := client.AuthenticateUser(ctx, test.req)
