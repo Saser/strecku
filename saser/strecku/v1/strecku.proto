@@ -13,6 +13,9 @@ option java_outer_classname = "StreckUProto";
 service StreckU {
   // AuthenticateUser authenticates a user by their email address and password.
   rpc AuthenticateUser(AuthenticateUserRequest) returns (User);
+
+  // CreateUser creates a new user.
+  rpc CreateUser(CreateUserRequest) returns (User);
 }
 
 // AuthenticateUserRequest is the request message for AuthenticateUser.
@@ -23,5 +26,22 @@ message AuthenticateUserRequest {
 
   // password contains the password of the user that authenticates.
   // Required.
+  string password = 2;
+}
+
+// CreateUserRequest is the request message for CreateUser.
+//
+// (-- api-linter: core::0133::request-parent-required=disabled
+//     aip.dev/not-precedent: Users are top-level resources. --)
+message CreateUserRequest {
+  // user is the user to be created.
+  // Required.
+  User user = 1;
+
+  // password contains the password this user should use to authenticate.
+  // Required.
+  //
+  // (-- api-linter: core::0133::request-unknown-fields=disabled
+  //     aip.dev/not-precedent: A password is required for each user. --)
   string password = 2;
 }
