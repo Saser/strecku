@@ -9,12 +9,18 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
 const bufSize = 1024 * 1024
+
+const (
+	certFile = "testcert.crt"
+	keyFile  = "testcert.key"
+)
 
 type fixture struct {
 	srv *Server
@@ -23,30 +29,35 @@ type fixture struct {
 
 func setUp(t *testing.T) *fixture {
 	t.Helper()
-
 	f := &fixture{
 		srv: New(),
 		lis: bufconn.Listen(bufSize),
 	}
-	s := grpc.NewServer()
+	creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := grpc.NewServer(grpc.Creds(creds))
 	streckuv1.RegisterStreckUServer(s, f.srv)
 	go func() {
 		if err := s.Serve(f.lis); err != nil {
 			t.Errorf("s.Serve(f.lis) = %v", err)
-			t.FailNow()
 		}
 	}()
 	t.Cleanup(s.GracefulStop)
 	return f
 }
 
-func (f *fixture) dial(context.Context, string) (net.Conn, error) {
-	return f.lis.Dial()
-}
-
-func (f *fixture) insecureClient(ctx context.Context, t *testing.T) streckuv1.StreckUClient {
+func (f *fixture) client(ctx context.Context, t *testing.T, opts ...grpc.DialOption) streckuv1.StreckUClient {
 	t.Helper()
-	cc, err := grpc.DialContext(ctx, "bufconn", grpc.WithContextDialer(f.dial), grpc.WithInsecure())
+	dial := func(context.Context, string) (net.Conn, error) { return f.lis.Dial() }
+	opts = append(opts, grpc.WithContextDialer(dial))
+	creds, err := credentials.NewClientTLSFromFile(certFile, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	opts = append(opts, grpc.WithTransportCredentials(creds))
+	cc, err := grpc.DialContext(ctx, "localhost", opts...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +89,7 @@ func TestServer_AuthenticateUser(t *testing.T) {
 		DisplayName:  "User",
 	}
 	f.backdoorCreateUser(t, user, password)
-	client := f.insecureClient(ctx, t)
+	client := f.client(ctx, t)
 
 	for _, test := range []struct {
 		name     string
