@@ -22,15 +22,15 @@ func TestBasic_GetRequestMetadata(t *testing.T) {
 		},
 		{
 			b:        Basic{Username: "user@example.com", Password: ""},
-			wantCode: codes.InvalidArgument,
+			wantCode: codes.Unauthenticated,
 		},
 		{
 			b:        Basic{Username: "", Password: "password"},
-			wantCode: codes.InvalidArgument,
+			wantCode: codes.Unauthenticated,
 		},
 		{
 			b:        Basic{Username: "", Password: ""},
-			wantCode: codes.InvalidArgument,
+			wantCode: codes.Unauthenticated,
 		},
 	} {
 		gotMD, gotErr := test.b.GetRequestMetadata(ctx)

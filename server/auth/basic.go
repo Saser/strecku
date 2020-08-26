@@ -27,7 +27,7 @@ var _ credentials.PerRPCCredentials = (*Basic)(nil)
 // b.Username + ":" + b.Password.
 func (b Basic) GetRequestMetadata(context.Context, ...string) (map[string]string, error) {
 	if b.Username == "" || b.Password == "" {
-		return nil, status.Error(codes.InvalidArgument, "Username and password are required.")
+		return nil, status.Error(codes.Unauthenticated, "Username and password are required.")
 	}
 	auth := fmt.Sprintf("%s:%s", b.Username, b.Password)
 	enc := base64.StdEncoding.EncodeToString([]byte(auth))
