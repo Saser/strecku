@@ -6,6 +6,7 @@ import (
 
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -14,28 +15,42 @@ const (
 	users = "users"
 )
 
+type userEntry struct {
+	user *streckuv1.User
+	hash []byte
+}
+
 type Server struct {
 	streckuv1.UnimplementedStreckUServer
 
-	users     []*streckuv1.User
-	userKeys  map[string]int
-	passwords map[string]string
+	users       []*userEntry
+	userIndices map[string]int    // name -> index into users
+	userKeys    map[string]string // email address -> name
 }
 
 func New() *Server {
 	return &Server{
-		userKeys:  make(map[string]int),
-		passwords: make(map[string]string),
+		userIndices: make(map[string]int),
+		userKeys:    make(map[string]string),
 	}
 }
 
 func (s *Server) AuthenticateUser(_ context.Context, req *streckuv1.AuthenticateUserRequest) (*streckuv1.User, error) {
-	for _, user := range s.users {
-		if user.EmailAddress == req.EmailAddress && s.passwords[user.Name] == req.Password {
-			return user, nil
-		}
+	if req.EmailAddress == "" {
+		return nil, status.Error(codes.InvalidArgument, "Email address is required.")
 	}
-	return nil, status.Error(codes.Unauthenticated, "Authentication failed.")
+	if req.Password == "" {
+		return nil, status.Error(codes.InvalidArgument, "Password is required.")
+	}
+	name, ok := s.userKeys[req.EmailAddress]
+	if !ok {
+		return nil, status.Error(codes.Unauthenticated, "Authentication failed.")
+	}
+	entry := s.users[s.userIndices[name]]
+	if err := bcrypt.CompareHashAndPassword(entry.hash, []byte(req.Password)); err != nil {
+		return nil, status.Error(codes.Unauthenticated, "Authentication failed.")
+	}
+	return entry.user, nil
 }
 
 func newUserName() string {

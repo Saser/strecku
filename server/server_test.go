@@ -7,6 +7,7 @@ import (
 
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 	"github.com/google/go-cmp/cmp"
+	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -68,14 +69,21 @@ func (f *fixture) backdoorCreateUser(t *testing.T, req *streckuv1.CreateUserRequ
 	t.Helper()
 	user := req.User
 	user.Name = newUserName()
-	f.srv.users = append(f.srv.users, user)
-	f.srv.userKeys[user.Name] = len(f.srv.users) - 1
-	t.Cleanup(func() {
-		delete(f.srv.userKeys, user.Name)
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.srv.users = append(f.srv.users, &userEntry{
+		user: user,
+		hash: hash,
 	})
-	f.srv.passwords[user.Name] = req.Password
+	f.srv.userIndices[user.Name] = len(f.srv.users) - 1
 	t.Cleanup(func() {
-		delete(f.srv.passwords, user.Name)
+		delete(f.srv.userIndices, user.Name)
+	})
+	f.srv.userKeys[user.EmailAddress] = user.Name
+	t.Cleanup(func() {
+		delete(f.srv.userKeys, user.EmailAddress)
 	})
 	return user
 }
@@ -103,6 +111,9 @@ func TestServer_AuthenticateUser(t *testing.T) {
 		{name: "Correct", req: &streckuv1.AuthenticateUserRequest{EmailAddress: user.EmailAddress, Password: password}, wantUser: user},
 		{name: "IncorrectEmailAddress", req: &streckuv1.AuthenticateUserRequest{EmailAddress: "incorrect@example.com", Password: password}, wantCode: codes.Unauthenticated},
 		{name: "IncorrectPassword", req: &streckuv1.AuthenticateUserRequest{EmailAddress: user.EmailAddress, Password: "incorrect password"}, wantCode: codes.Unauthenticated},
+		{name: "MissingEmailAddress", req: &streckuv1.AuthenticateUserRequest{EmailAddress: "", Password: password}, wantCode: codes.InvalidArgument},
+		{name: "MissingPassword", req: &streckuv1.AuthenticateUserRequest{EmailAddress: user.EmailAddress, Password: ""}, wantCode: codes.InvalidArgument},
+		{name: "EmptyRequest", req: &streckuv1.AuthenticateUserRequest{}, wantCode: codes.InvalidArgument},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			authUser, err := client.AuthenticateUser(ctx, test.req)
