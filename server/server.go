@@ -35,6 +35,10 @@ func New() *Server {
 	}
 }
 
+func newUserName() string {
+	return fmt.Sprintf("%s/%s", users, uuid.New())
+}
+
 func (s *Server) AuthenticateUser(_ context.Context, req *streckuv1.AuthenticateUserRequest) (*streckuv1.User, error) {
 	if req.EmailAddress == "" {
 		return nil, status.Error(codes.InvalidArgument, "Email address is required.")
@@ -53,6 +57,27 @@ func (s *Server) AuthenticateUser(_ context.Context, req *streckuv1.Authenticate
 	return entry.user, nil
 }
 
-func newUserName() string {
-	return fmt.Sprintf("%s/%s", users, uuid.New())
+func (s *Server) CreateUser(_ context.Context, req *streckuv1.CreateUserRequest) (*streckuv1.User, error) {
+	user := req.User
+	if user.EmailAddress == "" {
+		return nil, status.Error(codes.InvalidArgument, "Email address is required.")
+	}
+	if user.DisplayName == "" {
+		return nil, status.Error(codes.InvalidArgument, "Display name is required.")
+	}
+	if req.Password == "" {
+		return nil, status.Error(codes.InvalidArgument, "Password is required.")
+	}
+	user.Name = newUserName()
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Internal error.")
+	}
+	s.users = append(s.users, &userEntry{
+		user: user,
+		hash: hash,
+	})
+	s.userIndices[user.Name] = len(s.users) - 1
+	s.userKeys[user.EmailAddress] = user.Name
+	return user, nil
 }

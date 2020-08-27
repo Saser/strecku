@@ -5,6 +5,7 @@ import (
 	"net"
 	"testing"
 
+	"github.com/Saser/strecku/auth"
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 	"github.com/google/go-cmp/cmp"
 	"golang.org/x/crypto/bcrypt"
@@ -63,6 +64,14 @@ func (f *fixture) client(ctx context.Context, t *testing.T, opts ...grpc.DialOpt
 		t.Fatal(err)
 	}
 	return streckuv1.NewStreckUClient(cc)
+}
+
+func (f *fixture) authClient(ctx context.Context, t *testing.T, emailAddress, password string) streckuv1.StreckUClient {
+	t.Helper()
+	return f.client(ctx, t, grpc.WithPerRPCCredentials(auth.Basic{
+		Username: emailAddress,
+		Password: password,
+	}))
 }
 
 func (f *fixture) backdoorCreateUser(t *testing.T, req *streckuv1.CreateUserRequest) *streckuv1.User {
@@ -125,4 +134,124 @@ func TestServer_AuthenticateUser(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestServer_CreateUser_AsSuperuser(t *testing.T) {
+	ctx := context.Background()
+
+	f := setUp(t)
+	rootPassword := "root password"
+	root := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "root@example.com",
+			DisplayName:  "Root",
+			Superuser:    true,
+		},
+		Password: rootPassword,
+	})
+	client := f.authClient(ctx, t, root.EmailAddress, rootPassword)
+
+	// These test cases are for valid requests (but not necessarily requests
+	// that successfully create a user).
+	t.Run("Valid", func(t *testing.T) {
+		for _, test := range []struct {
+			name string
+			req  *streckuv1.CreateUserRequest
+		}{
+			{
+				name: "NormalUser",
+				req: &streckuv1.CreateUserRequest{
+					User: &streckuv1.User{
+						EmailAddress: "user@example.com",
+						DisplayName:  "User",
+					},
+					Password: "user password",
+				},
+			},
+			{
+				name: "Superuser",
+				req: &streckuv1.CreateUserRequest{
+					User: &streckuv1.User{
+						EmailAddress: "another-root@example.com",
+						DisplayName:  "Another root",
+						Superuser:    true,
+					},
+					Password: "another root password",
+				},
+			},
+		} {
+			t.Run(test.name, func(t *testing.T) {
+				user, err := client.CreateUser(ctx, test.req)
+				if got, want := status.Code(err), codes.OK; got != want {
+					t.Errorf("CreateUser: status.Code(%v) = %v; want %v", err, got, want)
+				}
+				if diff := cmp.Diff(user, test.req.User, protocmp.Transform(), protocmp.IgnoreFields(user, "name")); diff != "" {
+					t.Errorf("user != test.req.User (-got +want):\n%s", diff)
+				}
+
+				// After a user has been created, it should be possible to authenticate them.
+				authUser, err := client.AuthenticateUser(ctx, &streckuv1.AuthenticateUserRequest{
+					EmailAddress: user.EmailAddress,
+					Password:     test.req.Password,
+				})
+				if got, want := status.Code(err), codes.OK; got != want {
+					t.Errorf("AuthenticateUser: status.Code(%v) = %v; want %v", err, got, want)
+				}
+				if diff := cmp.Diff(authUser, user, protocmp.Transform()); diff != "" {
+					t.Errorf("authUser != user (-got +want):\n%s", diff)
+				}
+			})
+		}
+	})
+
+	// These tests are for requests that are in some way invalid, such as having
+	// missing arguments.
+	t.Run("Invalid", func(t *testing.T) {
+		for _, test := range []struct {
+			name     string
+			req      *streckuv1.CreateUserRequest
+			wantCode codes.Code
+		}{
+			{
+				name: "MissingEmailAddress",
+				req: &streckuv1.CreateUserRequest{
+					User: &streckuv1.User{
+						EmailAddress: "",
+						DisplayName:  "User",
+					},
+					Password: "user password",
+				},
+				wantCode: codes.InvalidArgument,
+			},
+			{
+				name: "MissingDisplayName",
+				req: &streckuv1.CreateUserRequest{
+					User: &streckuv1.User{
+						EmailAddress: "user@example.com",
+						DisplayName:  "",
+					},
+					Password: "user password",
+				},
+				wantCode: codes.InvalidArgument,
+			},
+			{
+				name: "MissingPassword",
+				req: &streckuv1.CreateUserRequest{
+					User: &streckuv1.User{
+						EmailAddress: "user@example.com",
+						DisplayName:  "User",
+					},
+					Password: "",
+				},
+				wantCode: codes.InvalidArgument,
+			},
+		} {
+			t.Run(test.name, func(t *testing.T) {
+				_, err := client.CreateUser(ctx, test.req)
+				if got := status.Code(err); got != test.wantCode {
+					t.Errorf("status.Code(%v) = %v; want %v", err, got, test.wantCode)
+				}
+			})
+		}
+	})
 }
