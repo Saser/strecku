@@ -106,14 +106,11 @@ func TestServer_AuthenticateUser(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			authUser, err := client.AuthenticateUser(ctx, test.req)
-			if err == nil {
-				if diff := cmp.Diff(test.wantUser, authUser, protocmp.Transform()); diff != "" {
-					t.Errorf("test.wantUser != authUser (-want +got):\n%v", diff)
-				}
-			} else {
-				if got := status.Code(err); got != test.wantCode {
-					t.Errorf("status.Code(err) = %v; want %v", got, test.wantCode)
-				}
+			if got := status.Code(err); got != test.wantCode {
+				t.Errorf("status.Code(%v) = %v; want %v", err, got, test.wantCode)
+			}
+			if diff := cmp.Diff(authUser, test.wantUser, protocmp.Transform()); diff != "" {
+				t.Errorf("authUser != test.wantUser (-got +want):\n%v", diff)
 			}
 		})
 	}
