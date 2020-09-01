@@ -20,8 +20,8 @@ import (
 const bufSize = 1024 * 1024
 
 const (
-	certFile = "testcert.crt"
-	keyFile  = "testcert.key"
+	certFile = "testdata/cert.crt"
+	keyFile  = "testdata/cert.key"
 )
 
 type fixture struct {

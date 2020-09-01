@@ -2,7 +2,7 @@ include tools.mk
 
 proto_files := $(wildcard saser/strecku/v1/*.proto)
 
-server/testcert.key server/testcert.crt:
+server/testdata/cert.key server/testdata/cert.crt:
 	openssl \
 		req \
 		-x509 \
@@ -12,11 +12,11 @@ server/testcert.key server/testcert.crt:
 		-addext 'subjectAltName=DNS:localhost' \
 		-newkey rsa:4096 \
 		-nodes \
-		-keyout 'server/testcert.key' \
-		-out 'server/testcert.crt'
+		-keyout 'server/testdata/cert.key' \
+		-out 'server/testdata/cert.crt'
 
 .PHONY: testcert
-testcert: server/testcert.key server/testcert.crt
+testcert: server/testdata/cert.key server/testdata/cert.crt
 
 .PHONY: lint
 lint: \
