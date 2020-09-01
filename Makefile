@@ -37,6 +37,8 @@ generate:
 	$(protoc) \
 		--plugin='$(protoc-gen-go)' \
 		--go_out=. \
+		--go_opt=module=github.com/Saser/strecku \
 		--plugin='$(protoc-gen-go-grpc)' \
 		--go-grpc_out=. \
+		--go-grpc_opt=module=github.com/Saser/strecku \
 		$(proto_files)

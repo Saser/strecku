@@ -4,7 +4,7 @@ package saser.strecku.v1;
 
 import "saser/strecku/v1/user.proto";
 
-option go_package = "saser/strecku/v1;streckuv1";
+option go_package = "github.com/Saser/strecku/saser/strecku/v1;streckuv1";
 option java_package = "se.saser.strecku.v1";
 option java_multiple_files = true;
 option java_outer_classname = "StreckUProto";
