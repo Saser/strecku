@@ -97,45 +97,6 @@ func (f *fixture) backdoorCreateUser(t *testing.T, req *streckuv1.CreateUserRequ
 	return user
 }
 
-func TestServer_AuthenticateUser(t *testing.T) {
-	ctx := context.Background()
-
-	f := setUp(t)
-	password := "password"
-	user := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
-			EmailAddress: "user@example.com",
-			DisplayName:  "User",
-		},
-		Password: password,
-	})
-	client := f.client(ctx, t)
-
-	for _, test := range []struct {
-		name     string
-		req      *streckuv1.AuthenticateUserRequest
-		wantUser *streckuv1.User
-		wantCode codes.Code
-	}{
-		{name: "Correct", req: &streckuv1.AuthenticateUserRequest{EmailAddress: user.EmailAddress, Password: password}, wantUser: user},
-		{name: "IncorrectEmailAddress", req: &streckuv1.AuthenticateUserRequest{EmailAddress: "incorrect@example.com", Password: password}, wantCode: codes.Unauthenticated},
-		{name: "IncorrectPassword", req: &streckuv1.AuthenticateUserRequest{EmailAddress: user.EmailAddress, Password: "incorrect password"}, wantCode: codes.Unauthenticated},
-		{name: "MissingEmailAddress", req: &streckuv1.AuthenticateUserRequest{EmailAddress: "", Password: password}, wantCode: codes.InvalidArgument},
-		{name: "MissingPassword", req: &streckuv1.AuthenticateUserRequest{EmailAddress: user.EmailAddress, Password: ""}, wantCode: codes.InvalidArgument},
-		{name: "EmptyRequest", req: &streckuv1.AuthenticateUserRequest{}, wantCode: codes.InvalidArgument},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			authUser, err := client.AuthenticateUser(ctx, test.req)
-			if got := status.Code(err); got != test.wantCode {
-				t.Errorf("status.Code(%v) = %v; want %v", err, got, test.wantCode)
-			}
-			if diff := cmp.Diff(authUser, test.wantUser, protocmp.Transform()); diff != "" {
-				t.Errorf("authUser != test.wantUser (-got +want):\n%v", diff)
-			}
-		})
-	}
-}
-
 func TestServer_CreateUser_AsSuperuser(t *testing.T) {
 	ctx := context.Background()
 
@@ -187,18 +148,6 @@ func TestServer_CreateUser_AsSuperuser(t *testing.T) {
 				}
 				if diff := cmp.Diff(user, test.req.User, protocmp.Transform(), protocmp.IgnoreFields(user, "name")); diff != "" {
 					t.Errorf("user != test.req.User (-got +want):\n%s", diff)
-				}
-
-				// After a user has been created, it should be possible to authenticate them.
-				authUser, err := client.AuthenticateUser(ctx, &streckuv1.AuthenticateUserRequest{
-					EmailAddress: user.EmailAddress,
-					Password:     test.req.Password,
-				})
-				if got, want := status.Code(err), codes.OK; got != want {
-					t.Errorf("AuthenticateUser: status.Code(%v) = %v; want %v", err, got, want)
-				}
-				if diff := cmp.Diff(authUser, user, protocmp.Transform()); diff != "" {
-					t.Errorf("authUser != user (-got +want):\n%s", diff)
 				}
 			})
 		}

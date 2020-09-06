@@ -39,24 +39,6 @@ func newUserName() string {
 	return fmt.Sprintf("%s/%s", users, uuid.New())
 }
 
-func (s *Server) AuthenticateUser(_ context.Context, req *streckuv1.AuthenticateUserRequest) (*streckuv1.User, error) {
-	if req.EmailAddress == "" {
-		return nil, status.Error(codes.InvalidArgument, "Email address is required.")
-	}
-	if req.Password == "" {
-		return nil, status.Error(codes.InvalidArgument, "Password is required.")
-	}
-	name, ok := s.userKeys[req.EmailAddress]
-	if !ok {
-		return nil, status.Error(codes.Unauthenticated, "Authentication failed.")
-	}
-	entry := s.users[s.userIndices[name]]
-	if err := bcrypt.CompareHashAndPassword(entry.hash, []byte(req.Password)); err != nil {
-		return nil, status.Error(codes.Unauthenticated, "Authentication failed.")
-	}
-	return entry.user, nil
-}
-
 func (s *Server) CreateUser(_ context.Context, req *streckuv1.CreateUserRequest) (*streckuv1.User, error) {
 	user := req.User
 	if user.EmailAddress == "" {

@@ -17,8 +17,6 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StreckUClient interface {
-	// AuthenticateUser authenticates a user by their email address and password.
-	AuthenticateUser(ctx context.Context, in *AuthenticateUserRequest, opts ...grpc.CallOption) (*User, error)
 	// GetUser gets a single user.
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*User, error)
 	// CreateUser creates a new user.
@@ -31,15 +29,6 @@ type streckUClient struct {
 
 func NewStreckUClient(cc grpc.ClientConnInterface) StreckUClient {
 	return &streckUClient{cc}
-}
-
-func (c *streckUClient) AuthenticateUser(ctx context.Context, in *AuthenticateUserRequest, opts ...grpc.CallOption) (*User, error) {
-	out := new(User)
-	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/AuthenticateUser", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *streckUClient) GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*User, error) {
@@ -64,8 +53,6 @@ func (c *streckUClient) CreateUser(ctx context.Context, in *CreateUserRequest, o
 // All implementations must embed UnimplementedStreckUServer
 // for forward compatibility
 type StreckUServer interface {
-	// AuthenticateUser authenticates a user by their email address and password.
-	AuthenticateUser(context.Context, *AuthenticateUserRequest) (*User, error)
 	// GetUser gets a single user.
 	GetUser(context.Context, *GetUserRequest) (*User, error)
 	// CreateUser creates a new user.
@@ -77,9 +64,6 @@ type StreckUServer interface {
 type UnimplementedStreckUServer struct {
 }
 
-func (*UnimplementedStreckUServer) AuthenticateUser(context.Context, *AuthenticateUserRequest) (*User, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AuthenticateUser not implemented")
-}
 func (*UnimplementedStreckUServer) GetUser(context.Context, *GetUserRequest) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
@@ -90,24 +74,6 @@ func (*UnimplementedStreckUServer) mustEmbedUnimplementedStreckUServer() {}
 
 func RegisterStreckUServer(s *grpc.Server, srv StreckUServer) {
 	s.RegisterService(&_StreckU_serviceDesc, srv)
-}
-
-func _StreckU_AuthenticateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthenticateUserRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(StreckUServer).AuthenticateUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/saser.strecku.v1.StreckU/AuthenticateUser",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StreckUServer).AuthenticateUser(ctx, req.(*AuthenticateUserRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _StreckU_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -150,10 +116,6 @@ var _StreckU_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "saser.strecku.v1.StreckU",
 	HandlerType: (*StreckUServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "AuthenticateUser",
-			Handler:    _StreckU_AuthenticateUser_Handler,
-		},
 		{
 			MethodName: "GetUser",
 			Handler:    _StreckU_GetUser_Handler,
