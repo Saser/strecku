@@ -14,6 +14,9 @@ service StreckU {
   // AuthenticateUser authenticates a user by their email address and password.
   rpc AuthenticateUser(AuthenticateUserRequest) returns (User);
 
+  // GetUser gets a single user.
+  rpc GetUser(GetUserRequest) returns (User);
+
   // CreateUser creates a new user.
   rpc CreateUser(CreateUserRequest) returns (User);
 }
@@ -27,6 +30,14 @@ message AuthenticateUserRequest {
   // password contains the password of the user that authenticates.
   // Required.
   string password = 2;
+}
+
+// GetUserRequest is the request message for GetUser.
+message GetUserRequest {
+  // name is the resource name of the user to get.
+  // Format: users/{user}
+  // Required.
+  string name = 1;
 }
 
 // CreateUserRequest is the request message for CreateUser.

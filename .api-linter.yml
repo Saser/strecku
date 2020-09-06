@@ -4,6 +4,9 @@
 - disabled_rules:
     - "core::0123::resource-annotation"
     - "core::0127::http-annotation"
+    - "core::0131::method-signature"
+    - "core::0131::request-name-behavior"
+    - "core::0131::request-name-reference"
     - "core::0133::method-signature"
     - "core::0133::request-resource-behavior"
     - "core::0203::output-only"
