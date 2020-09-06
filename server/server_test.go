@@ -97,6 +97,113 @@ func (f *fixture) backdoorCreateUser(t *testing.T, req *streckuv1.CreateUserRequ
 	return user
 }
 
+func TestServer_GetUser(t *testing.T) {
+	ctx := context.Background()
+
+	f := setUp(t)
+	rootPassword := "root password"
+	root := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "root@example.com",
+			DisplayName:  "Root",
+			Superuser:    true,
+		},
+		Password: rootPassword,
+	})
+	otherRoot := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "other-root@example.com",
+			DisplayName:  "Other Root",
+			Superuser:    true,
+		},
+		Password: "other root password",
+	})
+	userPassword := "user password"
+	user := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "user@example.com",
+			DisplayName:  "User",
+			Superuser:    false,
+		},
+		Password: userPassword,
+	})
+	otherUser := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "other-user@example.com",
+			DisplayName:  "Other User",
+			Superuser:    false,
+		},
+		Password: "other user password",
+	})
+
+	// A superuser should be able to get any other (existing) user.
+	t.Run("AsSuperuser", func(t *testing.T) {
+		client := f.authClient(ctx, t, root.EmailAddress, rootPassword)
+		for _, test := range []struct {
+			name     string
+			req      *streckuv1.GetUserRequest
+			wantUser *streckuv1.User
+			wantCode codes.Code
+		}{
+			{name: "Me", req: &streckuv1.GetUserRequest{Name: "users/me"}, wantUser: root},
+			{name: "Root", req: &streckuv1.GetUserRequest{Name: root.Name}, wantUser: root},
+			{name: "OtherRoot", req: &streckuv1.GetUserRequest{Name: otherRoot.Name}, wantUser: otherRoot},
+			{name: "User", req: &streckuv1.GetUserRequest{Name: user.Name}, wantUser: user},
+			{name: "OtherUser", req: &streckuv1.GetUserRequest{Name: otherUser.Name}, wantUser: otherUser},
+			{name: "Nonexistent", req: &streckuv1.GetUserRequest{Name: "nonexistent"}, wantCode: codes.NotFound},
+			{name: "EmptyName", req: &streckuv1.GetUserRequest{Name: ""}, wantCode: codes.InvalidArgument},
+		} {
+			t.Run(test.name, func(t *testing.T) {
+				gotUser, err := client.GetUser(ctx, test.req)
+				if gotCode := status.Code(err); gotCode != test.wantCode {
+					t.Errorf("status.Code(%v) = %v; want %v", err, gotCode, test.wantCode)
+				}
+				if test.wantCode != codes.OK {
+					return
+				}
+				if diff := cmp.Diff(gotUser, test.wantUser, protocmp.Transform()); diff != "" {
+					t.Errorf("got != want (-got +want):\n%s", diff)
+				}
+			})
+		}
+	})
+
+	// TODO: a non-superuser A should eventually be able to get another user
+	// B, if B is a member of the store that A is an administrator of. For
+	// now, however, a non-superuser is only able to get themselves. All
+	// other (valid) requests should result in a PermissionDenied error.
+	t.Run("AsNormalUser", func(t *testing.T) {
+		client := f.authClient(ctx, t, user.EmailAddress, userPassword)
+		for _, test := range []struct {
+			name     string
+			req      *streckuv1.GetUserRequest
+			wantUser *streckuv1.User
+			wantCode codes.Code
+		}{
+			{name: "Me", req: &streckuv1.GetUserRequest{Name: "users/me"}, wantUser: user},
+			{name: "Root", req: &streckuv1.GetUserRequest{Name: root.Name}, wantCode: codes.PermissionDenied},
+			{name: "OtherRoot", req: &streckuv1.GetUserRequest{Name: otherRoot.Name}, wantCode: codes.PermissionDenied},
+			{name: "User", req: &streckuv1.GetUserRequest{Name: user.Name}, wantUser: user},
+			{name: "OtherUser", req: &streckuv1.GetUserRequest{Name: otherUser.Name}, wantCode: codes.PermissionDenied},
+			{name: "Nonexistent", req: &streckuv1.GetUserRequest{Name: "nonexistent"}, wantCode: codes.PermissionDenied},
+			{name: "Empty", req: &streckuv1.GetUserRequest{Name: ""}, wantCode: codes.InvalidArgument},
+		} {
+			t.Run(test.name, func(t *testing.T) {
+				gotUser, err := client.GetUser(ctx, test.req)
+				if gotCode := status.Code(err); gotCode != test.wantCode {
+					t.Errorf("status.Code(%v) = %v; want %v", err, gotCode, test.wantCode)
+				}
+				if test.wantCode != codes.OK {
+					return
+				}
+				if diff := cmp.Diff(gotUser, test.wantUser, protocmp.Transform()); diff != "" {
+					t.Errorf("got != want (-got +want):\n%s", diff)
+				}
+			})
+		}
+	})
+}
+
 func TestServer_CreateUser(t *testing.T) {
 	ctx := context.Background()
 

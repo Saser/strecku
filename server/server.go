@@ -66,6 +66,30 @@ func (s *Server) authenticatedUser(ctx context.Context) (*streckuv1.User, error)
 	return entry.user, nil
 }
 
+func (s *Server) GetUser(ctx context.Context, req *streckuv1.GetUserRequest) (*streckuv1.User, error) {
+	if req.Name == "" {
+		return nil, status.Error(codes.InvalidArgument, "Name is required.")
+	}
+	au, err := s.authenticatedUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if req.Name == "users/me" {
+		return au, nil
+	}
+	if !au.Superuser {
+		if req.Name == au.Name {
+			return au, nil
+		}
+		return nil, status.Error(codes.PermissionDenied, "Permission denied.")
+	}
+	index, ok := s.userIndices[req.Name]
+	if !ok {
+		return nil, status.Error(codes.NotFound, "User not found.")
+	}
+	return s.users[index].user, nil
+}
+
 func (s *Server) CreateUser(ctx context.Context, req *streckuv1.CreateUserRequest) (*streckuv1.User, error) {
 	user := req.User
 	if user.EmailAddress == "" {
