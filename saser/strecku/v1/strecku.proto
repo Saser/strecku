@@ -14,6 +14,9 @@ service StreckU {
   // GetUser gets a single user.
   rpc GetUser(GetUserRequest) returns (User);
 
+  // ListUsers lists users.
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+
   // CreateUser creates a new user.
   rpc CreateUser(CreateUserRequest) returns (User);
 }
@@ -24,6 +27,32 @@ message GetUserRequest {
   // Format: users/{user}
   // Required.
   string name = 1;
+}
+
+// ListUsersRequest is the request message for ListUsers.
+//
+// (-- api-linter: core::0132::request-parent-required=disabled
+//     aip.dev/not-precedent: Users are top-level resources. --)
+message ListUsersRequest {
+  // page_size is the maximum number of users to return.
+  // If unspecified, the server will choose a suitable number.
+  int32 page_size = 1;
+
+  // page_token contains an opaque string used to get the next page of
+  // results. It is usually provided by the previous call to ListUsers.
+  // If unspecified, the first page will be returned.
+  string page_token = 2;
+}
+
+// ListUsersResponse is the response message for ListUsers.
+message ListUsersResponse {
+  // users contains the page of users.
+  repeated User users = 1;
+
+  // next_page_token contains an opaque string used to get the next page of
+  // results. Provide this in a subsequent call to ListUsers.
+  // If this field is empty, there are no more pages.
+  string next_page_token = 2;
 }
 
 // CreateUserRequest is the request message for CreateUser.
