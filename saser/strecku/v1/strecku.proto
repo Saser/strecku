@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package saser.strecku.v1;
 
+import "saser/strecku/v1/store.proto";
 import "saser/strecku/v1/user.proto";
 
 option go_package = "github.com/Saser/strecku/saser/strecku/v1;streckuv1";
@@ -19,6 +20,9 @@ service StreckU {
 
   // CreateUser creates a new user.
   rpc CreateUser(CreateUserRequest) returns (User);
+
+  // CreateStore creates a new store.
+  rpc CreateStore(CreateStoreRequest) returns (Store);
 }
 
 // GetUserRequest is the request message for GetUser.
@@ -70,4 +74,14 @@ message CreateUserRequest {
   // (-- api-linter: core::0133::request-unknown-fields=disabled
   //     aip.dev/not-precedent: A password is required for each user. --)
   string password = 2;
+}
+
+// CreateStoreRequest is the request message for CreateStore.
+//
+// (-- api-linter: core::0133::request-parent-required=disabled
+//     aip.dev/not-precedent: Stores are top-level resources. --)
+message CreateStoreRequest {
+  // store is the store to be created.
+  // Required.
+  Store store = 1;
 }
