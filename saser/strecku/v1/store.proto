@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package saser.strecku.v1;
+
+option go_package = "github.com/Saser/strecku/saser/strecku/v1;streckuv1";
+option java_package = "se.saser.strecku.v1";
+option java_multiple_files = true;
+option java_outer_classname = "StoreProto";
+
+// Store represents a store in the system.
+message Store {
+  // name is the resource name of the store.
+  // Format: stores/{store}
+  // Output only.
+  string name = 1;
+
+  // display_name is the name of the store as it would be displayed to a human.
+  // Required.
+  string display_name = 2;
+}
