@@ -90,6 +90,33 @@ func (s *Server) GetUser(ctx context.Context, req *streckuv1.GetUserRequest) (*s
 	return s.users[index].user, nil
 }
 
+func (s *Server) ListUsers(ctx context.Context, req *streckuv1.ListUsersRequest) (*streckuv1.ListUsersResponse, error) {
+	if req.PageSize < 0 {
+		return nil, status.Error(codes.InvalidArgument, "Page size must be non-negative.")
+	}
+	if req.PageSize > 0 {
+		return nil, status.Error(codes.Unimplemented, "Pagination is not implemented.")
+	}
+	if req.PageToken != "" {
+		return nil, status.Error(codes.Unimplemented, "Pagination is not implemented.")
+	}
+	au, err := s.authenticatedUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !au.Superuser {
+		return &streckuv1.ListUsersResponse{
+			Users:         []*streckuv1.User{au},
+			NextPageToken: "",
+		}, nil
+	}
+	users := make([]*streckuv1.User, len(s.users))
+	for i, entry := range s.users {
+		users[i] = entry.user
+	}
+	return &streckuv1.ListUsersResponse{Users: users}, nil
+}
+
 func (s *Server) CreateUser(ctx context.Context, req *streckuv1.CreateUserRequest) (*streckuv1.User, error) {
 	user := req.User
 	if user.EmailAddress == "" {

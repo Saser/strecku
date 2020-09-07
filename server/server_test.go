@@ -204,6 +204,108 @@ func TestServer_GetUser(t *testing.T) {
 	})
 }
 
+func TestServer_ListUsers(t *testing.T) {
+	ctx := context.Background()
+
+	f := setUp(t)
+	rootPassword := "root password"
+	root := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "root@example.com",
+			DisplayName:  "Root",
+			Superuser:    true,
+		},
+		Password: rootPassword,
+	})
+	userPassword := "user password"
+	user := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "user@example.com",
+			DisplayName:  "User",
+			Superuser:    false,
+		},
+		Password: userPassword,
+	})
+
+	// A superuser should be able to list all users.
+	t.Run("AsSuperuser", func(t *testing.T) {
+		client := f.authClient(ctx, t, root.EmailAddress, rootPassword)
+		for _, test := range []struct {
+			name     string
+			req      *streckuv1.ListUsersRequest
+			wantResp *streckuv1.ListUsersResponse
+			wantCode codes.Code
+		}{
+			{
+				name: "OK",
+				req:  &streckuv1.ListUsersRequest{},
+				wantResp: &streckuv1.ListUsersResponse{
+					Users: []*streckuv1.User{root, user},
+				},
+			},
+			{name: "NegativePageSize", req: &streckuv1.ListUsersRequest{PageSize: -1}, wantCode: codes.InvalidArgument},
+			{name: "NonEmptyPageToken", req: &streckuv1.ListUsersRequest{PageToken: "token"}, wantCode: codes.Unimplemented},
+			{name: "PositivePageSize", req: &streckuv1.ListUsersRequest{PageSize: 1}, wantCode: codes.Unimplemented},
+		} {
+			t.Run(test.name, func(t *testing.T) {
+				gotResp, err := client.ListUsers(ctx, test.req)
+				if gotCode := status.Code(err); gotCode != test.wantCode {
+					t.Errorf("status.Code(%v) = %v; want %v", err, gotCode, test.wantCode)
+				}
+				if test.wantCode != codes.OK {
+					return
+				}
+				if diff := cmp.Diff(
+					gotResp, test.wantResp, protocmp.Transform(),
+					protocmp.SortRepeatedFields(test.wantResp, "users"),
+				); diff != "" {
+					t.Errorf("-got +want:\n%s", diff)
+				}
+			})
+		}
+	})
+
+	// TODO: a non-superuser A should eventually be able to list all users that
+	// are members of any store that A is an administrator for. For now,
+	// however, A is only able to list themselves.
+	t.Run("AsNormalUser", func(t *testing.T) {
+		client := f.authClient(ctx, t, user.EmailAddress, userPassword)
+		for _, test := range []struct {
+			name     string
+			req      *streckuv1.ListUsersRequest
+			wantResp *streckuv1.ListUsersResponse
+			wantCode codes.Code
+		}{
+			{
+				name: "OK",
+				req:  &streckuv1.ListUsersRequest{},
+				wantResp: &streckuv1.ListUsersResponse{
+					Users: []*streckuv1.User{user},
+				},
+			},
+			{name: "NegativePageSize", req: &streckuv1.ListUsersRequest{PageSize: -1}, wantCode: codes.InvalidArgument},
+			{name: "NonEmptyPageToken", req: &streckuv1.ListUsersRequest{PageToken: "token"}, wantCode: codes.Unimplemented},
+			{name: "PositivePageSize", req: &streckuv1.ListUsersRequest{PageSize: 1}, wantCode: codes.Unimplemented},
+		} {
+			t.Run(test.name, func(t *testing.T) {
+				gotResp, err := client.ListUsers(ctx, test.req)
+				if gotCode := status.Code(err); gotCode != test.wantCode {
+					t.Errorf("status.Code(%v) = %v; want %v", err, gotCode, test.wantCode)
+				}
+				if test.wantCode != codes.OK {
+					return
+				}
+				if diff := cmp.Diff(
+					gotResp, test.wantResp, protocmp.Transform(),
+					protocmp.SortRepeatedFields(test.wantResp, "users"),
+				); diff != "" {
+					t.Errorf("-got +want:\n%s", diff)
+				}
+			})
+		}
+	})
+}
+
 func TestServer_CreateUser(t *testing.T) {
 	ctx := context.Background()
 
