@@ -14,7 +14,9 @@ import (
 )
 
 const (
-	users                = "users"
+	users  = "users"
+	stores = "stores"
+
 	authenticatedUserKey = "authenticatedUser"
 )
 
@@ -29,17 +31,26 @@ type Server struct {
 	users       []*userEntry
 	userIndices map[string]int    // name -> index into users
 	userKeys    map[string]string // email address -> name
+
+	stores       []*streckuv1.Store
+	storeIndices map[string]int // name -> index into stores
 }
 
 func New() *Server {
 	return &Server{
 		userIndices: make(map[string]int),
 		userKeys:    make(map[string]string),
+
+		storeIndices: make(map[string]int),
 	}
 }
 
 func newUserName() string {
 	return fmt.Sprintf("%s/%s", users, uuid.New())
+}
+
+func newStoreName() string {
+	return fmt.Sprintf("%s/%s", stores, uuid.New())
 }
 
 func (s *Server) authenticatedUser(ctx context.Context) (*streckuv1.User, error) {
@@ -150,4 +161,15 @@ func (s *Server) CreateUser(ctx context.Context, req *streckuv1.CreateUserReques
 	s.userIndices[user.Name] = len(s.users) - 1
 	s.userKeys[user.EmailAddress] = user.Name
 	return user, nil
+}
+
+func (s *Server) CreateStore(ctx context.Context, req *streckuv1.CreateStoreRequest) (*streckuv1.Store, error) {
+	store := req.Store
+	if store.DisplayName == "" {
+		return nil, status.Error(codes.InvalidArgument, "Display name is required.")
+	}
+	store.Name = newStoreName()
+	s.stores = append(s.stores, store)
+	s.storeIndices[store.Name] = len(s.stores) - 1
+	return store, nil
 }

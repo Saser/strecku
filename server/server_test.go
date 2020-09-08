@@ -508,3 +508,85 @@ func TestServer_CreateUser(t *testing.T) {
 		}
 	})
 }
+
+func TestServer_CreateStore(t *testing.T) {
+	ctx := context.Background()
+
+	f := setUp(t)
+	rootPassword := "root password"
+	root := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "root@example.com",
+			DisplayName:  "Root",
+			Superuser:    true,
+		},
+		Password: rootPassword,
+	})
+	rootClient := f.authClient(ctx, t, root.EmailAddress, rootPassword)
+	userPassword := "user password"
+	user := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "user@example.com",
+			DisplayName:  "User",
+			Superuser:    false,
+		},
+		Password: userPassword,
+	})
+	userClient := f.authClient(ctx, t, user.EmailAddress, userPassword)
+
+	type testCase struct {
+		name      string
+		req       *streckuv1.CreateStoreRequest
+		wantStore *streckuv1.Store
+		wantCode  codes.Code
+	}
+	testCases := []testCase{
+		{
+			name: "OK",
+			req: &streckuv1.CreateStoreRequest{
+				Store: &streckuv1.Store{
+					DisplayName: "Store",
+				},
+			},
+			wantStore: &streckuv1.Store{
+				DisplayName: "Store",
+			},
+		},
+		{
+			name: "EmptyDisplayName",
+			req: &streckuv1.CreateStoreRequest{
+				Store: &streckuv1.Store{
+					DisplayName: "",
+				},
+			},
+			wantCode: codes.InvalidArgument,
+		},
+	}
+	testF := func(client streckuv1.StreckUClient, test testCase) func(t *testing.T) {
+		return func(t *testing.T) {
+			gotStore, err := client.CreateStore(ctx, test.req)
+			if gotCode := status.Code(err); gotCode != test.wantCode {
+				t.Errorf("status.Code(%v) = %v; want %v", err, gotCode, test.wantCode)
+			}
+			if test.wantCode != codes.OK {
+				return
+			}
+			if diff := cmp.Diff(
+				gotStore, test.wantStore, protocmp.Transform(),
+				protocmp.IgnoreFields(gotStore, "name"),
+			); diff != "" {
+				t.Errorf("-got +want:\n%s", diff)
+			}
+		}
+	}
+	t.Run("AsSuperuser", func(t *testing.T) {
+		for _, test := range testCases {
+			t.Run(test.name, testF(rootClient, test))
+		}
+	})
+	t.Run("AsNormalUser", func(t *testing.T) {
+		for _, test := range testCases {
+			t.Run(test.name, testF(userClient, test))
+		}
+	})
+}
