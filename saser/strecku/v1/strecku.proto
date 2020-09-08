@@ -21,6 +21,9 @@ service StreckU {
   // CreateUser creates a new user.
   rpc CreateUser(CreateUserRequest) returns (User);
 
+  // GetStore gets a single store.
+  rpc GetStore(GetStoreRequest) returns (Store);
+
   // CreateStore creates a new store.
   rpc CreateStore(CreateStoreRequest) returns (Store);
 }
@@ -74,6 +77,14 @@ message CreateUserRequest {
   // (-- api-linter: core::0133::request-unknown-fields=disabled
   //     aip.dev/not-precedent: A password is required for each user. --)
   string password = 2;
+}
+
+// GetStoreRequest is the request message for GetStore.
+message GetStoreRequest {
+  // name is the resource name of the store to get.
+  // Format: stores/{store}
+  // Required.
+  string name = 1;
 }
 
 // CreateStoreRequest is the request message for CreateStore.
