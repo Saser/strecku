@@ -163,6 +163,27 @@ func (s *Server) CreateUser(ctx context.Context, req *streckuv1.CreateUserReques
 	return user, nil
 }
 
+func (s *Server) GetStore(ctx context.Context, req *streckuv1.GetStoreRequest) (*streckuv1.Store, error) {
+	if req.Name == "" {
+		return nil, status.Error(codes.InvalidArgument, "Name is required.")
+	}
+	au, err := s.authenticatedUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	index, ok := s.storeIndices[req.Name]
+	if !ok {
+		var err error
+		if au.Superuser {
+			err = status.Error(codes.NotFound, "Store not found.")
+		} else {
+			err = status.Error(codes.PermissionDenied, "Permission denied.")
+		}
+		return nil, err
+	}
+	return s.stores[index], nil
+}
+
 func (s *Server) CreateStore(ctx context.Context, req *streckuv1.CreateStoreRequest) (*streckuv1.Store, error) {
 	store := req.Store
 	if store.DisplayName == "" {

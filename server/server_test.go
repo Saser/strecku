@@ -97,6 +97,18 @@ func (f *fixture) backdoorCreateUser(t *testing.T, req *streckuv1.CreateUserRequ
 	return user
 }
 
+func (f *fixture) backdoorCreateStore(t *testing.T, req *streckuv1.CreateStoreRequest) *streckuv1.Store {
+	t.Helper()
+	store := req.Store
+	store.Name = newStoreName()
+	f.srv.stores = append(f.srv.stores, store)
+	f.srv.storeIndices[store.Name] = len(f.srv.stores) - 1
+	t.Cleanup(func() {
+		delete(f.srv.storeIndices, store.Name)
+	})
+	return store
+}
+
 func TestServer_GetUser(t *testing.T) {
 	ctx := context.Background()
 
@@ -503,6 +515,113 @@ func TestServer_CreateUser(t *testing.T) {
 				_, err := client.CreateUser(ctx, test.req)
 				if got := status.Code(err); got != test.want {
 					t.Errorf("status.Code(%v) = %v; want %v", err, got, test.want)
+				}
+			})
+		}
+	})
+}
+
+func TestServer_GetStore(t *testing.T) {
+	ctx := context.Background()
+
+	f := setUp(t)
+	rootPassword := "root password"
+	root := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "root@example.com",
+			DisplayName:  "Root",
+			Superuser:    true,
+		},
+		Password: rootPassword,
+	})
+	userPassword := "user password"
+	user := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "user@example.com",
+			DisplayName:  "User",
+			Superuser:    false,
+		},
+		Password: userPassword,
+	})
+	store := f.backdoorCreateStore(t, &streckuv1.CreateStoreRequest{
+		Store: &streckuv1.Store{
+			DisplayName: "Store",
+		},
+	})
+
+	t.Run("AsSuperuser", func(t *testing.T) {
+		client := f.authClient(ctx, t, root.EmailAddress, rootPassword)
+		for _, test := range []struct {
+			name      string
+			req       *streckuv1.GetStoreRequest
+			wantStore *streckuv1.Store
+			wantCode  codes.Code
+		}{
+			{
+				name:      "OK",
+				req:       &streckuv1.GetStoreRequest{Name: store.Name},
+				wantStore: store,
+			},
+			{
+				name:     "EmptyName",
+				req:      &streckuv1.GetStoreRequest{Name: ""},
+				wantCode: codes.InvalidArgument,
+			},
+			{
+				name:     "Nonexistent",
+				req:      &streckuv1.GetStoreRequest{Name: "nonexistent"},
+				wantCode: codes.NotFound,
+			},
+		} {
+			t.Run(test.name, func(t *testing.T) {
+				gotStore, err := client.GetStore(ctx, test.req)
+				if gotCode := status.Code(err); gotCode != test.wantCode {
+					t.Errorf("status.Code(%v) = %v; want %v", err, gotCode, test.wantCode)
+				}
+				if test.wantCode != codes.OK {
+					return
+				}
+				if diff := cmp.Diff(gotStore, test.wantStore, protocmp.Transform()); diff != "" {
+					t.Errorf("-got +want:\n%s", diff)
+				}
+			})
+		}
+	})
+
+	t.Run("AsNormalUser", func(t *testing.T) {
+		client := f.authClient(ctx, t, user.EmailAddress, userPassword)
+		for _, test := range []struct {
+			name      string
+			req       *streckuv1.GetStoreRequest
+			wantStore *streckuv1.Store
+			wantCode  codes.Code
+		}{
+			{
+				name:      "OK",
+				req:       &streckuv1.GetStoreRequest{Name: store.Name},
+				wantStore: store,
+			},
+			{
+				name:     "EmptyName",
+				req:      &streckuv1.GetStoreRequest{Name: ""},
+				wantCode: codes.InvalidArgument,
+			},
+			{
+				name:     "Nonexistent",
+				req:      &streckuv1.GetStoreRequest{Name: "nonexistent"},
+				wantCode: codes.PermissionDenied,
+			},
+		} {
+			t.Run(test.name, func(t *testing.T) {
+				gotStore, err := client.GetStore(ctx, test.req)
+				if gotCode := status.Code(err); gotCode != test.wantCode {
+					t.Errorf("status.Code(%v) = %v; want %v", err, gotCode, test.wantCode)
+				}
+				if test.wantCode != codes.OK {
+					return
+				}
+				if diff := cmp.Diff(gotStore, test.wantStore, protocmp.Transform()); diff != "" {
+					t.Errorf("-got +want:\n%s", diff)
 				}
 			})
 		}
