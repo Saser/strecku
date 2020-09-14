@@ -8,8 +8,6 @@ import (
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 )
 
-const CollectionID = "users"
-
 var (
 	ErrNameEmpty         = errors.New("name is empty")
 	ErrNameInvalidPrefix = fmt.Errorf("name must have prefix %q", CollectionID+"/")
