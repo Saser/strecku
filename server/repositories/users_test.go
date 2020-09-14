@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"strings"
 	"testing"
 
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
@@ -8,6 +9,10 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
 )
+
+var userLess = func(u1, u2 *streckuv1.User) bool {
+	return u1.Name < u2.Name
+}
 
 func seedUsers(users []*streckuv1.User) *Users {
 	mUsers := make(map[string]*streckuv1.User, len(users))
@@ -219,11 +224,96 @@ func TestUsers_ListUsers(t *testing.T) {
 			if err != nil {
 				t.Errorf("r.ListUsers() err = %v; want nil", err)
 			}
-			less := func(u1, u2 *streckuv1.User) bool {
-				return u1.Name < u2.Name
-			}
-			if diff := cmp.Diff(users, test.users, protocmp.Transform(), cmpopts.SortSlices(less)); diff != "" {
+			if diff := cmp.Diff(
+				users, test.users, protocmp.Transform(),
+				cmpopts.EquateEmpty(),
+				cmpopts.SortSlices(userLess),
+			); diff != "" {
 				t.Errorf("users != test.users (-got +want)\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestUsers_FilterUsers(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		users     []*streckuv1.User
+		predicate func(*streckuv1.User) bool
+		want      []*streckuv1.User
+	}{
+		{
+			name:      "Empty",
+			users:     nil,
+			predicate: func(*streckuv1.User) bool { return true },
+			want:      nil,
+		},
+		{
+			name: "OneUserNoneMatching",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "user@example.com", DisplayName: "Foo Bar"},
+			},
+			predicate: func(user *streckuv1.User) bool { return false },
+			want:      nil,
+		},
+		{
+			name: "MultipleUsersNoneMatching",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			predicate: func(user *streckuv1.User) bool { return false },
+			want:      nil,
+		},
+		{
+			name: "OneUserOneMatching",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "user@example.com", DisplayName: "Foo Bar"},
+			},
+			predicate: func(user *streckuv1.User) bool { return strings.HasPrefix(user.DisplayName, "Foo") },
+			want: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "user@example.com", DisplayName: "Foo Bar"},
+			},
+		},
+		{
+			name: "MultipleUsersOneMatching",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			predicate: func(user *streckuv1.User) bool { return strings.HasPrefix(user.DisplayName, "Foo") },
+			want: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			},
+		},
+		{
+			name: "MultipleUsersMultipleMatching",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			predicate: func(user *streckuv1.User) bool { return strings.Contains(user.DisplayName, "Bar") },
+			want: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			r := seedUsers(test.users)
+			got, err := r.FilterUsers(test.predicate)
+			if err != nil {
+				t.Errorf("r.FilterUsers(test.predicate) err = %v; want nil", err)
+			}
+			if diff := cmp.Diff(
+				got, test.want, protocmp.Transform(),
+				cmpopts.EquateEmpty(),
+				cmpopts.SortSlices(userLess),
+			); diff != "" {
+				t.Errorf("got != test.want (-got +want)\n%s", diff)
 			}
 		})
 	}

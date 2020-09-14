@@ -60,13 +60,15 @@ func (r *Users) LookupUserByEmail(emailAddress string) (*streckuv1.User, error) 
 }
 
 func (r *Users) ListUsers() ([]*streckuv1.User, error) {
-	n := len(r.users)
-	if n == 0 {
-		return nil, nil
-	}
-	users := make([]*streckuv1.User, 0, n)
+	return r.FilterUsers(func(*streckuv1.User) bool { return true })
+}
+
+func (r *Users) FilterUsers(predicate func(*streckuv1.User) bool) ([]*streckuv1.User, error) {
+	var filtered []*streckuv1.User
 	for _, user := range r.users {
-		users = append(users, user)
+		if predicate(user) {
+			filtered = append(filtered, user)
+		}
 	}
-	return users, nil
+	return filtered, nil
 }
