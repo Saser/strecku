@@ -6,6 +6,7 @@ import (
 
 	"github.com/Saser/strecku/auth"
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
+	"github.com/Saser/strecku/users"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
@@ -14,7 +15,6 @@ import (
 )
 
 const (
-	users  = "users"
 	stores = "stores"
 
 	authenticatedUserKey = "authenticatedUser"
@@ -43,10 +43,6 @@ func New() *Server {
 
 		storeIndices: make(map[string]int),
 	}
-}
-
-func newUserName() string {
-	return fmt.Sprintf("%s/%s", users, uuid.New())
 }
 
 func newStoreName() string {
@@ -130,11 +126,9 @@ func (s *Server) ListUsers(ctx context.Context, req *streckuv1.ListUsersRequest)
 
 func (s *Server) CreateUser(ctx context.Context, req *streckuv1.CreateUserRequest) (*streckuv1.User, error) {
 	user := req.User
-	if user.EmailAddress == "" {
-		return nil, status.Error(codes.InvalidArgument, "Email address is required.")
-	}
-	if user.DisplayName == "" {
-		return nil, status.Error(codes.InvalidArgument, "Display name is required.")
+	user.Name = users.GenerateName()
+	if err := users.Validate(user); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	if req.Password == "" {
 		return nil, status.Error(codes.InvalidArgument, "Password is required.")
@@ -149,7 +143,6 @@ func (s *Server) CreateUser(ctx context.Context, req *streckuv1.CreateUserReques
 	if _, ok := s.userKeys[user.EmailAddress]; ok {
 		return nil, status.Error(codes.AlreadyExists, "Email address must be unique.")
 	}
-	user.Name = newUserName()
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Internal error.")

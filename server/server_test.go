@@ -7,6 +7,7 @@ import (
 
 	"github.com/Saser/strecku/auth"
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
+	"github.com/Saser/strecku/users"
 	"github.com/google/go-cmp/cmp"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc"
@@ -77,7 +78,7 @@ func (f *fixture) authClient(ctx context.Context, t *testing.T, emailAddress, pa
 func (f *fixture) backdoorCreateUser(t *testing.T, req *streckuv1.CreateUserRequest) *streckuv1.User {
 	t.Helper()
 	user := req.User
-	user.Name = newUserName()
+	user.Name = users.GenerateName()
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		t.Fatal(err)
