@@ -45,6 +45,13 @@ func TestUserNotFoundError_Error(t *testing.T) {
 	}
 }
 
+func TestUserExistsError_Error(t *testing.T) {
+	err := &UserExistsError{EmailAddress: "user@example.com"}
+	if got, want := err.Error(), `duplicate user email address: "user@example.com"`; got != want {
+		t.Errorf("err.Error() = %q; want %q", got, want)
+	}
+}
+
 func TestUsers_LookupUser(t *testing.T) {
 	for _, test := range []struct {
 		testName string
@@ -314,6 +321,65 @@ func TestUsers_FilterUsers(t *testing.T) {
 				cmpopts.SortSlices(userLess),
 			); diff != "" {
 				t.Errorf("got != test.want (-got +want)\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestUsers_CreateUser(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		users []*streckuv1.User
+		user  *streckuv1.User
+		want  error
+	}{
+		{
+			name:  "Empty",
+			users: nil,
+			user:  &streckuv1.User{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			want:  nil,
+		},
+		{
+			name: "OneUserOK",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			},
+			user: &streckuv1.User{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Foo Bar"},
+			want: nil,
+		},
+		{
+			name: "MultipleUsersOK",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			user: &streckuv1.User{Name: "users/cookie", EmailAddress: "cookie@example.com", DisplayName: "Cookie"},
+			want: nil,
+		},
+		{
+			name: "OneUserDuplicateEmail",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			},
+			user: &streckuv1.User{Name: "users/barbaz", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			want: &UserExistsError{EmailAddress: "foobar@example.com"},
+		},
+		{
+			name: "MultipleUsersOK",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			user: &streckuv1.User{Name: "users/cookie", EmailAddress: "foobar@example.com", DisplayName: "Cookie"},
+			want: &UserExistsError{EmailAddress: "foobar@example.com"},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			r := seedUsers(test.users)
+			if got := r.CreateUser(test.user); !cmp.Equal(got, test.want) {
+				t.Errorf("r.CreateUser(%v) = %v; want %v", test.user, got, test.want)
 			}
 		})
 	}

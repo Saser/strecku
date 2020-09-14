@@ -32,6 +32,14 @@ func (e *UserNotFoundError) Error() string {
 	return fmt.Sprintf("%s: %q", msg, query)
 }
 
+type UserExistsError struct {
+	EmailAddress string
+}
+
+func (e *UserExistsError) Error() string {
+	return fmt.Sprintf("duplicate user email address: %q", e.EmailAddress)
+}
+
 func NewUsers() *Users {
 	return newUsers(make(map[string]*streckuv1.User), make(map[string]string))
 }
@@ -71,4 +79,13 @@ func (r *Users) FilterUsers(predicate func(*streckuv1.User) bool) ([]*streckuv1.
 		}
 	}
 	return filtered, nil
+}
+
+func (r *Users) CreateUser(user *streckuv1.User) error {
+	if _, exists := r.names[user.EmailAddress]; exists {
+		return &UserExistsError{EmailAddress: user.EmailAddress}
+	}
+	r.users[user.Name] = user
+	r.names[user.EmailAddress] = user.Name
+	return nil
 }
