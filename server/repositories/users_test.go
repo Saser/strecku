@@ -8,24 +8,31 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
-func toMap(users []*streckuv1.User) map[string]*streckuv1.User {
-	m := make(map[string]*streckuv1.User)
+func seedUsers(users []*streckuv1.User) *Users {
+	mUsers := make(map[string]*streckuv1.User, len(users))
+	mNames := make(map[string]string, len(users))
 	for _, user := range users {
-		m[user.Name] = user
+		mUsers[user.Name] = user
+		mNames[user.EmailAddress] = user.Name
 	}
-	return m
+	return newUsers(mUsers, mNames)
 }
 
 func TestUserNotFoundError_Error(t *testing.T) {
 	for _, test := range []struct {
-		name string
-		want string
+		name         string
+		emailAddress string
+		want         string
 	}{
-		{name: "", want: `user not found: ""`},
 		{name: "users/foobar", want: `user not found: "users/foobar"`},
 		{name: "some name", want: `user not found: "some name"`},
+		{emailAddress: "user@example.com", want: `user email not found: "user@example.com"`},
+		{emailAddress: "some email", want: `user email not found: "some email"`},
 	} {
-		err := &UserNotFoundError{Name: test.name}
+		err := &UserNotFoundError{
+			Name:         test.name,
+			EmailAddress: test.emailAddress,
+		}
 		if got := err.Error(); got != test.want {
 			t.Errorf("err.Error() = %q; want %q", got, test.want)
 		}
@@ -96,13 +103,89 @@ func TestUsers_LookupUser(t *testing.T) {
 		},
 	} {
 		t.Run(test.testName, func(t *testing.T) {
-			r := newUsers(toMap(test.users))
+			r := seedUsers(test.users)
 			user, err := r.LookupUser(test.name)
 			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
 				t.Errorf("user != test.wantUser (-got +want)\n%s", diff)
 			}
 			if got, want := err, test.wantErr; !cmp.Equal(got, want) {
 				t.Errorf("r.LookupUser(%q) err = %v; want %v", test.name, got, want)
+			}
+		})
+	}
+}
+
+func TestUsers_LookupUserByEmail(t *testing.T) {
+	for _, test := range []struct {
+		testName     string
+		users        []*streckuv1.User
+		emailAddress string
+		wantUser     *streckuv1.User
+		wantErr      error
+	}{
+		{
+			testName:     "EmptyDatabaseEmptyName",
+			users:        nil,
+			emailAddress: "",
+			wantUser:     nil,
+			wantErr:      &UserNotFoundError{EmailAddress: ""},
+		},
+		{
+			testName:     "EmptyDatabaseNonEmptyName",
+			users:        nil,
+			emailAddress: "user@example.com",
+			wantUser:     nil,
+			wantErr:      &UserNotFoundError{EmailAddress: "user@example.com"},
+		},
+		{
+			testName: "OneUserOK",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "user@example.com", DisplayName: "User"},
+			},
+			emailAddress: "user@example.com",
+			wantUser:     &streckuv1.User{Name: "users/foobar", EmailAddress: "user@example.com", DisplayName: "User"},
+			wantErr:      nil,
+		},
+		{
+			testName: "MultipleUsersOK",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			emailAddress: "barbaz@example.com",
+			wantUser:     &streckuv1.User{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+			wantErr:      nil,
+		},
+		{
+			testName: "OneUserNotFound",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "user@example.com", DisplayName: "User"},
+			},
+			emailAddress: "notfoobar@example.com",
+			wantUser:     nil,
+			wantErr:      &UserNotFoundError{EmailAddress: "notfoobar@example.com"},
+		},
+		{
+			testName: "MultipleUsersNotFound",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			emailAddress: "notfoobar@example.com",
+			wantUser:     nil,
+			wantErr:      &UserNotFoundError{EmailAddress: "notfoobar@example.com"},
+		},
+	} {
+		t.Run(test.testName, func(t *testing.T) {
+			r := seedUsers(test.users)
+			user, err := r.LookupUserByEmail(test.emailAddress)
+			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
+				t.Errorf("user != test.wantUser (-got +want)\n%s", diff)
+			}
+			if got, want := err, test.wantErr; !cmp.Equal(got, want) {
+				t.Errorf("r.LookupUser(%q) err = %v; want %v", test.emailAddress, got, want)
 			}
 		})
 	}
