@@ -58,3 +58,15 @@ func (r *Users) LookupUserByEmail(emailAddress string) (*streckuv1.User, error) 
 	}
 	return r.LookupUser(name)
 }
+
+func (r *Users) ListUsers() ([]*streckuv1.User, error) {
+	n := len(r.users)
+	if n == 0 {
+		return nil, nil
+	}
+	users := make([]*streckuv1.User, 0, n)
+	for _, user := range r.users {
+		users = append(users, user)
+	}
+	return users, nil
+}

@@ -5,6 +5,7 @@ import (
 
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
@@ -186,6 +187,43 @@ func TestUsers_LookupUserByEmail(t *testing.T) {
 			}
 			if got, want := err, test.wantErr; !cmp.Equal(got, want) {
 				t.Errorf("r.LookupUser(%q) err = %v; want %v", test.emailAddress, got, want)
+			}
+		})
+	}
+}
+
+func TestUsers_ListUsers(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		users []*streckuv1.User
+	}{
+		{name: "Empty", users: nil},
+		{
+			name: "OneUser",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "user@example.com", DisplayName: "Foo Bar"},
+			},
+		},
+		{
+			name: "ThreeUsers",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			r := seedUsers(test.users)
+			users, err := r.ListUsers()
+			if err != nil {
+				t.Errorf("r.ListUsers() err = %v; want nil", err)
+			}
+			less := func(u1, u2 *streckuv1.User) bool {
+				return u1.Name < u2.Name
+			}
+			if diff := cmp.Diff(users, test.users, protocmp.Transform(), cmpopts.SortSlices(less)); diff != "" {
+				t.Errorf("users != test.users (-got +want)\n%s", diff)
 			}
 		})
 	}
