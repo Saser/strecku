@@ -2,9 +2,6 @@ syntax = "proto3";
 
 package saser.strecku.v1;
 
-import "saser/strecku/v1/store.proto";
-import "saser/strecku/v1/user.proto";
-
 option go_package = "github.com/Saser/strecku/saser/strecku/v1;streckuv1";
 option java_package = "se.saser.strecku.v1";
 option java_multiple_files = true;
@@ -26,6 +23,39 @@ service StreckU {
 
   // CreateStore creates a new store.
   rpc CreateStore(CreateStoreRequest) returns (Store);
+}
+
+// User represents a user in the system.
+message User {
+  // name is the resource name of the user.
+  // Format: users/{user}
+  // Output only.
+  string name = 1;
+
+  // email_address is the email address of the user.
+  // The email address is unique among all users.
+  // Required.
+  string email_address = 2;
+
+  // display_name is the name of the user as it would be displayed to a human.
+  // Required.
+  string display_name = 3;
+
+  // superuser is true if this user is a superuser, i.e., a user that is
+  // authorized for any request.
+  bool superuser = 4;
+}
+
+// Store represents a store in the system.
+message Store {
+  // name is the resource name of the store.
+  // Format: stores/{store}
+  // Output only.
+  string name = 1;
+
+  // display_name is the name of the store as it would be displayed to a human.
+  // Required.
+  string display_name = 2;
 }
 
 // GetUserRequest is the request message for GetUser.
