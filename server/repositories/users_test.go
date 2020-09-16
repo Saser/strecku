@@ -372,7 +372,7 @@ func TestUsers_CreateUser(t *testing.T) {
 			want: &UserExistsError{EmailAddress: "foobar@example.com"},
 		},
 		{
-			name: "MultipleUsersOK",
+			name: "MultipleUsersDuplicateEmail",
 			users: []*streckuv1.User{
 				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
 				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
