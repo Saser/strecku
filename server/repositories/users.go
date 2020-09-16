@@ -90,3 +90,17 @@ func (r *Users) CreateUser(_ context.Context, user *streckuv1.User) error {
 	r.names[user.EmailAddress] = user.Name
 	return nil
 }
+
+func (r *Users) UpdateUser(_ context.Context, updated *streckuv1.User) error {
+	old, exists := r.users[updated.Name]
+	if !exists {
+		return &UserNotFoundError{Name: updated.Name}
+	}
+	if name, exists := r.names[updated.EmailAddress]; exists && name != updated.Name {
+		return &UserExistsError{EmailAddress: updated.EmailAddress}
+	}
+	delete(r.names, old.EmailAddress)
+	r.names[updated.EmailAddress] = updated.Name
+	r.users[updated.Name] = updated
+	return nil
+}

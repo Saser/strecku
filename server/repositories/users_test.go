@@ -390,3 +390,177 @@ func TestUsers_CreateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestUsers_UpdateUser(t *testing.T) {
+	ctx := context.Background()
+	for _, test := range []struct {
+		name          string
+		users         []*streckuv1.User
+		updated       *streckuv1.User
+		wantUpdateErr error
+		lookupEmail   string
+		wantUser      *streckuv1.User
+		wantLookupErr error
+	}{
+		{
+			name: "OneUserEmailAddressLookupNew",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			},
+			updated:       &streckuv1.User{Name: "users/foobar", EmailAddress: "new-foobar@example.com", DisplayName: "Foo Bar"},
+			wantUpdateErr: nil,
+			lookupEmail:   "new-foobar@example.com",
+			wantUser:      &streckuv1.User{Name: "users/foobar", EmailAddress: "new-foobar@example.com", DisplayName: "Foo Bar"},
+			wantLookupErr: nil,
+		},
+		{
+			name: "OneUserEmailAddressLookupOld",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			},
+			updated:       &streckuv1.User{Name: "users/foobar", EmailAddress: "new-foobar@example.com", DisplayName: "Foo Bar"},
+			wantUpdateErr: nil,
+			lookupEmail:   "foobar@example.com",
+			wantUser:      nil,
+			wantLookupErr: &UserNotFoundError{EmailAddress: "foobar@example.com"},
+		},
+		{
+			name: "OneUserDisplayName",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			},
+			updated:       &streckuv1.User{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "New Foo Bar"},
+			wantUpdateErr: nil,
+			lookupEmail:   "foobar@example.com",
+			wantUser:      &streckuv1.User{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "New Foo Bar"},
+			wantLookupErr: nil,
+		},
+		{
+			name: "OneUserMultipleFields",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			},
+			updated:       &streckuv1.User{Name: "users/foobar", EmailAddress: "new-foobar@example.com", DisplayName: "New Foo Bar"},
+			wantUpdateErr: nil,
+			lookupEmail:   "new-foobar@example.com",
+			wantUser:      &streckuv1.User{Name: "users/foobar", EmailAddress: "new-foobar@example.com", DisplayName: "New Foo Bar"},
+			wantLookupErr: nil,
+		},
+		{
+			name: "OneUserNotFound",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			},
+			updated:       &streckuv1.User{Name: "users/notfound", EmailAddress: "new-foobar@example.com", DisplayName: "Foo Bar"},
+			wantUpdateErr: &UserNotFoundError{Name: "users/notfound"},
+			lookupEmail:   "new-foobar@example.com",
+			wantUser:      nil,
+			wantLookupErr: &UserNotFoundError{EmailAddress: "new-foobar@example.com"},
+		},
+		{
+			name: "MultipleUsersEmailAddressLookupNew",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			updated:       &streckuv1.User{Name: "users/barbaz", EmailAddress: "new-barbaz@example.com", DisplayName: "Barba Z."},
+			wantUpdateErr: nil,
+			lookupEmail:   "new-barbaz@example.com",
+			wantUser:      &streckuv1.User{Name: "users/barbaz", EmailAddress: "new-barbaz@example.com", DisplayName: "Barba Z."},
+			wantLookupErr: nil,
+		},
+		{
+			name: "MultipleUsersEmailAddressLookupOld",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			updated:       &streckuv1.User{Name: "users/barbaz", EmailAddress: "new-barbaz@example.com", DisplayName: "Barba Z."},
+			wantUpdateErr: nil,
+			lookupEmail:   "barbaz@example.com",
+			wantUser:      nil,
+			wantLookupErr: &UserNotFoundError{EmailAddress: "barbaz@example.com"},
+		},
+		{
+			name: "MultipleUsersDisplayName",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			updated:       &streckuv1.User{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "All New Barba Z."},
+			wantUpdateErr: nil,
+			lookupEmail:   "barbaz@example.com",
+			wantUser:      &streckuv1.User{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "All New Barba Z."},
+			wantLookupErr: nil,
+		},
+		{
+			name: "MultipleUsersMultipleFields",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			updated:       &streckuv1.User{Name: "users/barbaz", EmailAddress: "new-barbaz@example.com", DisplayName: "All New Barba Z."},
+			wantUpdateErr: nil,
+			lookupEmail:   "new-barbaz@example.com",
+			wantUser:      &streckuv1.User{Name: "users/barbaz", EmailAddress: "new-barbaz@example.com", DisplayName: "All New Barba Z."},
+			wantLookupErr: nil,
+		},
+		{
+			name: "MultipleUsersNotFound",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			updated:       &streckuv1.User{Name: "users/notfound", EmailAddress: "new-barbaz@example.com", DisplayName: "Barba Z."},
+			wantUpdateErr: &UserNotFoundError{Name: "users/notfound"},
+			lookupEmail:   "barbaz@example.com",
+			wantUser:      &streckuv1.User{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+			wantLookupErr: nil,
+		},
+		{
+			name: "MultipleUsersDuplicateEmailAddressLookupNew",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			updated:       &streckuv1.User{Name: "users/barbaz", EmailAddress: "foobar@example.com", DisplayName: "Barba Z."},
+			wantUpdateErr: &UserExistsError{EmailAddress: "foobar@example.com"},
+			lookupEmail:   "foobar@example.com",
+			wantUser:      &streckuv1.User{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			wantLookupErr: nil,
+		},
+		{
+			name: "MultipleUsersDuplicateEmailAddressLookupOld",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			updated:       &streckuv1.User{Name: "users/barbaz", EmailAddress: "foobar@example.com", DisplayName: "All New Barba Z."},
+			wantUpdateErr: &UserExistsError{EmailAddress: "foobar@example.com"},
+			lookupEmail:   "barbaz@example.com",
+			wantUser:      &streckuv1.User{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+			wantLookupErr: nil,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			r := seedUsers(test.users)
+			if got := r.UpdateUser(ctx, test.updated); !cmp.Equal(got, test.wantUpdateErr) {
+				t.Errorf("r.UpdateUser(%v, %v) = %v; want %v", ctx, test.updated, got, test.wantUpdateErr)
+			}
+			got, err := r.LookupUserByEmail(ctx, test.lookupEmail)
+			if diff := cmp.Diff(got, test.wantUser, protocmp.Transform()); diff != "" {
+				t.Errorf("r.LookupUser(%v, %v) = %v; want %v", ctx, test.lookupEmail, got, test.wantUser)
+			}
+			if !cmp.Equal(err, test.wantLookupErr) {
+				t.Errorf("r.LookupUserByEmail(%v, %v) = %v; want %v", ctx, test.lookupEmail, err, test.wantLookupErr)
+			}
+		})
+	}
+}
