@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"fmt"
 
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
@@ -51,7 +52,7 @@ func newUsers(users map[string]*streckuv1.User, names map[string]string) *Users 
 	}
 }
 
-func (r *Users) LookupUser(name string) (*streckuv1.User, error) {
+func (r *Users) LookupUser(_ context.Context, name string) (*streckuv1.User, error) {
 	user, ok := r.users[name]
 	if !ok {
 		return nil, &UserNotFoundError{Name: name}
@@ -59,19 +60,19 @@ func (r *Users) LookupUser(name string) (*streckuv1.User, error) {
 	return user, nil
 }
 
-func (r *Users) LookupUserByEmail(emailAddress string) (*streckuv1.User, error) {
+func (r *Users) LookupUserByEmail(ctx context.Context, emailAddress string) (*streckuv1.User, error) {
 	name, ok := r.names[emailAddress]
 	if !ok {
 		return nil, &UserNotFoundError{EmailAddress: emailAddress}
 	}
-	return r.LookupUser(name)
+	return r.LookupUser(ctx, name)
 }
 
-func (r *Users) ListUsers() ([]*streckuv1.User, error) {
-	return r.FilterUsers(func(*streckuv1.User) bool { return true })
+func (r *Users) ListUsers(ctx context.Context) ([]*streckuv1.User, error) {
+	return r.FilterUsers(ctx, func(*streckuv1.User) bool { return true })
 }
 
-func (r *Users) FilterUsers(predicate func(*streckuv1.User) bool) ([]*streckuv1.User, error) {
+func (r *Users) FilterUsers(_ context.Context, predicate func(*streckuv1.User) bool) ([]*streckuv1.User, error) {
 	var filtered []*streckuv1.User
 	for _, user := range r.users {
 		if predicate(user) {
@@ -81,7 +82,7 @@ func (r *Users) FilterUsers(predicate func(*streckuv1.User) bool) ([]*streckuv1.
 	return filtered, nil
 }
 
-func (r *Users) CreateUser(user *streckuv1.User) error {
+func (r *Users) CreateUser(_ context.Context, user *streckuv1.User) error {
 	if _, exists := r.names[user.EmailAddress]; exists {
 		return &UserExistsError{EmailAddress: user.EmailAddress}
 	}
