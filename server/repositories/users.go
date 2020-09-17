@@ -104,3 +104,13 @@ func (r *Users) UpdateUser(_ context.Context, updated *streckuv1.User) error {
 	r.users[updated.Name] = updated
 	return nil
 }
+
+func (r *Users) DeleteUser(_ context.Context, name string) error {
+	user, ok := r.users[name]
+	if !ok {
+		return &UserNotFoundError{Name: name}
+	}
+	delete(r.names, user.EmailAddress)
+	delete(r.users, name)
+	return nil
+}

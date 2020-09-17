@@ -564,3 +564,102 @@ func TestUsers_UpdateUser(t *testing.T) {
 		})
 	}
 }
+
+func TestUsers_DeleteUser(t *testing.T) {
+	ctx := context.Background()
+	for _, test := range []struct {
+		desc          string
+		users         []*streckuv1.User
+		name          string
+		want          error
+		lookupName    string
+		wantUser      *streckuv1.User
+		wantLookupErr error
+	}{
+		{
+			desc:          "Empty",
+			users:         nil,
+			name:          "users/notfound",
+			want:          &UserNotFoundError{Name: "users/notfound"},
+			lookupName:    "users/alsonotfound",
+			wantUser:      nil,
+			wantLookupErr: &UserNotFoundError{Name: "users/alsonotfound"},
+		},
+		{
+			desc: "OneUserOK",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			},
+			name:          "users/foobar",
+			want:          nil,
+			lookupName:    "users/foobar",
+			wantUser:      nil,
+			wantLookupErr: &UserNotFoundError{Name: "users/foobar"},
+		},
+		{
+			desc: "MultipleUsersLookupDeleted",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			name:          "users/barbaz",
+			want:          nil,
+			lookupName:    "users/barbaz",
+			wantUser:      nil,
+			wantLookupErr: &UserNotFoundError{Name: "users/barbaz"},
+		},
+		{
+			desc: "MultipleUsersLookupExisting",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			name:          "users/barbaz",
+			want:          nil,
+			lookupName:    "users/foobar",
+			wantUser:      &streckuv1.User{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			wantLookupErr: nil,
+		},
+		{
+			desc: "OneUserNotFound",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			},
+			name:          "users/notfound",
+			want:          &UserNotFoundError{Name: "users/notfound"},
+			lookupName:    "users/foobar",
+			wantUser:      &streckuv1.User{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			wantLookupErr: nil,
+		},
+		{
+			desc: "MultipleUsersNotFound",
+			users: []*streckuv1.User{
+				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				{Name: "users/quux", EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			},
+			name:          "users/notfound",
+			want:          &UserNotFoundError{Name: "users/notfound"},
+			lookupName:    "users/foobar",
+			wantUser:      &streckuv1.User{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			wantLookupErr: nil,
+		},
+	} {
+		t.Run(test.desc, func(t *testing.T) {
+			r := seedUsers(test.users)
+			err := r.DeleteUser(ctx, test.name)
+			if got, want := err, test.want; !cmp.Equal(got, want) {
+				t.Errorf("r.DeleteUser(%v, %q) = %v; want %v", ctx, test.name, got, want)
+			}
+			user, err := r.LookupUser(ctx, test.lookupName)
+			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
+				t.Errorf("r.LookupUser(%v, %q) user != test.wantUser (-got +want)\n%s", ctx, test.lookupName, diff)
+			}
+			if got, want := err, test.wantLookupErr; !cmp.Equal(got, want) {
+				t.Errorf("r.LookupUser(%v, %q) = %v; want %v", ctx, test.lookupName, got, want)
+			}
+		})
+	}
+}
