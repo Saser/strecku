@@ -9,8 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const prefix = CollectionID + "/"
-
 var (
 	ErrNameEmpty         = errors.New("name is empty")
 	ErrNameInvalidFormat = fmt.Errorf("name must have format %q", prefix+"<uuid>")
