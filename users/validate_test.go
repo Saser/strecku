@@ -11,11 +11,12 @@ func TestValidate(t *testing.T) {
 		user *streckuv1.User
 		want error
 	}{
-		{user: &streckuv1.User{Name: "users/example", EmailAddress: "user@example.com", DisplayName: "User"}, want: nil},
+		{user: &streckuv1.User{Name: "users/6f2d193c-1460-491d-8157-7dd9535526c6", EmailAddress: "user@example.com", DisplayName: "User"}, want: nil},
 		{user: &streckuv1.User{Name: "", EmailAddress: "user@example.com", DisplayName: "User"}, want: ErrNameEmpty},
-		{user: &streckuv1.User{Name: "invalidprefix/example", EmailAddress: "user@example.com", DisplayName: "User"}, want: ErrNameInvalidPrefix},
-		{user: &streckuv1.User{Name: "users/example", EmailAddress: "", DisplayName: "User"}, want: ErrEmailAddressEmpty},
-		{user: &streckuv1.User{Name: "users/example", EmailAddress: "user@example.com", DisplayName: ""}, want: ErrDisplayNameEmpty},
+		{user: &streckuv1.User{Name: "invalidprefix/6f2d193c-1460-491d-8157-7dd9535526c6", EmailAddress: "user@example.com", DisplayName: "User"}, want: ErrNameInvalidFormat},
+		{user: &streckuv1.User{Name: "6f2d193c-1460-491d-8157-7dd9535526c6", EmailAddress: "user@example.com", DisplayName: "User"}, want: ErrNameInvalidFormat},
+		{user: &streckuv1.User{Name: "users/6f2d193c-1460-491d-8157-7dd9535526c6", EmailAddress: "", DisplayName: "User"}, want: ErrEmailAddressEmpty},
+		{user: &streckuv1.User{Name: "users/6f2d193c-1460-491d-8157-7dd9535526c6", EmailAddress: "user@example.com", DisplayName: ""}, want: ErrDisplayNameEmpty},
 	} {
 		if got := Validate(test.user); got != test.want {
 			t.Errorf("Validate(%v) = %v; want %v", test.user, got, test.want)
