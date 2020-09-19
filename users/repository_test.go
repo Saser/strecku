@@ -1,4 +1,4 @@
-package repositories
+package users
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
-	"github.com/Saser/strecku/users"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -23,13 +22,13 @@ func userLess(u1, u2 *streckuv1.User) bool {
 	return u1.Name < u2.Name
 }
 
-func seedUsers(t *testing.T, seed []*streckuv1.User) *Users {
+func seed(t *testing.T, users []*streckuv1.User) *Repository {
 	t.Helper()
-	mUsers := make(map[string]*streckuv1.User, len(seed))
-	mNames := make(map[string]string, len(seed))
-	for _, user := range seed {
-		if got, want := users.Validate(user), error(nil); !cmp.Equal(got, want) {
-			t.Errorf("users.Validate(%v) = %v; want %v", user, got, want)
+	mUsers := make(map[string]*streckuv1.User, len(users))
+	mNames := make(map[string]string, len(users))
+	for _, user := range users {
+		if got, want := Validate(user), error(nil); !cmp.Equal(got, want) {
+			t.Errorf("Validate(%v) = %v; want %v", user, got, want)
 		}
 		mUsers[user.Name] = user
 		mNames[user.EmailAddress] = user.Name
@@ -130,7 +129,7 @@ func TestUsers_LookupUser(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := seedUsers(t, test.users)
+			r := seed(t, test.users)
 			user, err := r.LookupUser(ctx, test.name)
 			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
 				t.Errorf("r.LookupUser(%v, %q) user != test.wantUser (-got +want)\n%s", ctx, test.name, diff)
@@ -207,7 +206,7 @@ func TestUsers_LookupUserByEmail(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := seedUsers(t, test.users)
+			r := seed(t, test.users)
 			user, err := r.LookupUserByEmail(ctx, test.emailAddress)
 			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
 				t.Errorf("r.LookupUserByEmail(%v, %q) user != test.wantUser (-got +want)\n%s", ctx, test.emailAddress, diff)
@@ -242,7 +241,7 @@ func TestUsers_ListUsers(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := seedUsers(t, test.users)
+			r := seed(t, test.users)
 			users, err := r.ListUsers(ctx)
 			if diff := cmp.Diff(
 				users, test.users, protocmp.Transform(),
@@ -327,7 +326,7 @@ func TestUsers_FilterUsers(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := seedUsers(t, test.users)
+			r := seed(t, test.users)
 			users, err := r.FilterUsers(ctx, test.predicate)
 			if diff := cmp.Diff(
 				users, test.want, protocmp.Transform(),
@@ -395,7 +394,7 @@ func TestUsers_CreateUser(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := seedUsers(t, test.users)
+			r := seed(t, test.users)
 			if got := r.CreateUser(ctx, test.user); !cmp.Equal(got, test.want) {
 				t.Errorf("r.CreateUser(%v, %v) = %v; want %v", ctx, test.user, got, test.want)
 			}
@@ -562,7 +561,7 @@ func TestUsers_UpdateUser(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := seedUsers(t, test.users)
+			r := seed(t, test.users)
 			if got := r.UpdateUser(ctx, test.updated); !cmp.Equal(got, test.wantUpdateErr) {
 				t.Errorf("r.UpdateUser(%v, %v) = %v; want %v", ctx, test.updated, got, test.wantUpdateErr)
 			}
@@ -660,7 +659,7 @@ func TestUsers_DeleteUser(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := seedUsers(t, test.users)
+			r := seed(t, test.users)
 			err := r.DeleteUser(ctx, test.name)
 			if got, want := err, test.want; !cmp.Equal(got, want) {
 				t.Errorf("r.DeleteUser(%v, %q) = %v; want %v", ctx, test.name, got, want)
