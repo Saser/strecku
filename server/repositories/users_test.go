@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
-var userLess = func(u1, u2 *streckuv1.User) bool {
+func userLess(u1, u2 *streckuv1.User) bool {
 	return u1.Name < u2.Name
 }
 
@@ -61,28 +61,28 @@ func TestUserExistsError_Error(t *testing.T) {
 func TestUsers_LookupUser(t *testing.T) {
 	ctx := context.Background()
 	for _, test := range []struct {
-		testName string
+		desc     string
 		users    []*streckuv1.User
 		name     string
 		wantUser *streckuv1.User
 		wantErr  error
 	}{
 		{
-			testName: "EmptyDatabaseEmptyName",
+			desc:     "EmptyDatabaseEmptyName",
 			users:    nil,
 			name:     "",
 			wantUser: nil,
 			wantErr:  &UserNotFoundError{Name: ""},
 		},
 		{
-			testName: "EmptyDatabaseNonEmptyName",
+			desc:     "EmptyDatabaseNonEmptyName",
 			users:    nil,
 			name:     "users/foobar",
 			wantUser: nil,
 			wantErr:  &UserNotFoundError{Name: "users/foobar"},
 		},
 		{
-			testName: "OneUserOK",
+			desc: "OneUserOK",
 			users: []*streckuv1.User{
 				{Name: "users/foobar", EmailAddress: "user@example.com", DisplayName: "User"},
 			},
@@ -91,7 +91,7 @@ func TestUsers_LookupUser(t *testing.T) {
 			wantErr:  nil,
 		},
 		{
-			testName: "MultipleUsersOK",
+			desc: "MultipleUsersOK",
 			users: []*streckuv1.User{
 				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
 				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
@@ -102,7 +102,7 @@ func TestUsers_LookupUser(t *testing.T) {
 			wantErr:  nil,
 		},
 		{
-			testName: "OneUserNotFound",
+			desc: "OneUserNotFound",
 			users: []*streckuv1.User{
 				{Name: "users/foobar", EmailAddress: "user@example.com", DisplayName: "User"},
 			},
@@ -111,7 +111,7 @@ func TestUsers_LookupUser(t *testing.T) {
 			wantErr:  &UserNotFoundError{Name: "users/notfoobar"},
 		},
 		{
-			testName: "MultipleUsersNotFound",
+			desc: "MultipleUsersNotFound",
 			users: []*streckuv1.User{
 				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
 				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
@@ -122,11 +122,11 @@ func TestUsers_LookupUser(t *testing.T) {
 			wantErr:  &UserNotFoundError{Name: "users/notfoobar"},
 		},
 	} {
-		t.Run(test.testName, func(t *testing.T) {
+		t.Run(test.desc, func(t *testing.T) {
 			r := seedUsers(t, test.users)
 			user, err := r.LookupUser(ctx, test.name)
 			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
-				t.Errorf("user != test.wantUser (-got +want)\n%s", diff)
+				t.Errorf("r.LookupUser(%v, %q) user != test.wantUser (-got +want)\n%s", ctx, test.name, diff)
 			}
 			if got, want := err, test.wantErr; !cmp.Equal(got, want) {
 				t.Errorf("r.LookupUser(%v, %q) err = %v; want %v", ctx, test.name, got, want)
@@ -138,28 +138,28 @@ func TestUsers_LookupUser(t *testing.T) {
 func TestUsers_LookupUserByEmail(t *testing.T) {
 	ctx := context.Background()
 	for _, test := range []struct {
-		testName     string
+		desc         string
 		users        []*streckuv1.User
 		emailAddress string
 		wantUser     *streckuv1.User
 		wantErr      error
 	}{
 		{
-			testName:     "EmptyDatabaseEmptyName",
+			desc:         "EmptyDatabaseEmptyName",
 			users:        nil,
 			emailAddress: "",
 			wantUser:     nil,
 			wantErr:      &UserNotFoundError{EmailAddress: ""},
 		},
 		{
-			testName:     "EmptyDatabaseNonEmptyName",
+			desc:         "EmptyDatabaseNonEmptyName",
 			users:        nil,
 			emailAddress: "user@example.com",
 			wantUser:     nil,
 			wantErr:      &UserNotFoundError{EmailAddress: "user@example.com"},
 		},
 		{
-			testName: "OneUserOK",
+			desc: "OneUserOK",
 			users: []*streckuv1.User{
 				{Name: "users/foobar", EmailAddress: "user@example.com", DisplayName: "User"},
 			},
@@ -168,7 +168,7 @@ func TestUsers_LookupUserByEmail(t *testing.T) {
 			wantErr:      nil,
 		},
 		{
-			testName: "MultipleUsersOK",
+			desc: "MultipleUsersOK",
 			users: []*streckuv1.User{
 				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
 				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
@@ -179,7 +179,7 @@ func TestUsers_LookupUserByEmail(t *testing.T) {
 			wantErr:      nil,
 		},
 		{
-			testName: "OneUserNotFound",
+			desc: "OneUserNotFound",
 			users: []*streckuv1.User{
 				{Name: "users/foobar", EmailAddress: "user@example.com", DisplayName: "User"},
 			},
@@ -188,7 +188,7 @@ func TestUsers_LookupUserByEmail(t *testing.T) {
 			wantErr:      &UserNotFoundError{EmailAddress: "notfoobar@example.com"},
 		},
 		{
-			testName: "MultipleUsersNotFound",
+			desc: "MultipleUsersNotFound",
 			users: []*streckuv1.User{
 				{Name: "users/foobar", EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
 				{Name: "users/barbaz", EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
@@ -199,14 +199,14 @@ func TestUsers_LookupUserByEmail(t *testing.T) {
 			wantErr:      &UserNotFoundError{EmailAddress: "notfoobar@example.com"},
 		},
 	} {
-		t.Run(test.testName, func(t *testing.T) {
+		t.Run(test.desc, func(t *testing.T) {
 			r := seedUsers(t, test.users)
 			user, err := r.LookupUserByEmail(ctx, test.emailAddress)
 			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
-				t.Errorf("user != test.wantUser (-got +want)\n%s", diff)
+				t.Errorf("r.LookupUserByEmail(%v, %q) user != test.wantUser (-got +want)\n%s", ctx, test.emailAddress, diff)
 			}
 			if got, want := err, test.wantErr; !cmp.Equal(got, want) {
-				t.Errorf("r.LookupUser(%v, %q) err = %v; want %v", ctx, test.emailAddress, got, want)
+				t.Errorf("r.LookupUserByEmail(%v, %q) err = %v; want %v", ctx, test.emailAddress, got, want)
 			}
 		})
 	}
@@ -237,15 +237,15 @@ func TestUsers_ListUsers(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			r := seedUsers(t, test.users)
 			users, err := r.ListUsers(ctx)
-			if err != nil {
-				t.Errorf("r.ListUsers(%v) err = %v; want nil", ctx, err)
-			}
 			if diff := cmp.Diff(
 				users, test.users, protocmp.Transform(),
 				cmpopts.EquateEmpty(),
 				cmpopts.SortSlices(userLess),
 			); diff != "" {
-				t.Errorf("users != test.users (-got +want)\n%s", diff)
+				t.Errorf("r.ListUsers(%v) users != test.users (-got +want)\n%s", ctx, diff)
+			}
+			if got, want := err, error(nil); !cmp.Equal(got, want) {
+				t.Errorf("r.ListUsers(%v) err = %v; want %v", ctx, got, want)
 			}
 		})
 	}
@@ -321,16 +321,16 @@ func TestUsers_FilterUsers(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			r := seedUsers(t, test.users)
-			got, err := r.FilterUsers(ctx, test.predicate)
-			if err != nil {
-				t.Errorf("r.FilterUsers(%v, test.predicate) err = %v; want nil", ctx, err)
-			}
+			users, err := r.FilterUsers(ctx, test.predicate)
 			if diff := cmp.Diff(
-				got, test.want, protocmp.Transform(),
+				users, test.want, protocmp.Transform(),
 				cmpopts.EquateEmpty(),
 				cmpopts.SortSlices(userLess),
 			); diff != "" {
-				t.Errorf("got != test.want (-got +want)\n%s", diff)
+				t.Errorf("r.FilterUsers(%v, test.predicate) users != test.want (-got +want)\n%s", ctx, diff)
+			}
+			if got, want := err, error(nil); !cmp.Equal(got, want) {
+				t.Errorf("r.FilterUsers(%v, test.predicate) err = %v; want %v", ctx, got, want)
 			}
 		})
 	}
@@ -559,12 +559,12 @@ func TestUsers_UpdateUser(t *testing.T) {
 			if got := r.UpdateUser(ctx, test.updated); !cmp.Equal(got, test.wantUpdateErr) {
 				t.Errorf("r.UpdateUser(%v, %v) = %v; want %v", ctx, test.updated, got, test.wantUpdateErr)
 			}
-			got, err := r.LookupUserByEmail(ctx, test.lookupEmail)
-			if diff := cmp.Diff(got, test.wantUser, protocmp.Transform()); diff != "" {
-				t.Errorf("r.LookupUser(%v, %v) = %v; want %v", ctx, test.lookupEmail, got, test.wantUser)
+			user, err := r.LookupUserByEmail(ctx, test.lookupEmail)
+			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
+				t.Errorf("r.LookupUserByEmail(%v, %v) user != test.wantUser (-got +want)\n%s", ctx, test.lookupEmail, diff)
 			}
-			if !cmp.Equal(err, test.wantLookupErr) {
-				t.Errorf("r.LookupUserByEmail(%v, %v) = %v; want %v", ctx, test.lookupEmail, err, test.wantLookupErr)
+			if got, want := err, test.wantLookupErr; !cmp.Equal(got, want) {
+				t.Errorf("r.LookupUserByEmail(%v, %v) err = %v; want %v", ctx, test.lookupEmail, got, want)
 			}
 		})
 	}
@@ -663,7 +663,7 @@ func TestUsers_DeleteUser(t *testing.T) {
 				t.Errorf("r.LookupUser(%v, %q) user != test.wantUser (-got +want)\n%s", ctx, test.lookupName, diff)
 			}
 			if got, want := err, test.wantLookupErr; !cmp.Equal(got, want) {
-				t.Errorf("r.LookupUser(%v, %q) = %v; want %v", ctx, test.lookupName, got, want)
+				t.Errorf("r.LookupUser(%v, %q) err = %v; want %v", ctx, test.lookupName, got, want)
 			}
 		})
 	}
