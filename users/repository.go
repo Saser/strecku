@@ -34,11 +34,24 @@ func (e *UserNotFoundError) Error() string {
 }
 
 type UserExistsError struct {
+	Name         string
 	EmailAddress string
 }
 
 func (e *UserExistsError) Error() string {
-	return fmt.Sprintf("duplicate user email address: %q", e.EmailAddress)
+	var (
+		msg   string
+		query string
+	)
+	switch {
+	case e.Name != "":
+		msg = "user exists"
+		query = e.Name
+	case e.EmailAddress != "":
+		msg = "user email exists"
+		query = e.EmailAddress
+	}
+	return fmt.Sprintf("%s: %q", msg, query)
 }
 
 func NewUsers() *Repository {
@@ -83,6 +96,9 @@ func (r *Repository) FilterUsers(_ context.Context, predicate func(*streckuv1.Us
 }
 
 func (r *Repository) CreateUser(_ context.Context, user *streckuv1.User) error {
+	if _, exists := r.users[user.Name]; exists {
+		return &UserExistsError{Name: user.Name}
+	}
 	if _, exists := r.names[user.EmailAddress]; exists {
 		return &UserExistsError{EmailAddress: user.EmailAddress}
 	}

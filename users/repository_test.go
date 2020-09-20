@@ -58,9 +58,23 @@ func TestUserNotFoundError_Error(t *testing.T) {
 }
 
 func TestUserExistsError_Error(t *testing.T) {
-	err := &UserExistsError{EmailAddress: "user@example.com"}
-	if got, want := err.Error(), `duplicate user email address: "user@example.com"`; got != want {
-		t.Errorf("err.Error() = %q; want %q", got, want)
+	for _, test := range []struct {
+		name         string
+		emailAddress string
+		want         string
+	}{
+		{name: userNames["foobar"], want: fmt.Sprintf("user exists: %q", userNames["foobar"])},
+		{name: "some name", want: `user exists: "some name"`},
+		{emailAddress: "user@example.com", want: `user email exists: "user@example.com"`},
+		{emailAddress: "some email", want: `user email exists: "some email"`},
+	} {
+		err := &UserExistsError{
+			Name:         test.name,
+			EmailAddress: test.emailAddress,
+		}
+		if got := err.Error(); got != test.want {
+			t.Errorf("err.Error() = %q; want %q", got, test.want)
+		}
 	}
 }
 
@@ -381,6 +395,14 @@ func TestUsers_CreateUser(t *testing.T) {
 			},
 			user: &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
 			want: &UserExistsError{EmailAddress: "foobar@example.com"},
+		},
+		{
+			name: "OneUserDuplicateName",
+			users: []*streckuv1.User{
+				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			},
+			user: &streckuv1.User{Name: userNames["foobar"], EmailAddress: "new-foobar@example.com", DisplayName: "New Foo Bar"},
+			want: &UserExistsError{Name: userNames["foobar"]},
 		},
 		{
 			name: "MultipleUsersDuplicateEmail",
