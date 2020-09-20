@@ -27,8 +27,8 @@ func seed(t *testing.T, users []*streckuv1.User) *Repository {
 	mUsers := make(map[string]*streckuv1.User, len(users))
 	mNames := make(map[string]string, len(users))
 	for _, user := range users {
-		if got, want := Validate(user), error(nil); !cmp.Equal(got, want) {
-			t.Errorf("Validate(%v) = %v; want %v", user, got, want)
+		if got := Validate(user); got != nil {
+			t.Errorf("Validate(%v) = %v; want %v", user, got, nil)
 		}
 		mUsers[user.Name] = user
 		mNames[user.EmailAddress] = user.Name
