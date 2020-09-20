@@ -16,6 +16,7 @@ var userNames = map[string]string{
 	"foobar": "users/6f2d193c-1460-491d-8157-7dd9535526c6",
 	"barbaz": "users/d8bbf79e-8c59-4fae-aef9-634fcac00e07",
 	"quux":   "users/9cd3ec05-e7af-418c-bd50-80a7c39a18cc",
+	"cookie": "users/7f8f2c29-3860-49fa-923d-896a53f0ca26",
 }
 
 func userLess(u1, u2 *streckuv1.User) bool {
@@ -126,9 +127,9 @@ func TestUsers_LookupUser(t *testing.T) {
 			users: []*streckuv1.User{
 				{Name: userNames["foobar"], EmailAddress: "user@example.com", DisplayName: "User"},
 			},
-			name:     "users/notfoobar",
+			name:     userNames["barbaz"],
 			wantUser: nil,
-			wantErr:  &UserNotFoundError{Name: "users/notfoobar"},
+			wantErr:  &UserNotFoundError{Name: userNames["barbaz"]},
 		},
 		{
 			desc: "MultipleUsersNotFound",
@@ -137,9 +138,9 @@ func TestUsers_LookupUser(t *testing.T) {
 				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
 				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
 			},
-			name:     "users/notfoobar",
+			name:     userNames["cookie"],
 			wantUser: nil,
-			wantErr:  &UserNotFoundError{Name: "users/notfoobar"},
+			wantErr:  &UserNotFoundError{Name: userNames["cookie"]},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
@@ -385,7 +386,7 @@ func TestUsers_CreateUser(t *testing.T) {
 				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
 				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
 			},
-			user: &streckuv1.User{Name: "users/cookie", EmailAddress: "cookie@example.com", DisplayName: "Cookie"},
+			user: &streckuv1.User{Name: userNames["cookie"], EmailAddress: "cookie@example.com", DisplayName: "Cookie"},
 			want: nil,
 		},
 		{
@@ -411,7 +412,7 @@ func TestUsers_CreateUser(t *testing.T) {
 				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
 				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
 			},
-			user: &streckuv1.User{Name: "users/cookie", EmailAddress: "foobar@example.com", DisplayName: "Cookie"},
+			user: &streckuv1.User{Name: userNames["cookie"], EmailAddress: "foobar@example.com", DisplayName: "Cookie"},
 			want: &UserExistsError{EmailAddress: "foobar@example.com"},
 		},
 	} {
@@ -484,8 +485,8 @@ func TestUsers_UpdateUser(t *testing.T) {
 			users: []*streckuv1.User{
 				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
 			},
-			updated:       &streckuv1.User{Name: "users/notfound", EmailAddress: "new-foobar@example.com", DisplayName: "Foo Bar"},
-			wantUpdateErr: &UserNotFoundError{Name: "users/notfound"},
+			updated:       &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "new-foobar@example.com", DisplayName: "Foo Bar"},
+			wantUpdateErr: &UserNotFoundError{Name: userNames["barbaz"]},
 			lookupEmail:   "new-foobar@example.com",
 			wantUser:      nil,
 			wantLookupErr: &UserNotFoundError{EmailAddress: "new-foobar@example.com"},
@@ -549,8 +550,8 @@ func TestUsers_UpdateUser(t *testing.T) {
 				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
 				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
 			},
-			updated:       &streckuv1.User{Name: "users/notfound", EmailAddress: "new-barbaz@example.com", DisplayName: "Barba Z."},
-			wantUpdateErr: &UserNotFoundError{Name: "users/notfound"},
+			updated:       &streckuv1.User{Name: userNames["cookie"], EmailAddress: "new-barbaz@example.com", DisplayName: "Barba Z."},
+			wantUpdateErr: &UserNotFoundError{Name: userNames["cookie"]},
 			lookupEmail:   "barbaz@example.com",
 			wantUser:      &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
 			wantLookupErr: nil,
@@ -612,11 +613,11 @@ func TestUsers_DeleteUser(t *testing.T) {
 		{
 			desc:          "Empty",
 			users:         nil,
-			name:          "users/notfound",
-			want:          &UserNotFoundError{Name: "users/notfound"},
-			lookupName:    "users/alsonotfound",
+			name:          userNames["foobar"],
+			want:          &UserNotFoundError{Name: userNames["foobar"]},
+			lookupName:    userNames["barbaz"],
 			wantUser:      nil,
-			wantLookupErr: &UserNotFoundError{Name: "users/alsonotfound"},
+			wantLookupErr: &UserNotFoundError{Name: userNames["barbaz"]},
 		},
 		{
 			desc: "OneUserOK",
@@ -660,8 +661,8 @@ func TestUsers_DeleteUser(t *testing.T) {
 			users: []*streckuv1.User{
 				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
 			},
-			name:          "users/notfound",
-			want:          &UserNotFoundError{Name: "users/notfound"},
+			name:          userNames["barbaz"],
+			want:          &UserNotFoundError{Name: userNames["barbaz"]},
 			lookupName:    userNames["foobar"],
 			wantUser:      &streckuv1.User{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
 			wantLookupErr: nil,
@@ -673,8 +674,8 @@ func TestUsers_DeleteUser(t *testing.T) {
 				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
 				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
 			},
-			name:          "users/notfound",
-			want:          &UserNotFoundError{Name: "users/notfound"},
+			name:          userNames["cookie"],
+			want:          &UserNotFoundError{Name: userNames["cookie"]},
 			lookupName:    userNames["foobar"],
 			wantUser:      &streckuv1.User{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
 			wantLookupErr: nil,
