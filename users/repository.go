@@ -63,11 +63,11 @@ func (e *WrongPasswordError) Error() string {
 	return fmt.Sprintf("wrong password for user %q", e.Name)
 }
 
-func NewUsers() *Repository {
-	return newUsers(make(map[string]*streckuv1.User), make(map[string]string), make(map[string]string))
+func NewRepository() *Repository {
+	return newRepository(make(map[string]*streckuv1.User), make(map[string]string), make(map[string]string))
 }
 
-func newUsers(users map[string]*streckuv1.User, passwords map[string]string, names map[string]string) *Repository {
+func newRepository(users map[string]*streckuv1.User, passwords map[string]string, names map[string]string) *Repository {
 	return &Repository{
 		users:     users,
 		passwords: passwords,

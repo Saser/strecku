@@ -40,7 +40,7 @@ func seed(t *testing.T, users []*streckuv1.User, passwords []string) *Repository
 		mPasswords[user.Name] = passwords[i]
 		mNames[user.EmailAddress] = user.Name
 	}
-	return newUsers(mUsers, mPasswords, mNames)
+	return newRepository(mUsers, mPasswords, mNames)
 }
 
 func TestUserNotFoundError_Error(t *testing.T) {
