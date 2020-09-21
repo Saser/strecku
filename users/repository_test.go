@@ -64,6 +64,59 @@ func TestUserNotFoundError_Error(t *testing.T) {
 	}
 }
 
+func TestUserNotFoundError_Is(t *testing.T) {
+	for _, test := range []struct {
+		err    *UserNotFoundError
+		target error
+		want   bool
+	}{
+		{
+			err:    &UserNotFoundError{Name: userNames["foobar"]},
+			target: &UserNotFoundError{Name: userNames["foobar"]},
+			want:   true,
+		},
+		{
+			err:    &UserNotFoundError{Name: userNames["foobar"]},
+			target: &UserNotFoundError{Name: userNames["barbaz"]},
+			want:   false,
+		},
+		{
+			err:    &UserNotFoundError{Name: userNames["foobar"]},
+			target: &UserNotFoundError{EmailAddress: "foobar@example.com"},
+			want:   false,
+		},
+		{
+			err:    &UserNotFoundError{EmailAddress: "foobar@example.com"},
+			target: &UserNotFoundError{Name: userNames["foobar"]},
+			want:   false,
+		},
+		{
+			err:    &UserNotFoundError{EmailAddress: "foobar@example.com"},
+			target: &UserNotFoundError{EmailAddress: "foobar@example.com"},
+			want:   true,
+		},
+		{
+			err:    &UserNotFoundError{EmailAddress: "foobar@example.com"},
+			target: &UserNotFoundError{EmailAddress: "barbaz@example.com"},
+			want:   false,
+		},
+		{
+			err:    &UserNotFoundError{Name: userNames["foobar"]},
+			target: fmt.Errorf("user not found: %q", userNames["foobar"]),
+			want:   false,
+		},
+		{
+			err:    &UserNotFoundError{EmailAddress: "foobar@example.com"},
+			target: fmt.Errorf("user email not found: %q", "foobar@example.com"),
+			want:   false,
+		},
+	} {
+		if got := test.err.Is(test.target); got != test.want {
+			t.Errorf("test.err.Is(%v) = %v; want %v", test.target, got, test.want)
+		}
+	}
+}
+
 func TestUserExistsError_Error(t *testing.T) {
 	for _, test := range []struct {
 		name         string
@@ -85,10 +138,91 @@ func TestUserExistsError_Error(t *testing.T) {
 	}
 }
 
+func TestUserExistsError_Is(t *testing.T) {
+	for _, test := range []struct {
+		err    *UserExistsError
+		target error
+		want   bool
+	}{
+		{
+			err:    &UserExistsError{Name: userNames["foobar"]},
+			target: &UserExistsError{Name: userNames["foobar"]},
+			want:   true,
+		},
+		{
+			err:    &UserExistsError{Name: userNames["foobar"]},
+			target: &UserExistsError{Name: userNames["barbaz"]},
+			want:   false,
+		},
+		{
+			err:    &UserExistsError{Name: userNames["foobar"]},
+			target: &UserExistsError{EmailAddress: "foobar@example.com"},
+			want:   false,
+		},
+		{
+			err:    &UserExistsError{EmailAddress: "foobar@example.com"},
+			target: &UserExistsError{Name: userNames["foobar"]},
+			want:   false,
+		},
+		{
+			err:    &UserExistsError{EmailAddress: "foobar@example.com"},
+			target: &UserExistsError{EmailAddress: "foobar@example.com"},
+			want:   true,
+		},
+		{
+			err:    &UserExistsError{EmailAddress: "foobar@example.com"},
+			target: &UserExistsError{EmailAddress: "barbaz@example.com"},
+			want:   false,
+		},
+		{
+			err:    &UserExistsError{Name: userNames["foobar"]},
+			target: fmt.Errorf("user exists: %q", userNames["foobar"]),
+			want:   false,
+		},
+		{
+			err:    &UserExistsError{EmailAddress: "foobar@example.com"},
+			target: fmt.Errorf("user email exists: %q", "foobar@example.com"),
+			want:   false,
+		},
+	} {
+		if got := test.err.Is(test.target); got != test.want {
+			t.Errorf("test.err.Is(%v) = %v; want %v", test.target, got, test.want)
+		}
+	}
+}
+
 func TestWrongPasswordError_Error(t *testing.T) {
 	err := &WrongPasswordError{Name: userNames["foobar"]}
 	if got, want := err.Error(), fmt.Sprintf("wrong password for user %q", userNames["foobar"]); got != want {
 		t.Errorf("err.Error() = %q; want %q", got, want)
+	}
+}
+
+func TestWrongPasswordError_Is(t *testing.T) {
+	for _, test := range []struct {
+		err    *WrongPasswordError
+		target error
+		want   bool
+	}{
+		{
+			err:    &WrongPasswordError{Name: userNames["foobar"]},
+			target: &WrongPasswordError{Name: userNames["foobar"]},
+			want:   true,
+		},
+		{
+			err:    &WrongPasswordError{Name: userNames["foobar"]},
+			target: &WrongPasswordError{Name: userNames["barbaz"]},
+			want:   false,
+		},
+		{
+			err:    &WrongPasswordError{Name: userNames["foobar"]},
+			target: fmt.Errorf("wrong password for user %q", userNames["foobar"]),
+			want:   false,
+		},
+	} {
+		if got := test.err.Is(test.target); got != test.want {
+			t.Errorf("test.err.Is(%v) = %v; want %v", test.target, got, test.want)
+		}
 	}
 }
 

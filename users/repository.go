@@ -34,6 +34,14 @@ func (e *UserNotFoundError) Error() string {
 	return fmt.Sprintf("%s: %q", msg, query)
 }
 
+func (e *UserNotFoundError) Is(target error) bool {
+	other, ok := target.(*UserNotFoundError)
+	if !ok {
+		return false
+	}
+	return e.Name == other.Name && e.EmailAddress == other.EmailAddress
+}
+
 type UserExistsError struct {
 	Name         string
 	EmailAddress string
@@ -55,12 +63,28 @@ func (e *UserExistsError) Error() string {
 	return fmt.Sprintf("%s: %q", msg, query)
 }
 
+func (e *UserExistsError) Is(target error) bool {
+	other, ok := target.(*UserExistsError)
+	if !ok {
+		return false
+	}
+	return e.Name == other.Name && e.EmailAddress == other.EmailAddress
+}
+
 type WrongPasswordError struct {
 	Name string
 }
 
 func (e *WrongPasswordError) Error() string {
 	return fmt.Sprintf("wrong password for user %q", e.Name)
+}
+
+func (e *WrongPasswordError) Is(target error) bool {
+	other, ok := target.(*WrongPasswordError)
+	if !ok {
+		return false
+	}
+	return e.Name == other.Name
 }
 
 func NewRepository() *Repository {
