@@ -8,8 +8,9 @@ import (
 )
 
 type Repository struct {
-	users map[string]*streckuv1.User // name -> user
-	names map[string]string          // email address -> name
+	users     map[string]*streckuv1.User // name -> user
+	passwords map[string]string          // name -> password (plaintext)
+	names     map[string]string          // email address -> name
 }
 
 type UserNotFoundError struct {
@@ -54,15 +55,35 @@ func (e *UserExistsError) Error() string {
 	return fmt.Sprintf("%s: %q", msg, query)
 }
 
-func NewUsers() *Repository {
-	return newUsers(make(map[string]*streckuv1.User), make(map[string]string))
+type WrongPasswordError struct {
+	Name string
 }
 
-func newUsers(users map[string]*streckuv1.User, names map[string]string) *Repository {
+func (e *WrongPasswordError) Error() string {
+	return fmt.Sprintf("wrong password for user %q", e.Name)
+}
+
+func NewUsers() *Repository {
+	return newUsers(make(map[string]*streckuv1.User), make(map[string]string), make(map[string]string))
+}
+
+func newUsers(users map[string]*streckuv1.User, passwords map[string]string, names map[string]string) *Repository {
 	return &Repository{
-		users: users,
-		names: names,
+		users:     users,
+		passwords: passwords,
+		names:     names,
 	}
+}
+
+func (r *Repository) Authenticate(_ context.Context, name string, password string) error {
+	storedPassword, ok := r.passwords[name]
+	if !ok {
+		return &UserNotFoundError{Name: name}
+	}
+	if password != storedPassword {
+		return &WrongPasswordError{Name: name}
+	}
+	return nil
 }
 
 func (r *Repository) LookupUser(_ context.Context, name string) (*streckuv1.User, error) {
