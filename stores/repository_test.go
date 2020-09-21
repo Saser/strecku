@@ -52,6 +52,34 @@ func TestStoreNotFoundError_Error(t *testing.T) {
 	}
 }
 
+func TestStoreNotFoundError_Is(t *testing.T) {
+	for _, test := range []struct {
+		err    *StoreNotFoundError
+		target error
+		want   bool
+	}{
+		{
+			err:    &StoreNotFoundError{Name: storeNames["foobar"]},
+			target: &StoreNotFoundError{Name: storeNames["foobar"]},
+			want:   true,
+		},
+		{
+			err:    &StoreNotFoundError{Name: storeNames["foobar"]},
+			target: &StoreNotFoundError{Name: storeNames["barbaz"]},
+			want:   false,
+		},
+		{
+			err:    &StoreNotFoundError{Name: storeNames["foobar"]},
+			target: fmt.Errorf("store not found: %q", storeNames["foobar"]),
+			want:   false,
+		},
+	} {
+		if got := test.err.Is(test.target); got != test.want {
+			t.Errorf("test.err.Is(%v) = %v; want %v", test.target, got, test.want)
+		}
+	}
+}
+
 func TestStoreExistsError_Error(t *testing.T) {
 	for _, test := range []struct {
 		name string
@@ -65,6 +93,34 @@ func TestStoreExistsError_Error(t *testing.T) {
 		}
 		if got := err.Error(); got != test.want {
 			t.Errorf("err.Error() = %q; want %q", got, test.want)
+		}
+	}
+}
+
+func TestStoreExistsError_Is(t *testing.T) {
+	for _, test := range []struct {
+		err    *StoreExistsError
+		target error
+		want   bool
+	}{
+		{
+			err:    &StoreExistsError{Name: storeNames["foobar"]},
+			target: &StoreExistsError{Name: storeNames["foobar"]},
+			want:   true,
+		},
+		{
+			err:    &StoreExistsError{Name: storeNames["foobar"]},
+			target: &StoreExistsError{Name: storeNames["barbaz"]},
+			want:   false,
+		},
+		{
+			err:    &StoreExistsError{Name: storeNames["foobar"]},
+			target: fmt.Errorf("store exists: %q", storeNames["foobar"]),
+			want:   false,
+		},
+	} {
+		if got := test.err.Is(test.target); got != test.want {
+			t.Errorf("test.err.Is(%v) = %v; want %v", test.target, got, test.want)
 		}
 	}
 }

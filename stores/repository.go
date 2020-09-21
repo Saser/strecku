@@ -19,12 +19,28 @@ func (e *StoreNotFoundError) Error() string {
 	return fmt.Sprintf("store not found: %q", e.Name)
 }
 
+func (e *StoreNotFoundError) Is(target error) bool {
+	other, ok := target.(*StoreNotFoundError)
+	if !ok {
+		return false
+	}
+	return e.Name == other.Name
+}
+
 type StoreExistsError struct {
 	Name string
 }
 
 func (e *StoreExistsError) Error() string {
 	return fmt.Sprintf("store exists: %q", e.Name)
+}
+
+func (e *StoreExistsError) Is(target error) bool {
+	other, ok := target.(*StoreExistsError)
+	if !ok {
+		return false
+	}
+	return e.Name == other.Name
 }
 
 func NewStores() *Repository {
