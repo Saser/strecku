@@ -2,6 +2,7 @@ package users
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
@@ -12,6 +13,8 @@ type Repository struct {
 	passwords map[string]string          // name -> password (plaintext)
 	names     map[string]string          // email address -> name
 }
+
+var ErrEmptyPassword = errors.New("empty password")
 
 type UserNotFoundError struct {
 	Name         string
@@ -140,15 +143,21 @@ func (r *Repository) FilterUsers(_ context.Context, predicate func(*streckuv1.Us
 	return filtered, nil
 }
 
-func (r *Repository) CreateUser(_ context.Context, user *streckuv1.User) error {
-	if _, exists := r.users[user.Name]; exists {
+func (r *Repository) CreateUser(_ context.Context, user *streckuv1.User, password string) error {
+	name := user.Name
+	emailAddress := user.EmailAddress
+	if _, exists := r.users[name]; exists {
 		return &UserExistsError{Name: user.Name}
 	}
-	if _, exists := r.names[user.EmailAddress]; exists {
+	if _, exists := r.names[emailAddress]; exists {
 		return &UserExistsError{EmailAddress: user.EmailAddress}
 	}
-	r.users[user.Name] = user
-	r.names[user.EmailAddress] = user.Name
+	if password == "" {
+		return ErrEmptyPassword
+	}
+	r.users[name] = user
+	r.passwords[name] = password
+	r.names[emailAddress] = user.Name
 	return nil
 }
 

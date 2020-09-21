@@ -682,13 +682,22 @@ func TestUsers_CreateUser(t *testing.T) {
 		users     []*streckuv1.User
 		passwords []string
 		user      *streckuv1.User
+		password  string
 		want      error
 	}{
 		{
-			name:  "Empty",
-			users: nil,
-			user:  &streckuv1.User{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			want:  nil,
+			name:     "Empty",
+			users:    nil,
+			user:     &streckuv1.User{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			password: "foobar",
+			want:     nil,
+		},
+		{
+			name:     "EmptyPassword",
+			users:    nil,
+			user:     &streckuv1.User{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			password: "",
+			want:     ErrEmptyPassword,
 		},
 		{
 			name: "OneUserOK",
@@ -696,7 +705,8 @@ func TestUsers_CreateUser(t *testing.T) {
 				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
 			},
 			passwords: []string{"foobar"},
-			user:      &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Foo Bar"},
+			user:      &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+			password:  "barbaz",
 			want:      nil,
 		},
 		{
@@ -711,8 +721,9 @@ func TestUsers_CreateUser(t *testing.T) {
 				"barbaz",
 				"quux",
 			},
-			user: &streckuv1.User{Name: userNames["cookie"], EmailAddress: "cookie@example.com", DisplayName: "Cookie"},
-			want: nil,
+			user:     &streckuv1.User{Name: userNames["cookie"], EmailAddress: "cookie@example.com", DisplayName: "Cookie"},
+			password: "cookie",
+			want:     nil,
 		},
 		{
 			name: "OneUserDuplicateEmail",
@@ -721,6 +732,7 @@ func TestUsers_CreateUser(t *testing.T) {
 			},
 			passwords: []string{"foobar"},
 			user:      &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "foobar@example.com", DisplayName: "Barba Z."},
+			password:  "barbaz",
 			want:      &UserExistsError{EmailAddress: "foobar@example.com"},
 		},
 		{
@@ -730,6 +742,7 @@ func TestUsers_CreateUser(t *testing.T) {
 			},
 			passwords: []string{"foobar"},
 			user:      &streckuv1.User{Name: userNames["foobar"], EmailAddress: "new-foobar@example.com", DisplayName: "New Foo Bar"},
+			password:  "foobar",
 			want:      &UserExistsError{Name: userNames["foobar"]},
 		},
 		{
@@ -744,13 +757,14 @@ func TestUsers_CreateUser(t *testing.T) {
 				"barbaz",
 				"quux",
 			},
-			user: &streckuv1.User{Name: userNames["cookie"], EmailAddress: "foobar@example.com", DisplayName: "Cookie"},
-			want: &UserExistsError{EmailAddress: "foobar@example.com"},
+			user:     &streckuv1.User{Name: userNames["cookie"], EmailAddress: "foobar@example.com", DisplayName: "Cookie"},
+			password: "cookie",
+			want:     &UserExistsError{EmailAddress: "foobar@example.com"},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			r := seed(t, test.users, test.passwords)
-			if got := r.CreateUser(ctx, test.user); !cmp.Equal(got, test.want) {
+			if got := r.CreateUser(ctx, test.user, test.password); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 				t.Errorf("r.CreateUser(%v, %v) = %v; want %v", ctx, test.user, got, test.want)
 			}
 		})
