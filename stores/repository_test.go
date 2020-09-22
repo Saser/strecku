@@ -32,7 +32,7 @@ func seed(t *testing.T, stores []*streckuv1.Store) *Repository {
 		}
 		mStores[store.Name] = store
 	}
-	return newStores(mStores)
+	return newRepository(mStores)
 }
 
 func TestStoreNotFoundError_Error(t *testing.T) {

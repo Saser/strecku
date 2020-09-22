@@ -43,11 +43,11 @@ func (e *StoreExistsError) Is(target error) bool {
 	return e.Name == other.Name
 }
 
-func NewStores() *Repository {
-	return newStores(make(map[string]*streckuv1.Store))
+func NewRepository() *Repository {
+	return newRepository(make(map[string]*streckuv1.Store))
 }
 
-func newStores(stores map[string]*streckuv1.Store) *Repository {
+func newRepository(stores map[string]*streckuv1.Store) *Repository {
 	return &Repository{
 		stores: stores,
 	}
