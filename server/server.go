@@ -2,13 +2,13 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Saser/strecku/auth"
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 	"github.com/Saser/strecku/users"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -28,19 +28,15 @@ type userEntry struct {
 type Server struct {
 	streckuv1.UnimplementedStreckUServer
 
-	users       []*userEntry
-	userIndices map[string]int    // name -> index into users
-	userKeys    map[string]string // email address -> name
+	userRepo *users.Repository
 
 	stores       []*streckuv1.Store
 	storeIndices map[string]int // name -> index into stores
 }
 
-func New() *Server {
+func New(userRepo *users.Repository) *Server {
 	return &Server{
-		userIndices: make(map[string]int),
-		userKeys:    make(map[string]string),
-
+		userRepo:     userRepo,
 		storeIndices: make(map[string]int),
 	}
 }
@@ -62,15 +58,14 @@ func (s *Server) authenticatedUser(ctx context.Context) (*streckuv1.User, error)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, `Invalid "authorization" header.`)
 	}
-	key, ok := s.userKeys[b.Username]
-	if !ok {
-		return nil, status.Error(codes.Unauthenticated, "Username and/or password incorrect.")
+	user, err := s.userRepo.LookupUserByEmail(ctx, b.Username)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "Invalid email address and/or password.")
 	}
-	entry := s.users[s.userIndices[key]]
-	if err := bcrypt.CompareHashAndPassword(entry.hash, []byte(b.Password)); err != nil {
-		return nil, status.Error(codes.Unauthenticated, "Username and/or password incorrect.")
+	if err := s.userRepo.Authenticate(ctx, user.Name, b.Password); err != nil {
+		return nil, status.Error(codes.Unauthenticated, "Invalid email address and/or password.")
 	}
-	return entry.user, nil
+	return user, nil
 }
 
 func (s *Server) GetUser(ctx context.Context, req *streckuv1.GetUserRequest) (*streckuv1.User, error) {
@@ -90,11 +85,11 @@ func (s *Server) GetUser(ctx context.Context, req *streckuv1.GetUserRequest) (*s
 		}
 		return nil, status.Error(codes.PermissionDenied, "Permission denied.")
 	}
-	index, ok := s.userIndices[req.Name]
-	if !ok {
+	user, err := s.userRepo.LookupUser(ctx, req.Name)
+	if err != nil {
 		return nil, status.Error(codes.NotFound, "User not found.")
 	}
-	return s.users[index].user, nil
+	return user, nil
 }
 
 func (s *Server) ListUsers(ctx context.Context, req *streckuv1.ListUsersRequest) (*streckuv1.ListUsersResponse, error) {
@@ -117,11 +112,13 @@ func (s *Server) ListUsers(ctx context.Context, req *streckuv1.ListUsersRequest)
 			NextPageToken: "",
 		}, nil
 	}
-	users := make([]*streckuv1.User, len(s.users))
-	for i, entry := range s.users {
-		users[i] = entry.user
+	allUsers, err := s.userRepo.ListUsers(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Internal error.")
 	}
-	return &streckuv1.ListUsersResponse{Users: users}, nil
+	return &streckuv1.ListUsersResponse{
+		Users: allUsers,
+	}, nil
 }
 
 func (s *Server) CreateUser(ctx context.Context, req *streckuv1.CreateUserRequest) (*streckuv1.User, error) {
@@ -140,19 +137,12 @@ func (s *Server) CreateUser(ctx context.Context, req *streckuv1.CreateUserReques
 	if !au.Superuser {
 		return nil, status.Error(codes.PermissionDenied, "Permission denied.")
 	}
-	if _, ok := s.userKeys[user.EmailAddress]; ok {
-		return nil, status.Error(codes.AlreadyExists, "Email address must be unique.")
-	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
+	if err := s.userRepo.CreateUser(ctx, req.User, req.Password); err != nil {
+		if exists := new(users.UserExistsError); errors.As(err, &exists) {
+			return nil, status.Error(codes.AlreadyExists, "User email address already exists.")
+		}
 		return nil, status.Error(codes.Internal, "Internal error.")
 	}
-	s.users = append(s.users, &userEntry{
-		user: user,
-		hash: hash,
-	})
-	s.userIndices[user.Name] = len(s.users) - 1
-	s.userKeys[user.EmailAddress] = user.Name
 	return user, nil
 }
 

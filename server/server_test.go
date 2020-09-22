@@ -9,7 +9,6 @@ import (
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 	"github.com/Saser/strecku/users"
 	"github.com/google/go-cmp/cmp"
-	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -33,7 +32,7 @@ type fixture struct {
 func setUp(t *testing.T) *fixture {
 	t.Helper()
 	f := &fixture{
-		srv: New(),
+		srv: New(users.NewRepository()),
 		lis: bufconn.Listen(bufSize),
 	}
 	creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
@@ -75,25 +74,17 @@ func (f *fixture) authClient(ctx context.Context, t *testing.T, emailAddress, pa
 	}))
 }
 
-func (f *fixture) backdoorCreateUser(t *testing.T, req *streckuv1.CreateUserRequest) *streckuv1.User {
+func (f *fixture) backdoorCreateUser(ctx context.Context, t *testing.T, req *streckuv1.CreateUserRequest) *streckuv1.User {
 	t.Helper()
 	user := req.User
 	user.Name = users.GenerateName()
-	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		t.Fatal(err)
+	if err := f.srv.userRepo.CreateUser(ctx, user, req.Password); err != nil {
+		t.Fatalf("f.srv.userRepo.CreateUser(%v, %v, %q) = %v; want nil", ctx, user, req.Password, err)
 	}
-	f.srv.users = append(f.srv.users, &userEntry{
-		user: user,
-		hash: hash,
-	})
-	f.srv.userIndices[user.Name] = len(f.srv.users) - 1
 	t.Cleanup(func() {
-		delete(f.srv.userIndices, user.Name)
-	})
-	f.srv.userKeys[user.EmailAddress] = user.Name
-	t.Cleanup(func() {
-		delete(f.srv.userKeys, user.EmailAddress)
+		if err := f.srv.userRepo.DeleteUser(ctx, user.Name); err != nil {
+			t.Fatalf("f.srv.userRepo.DeleteUser(%v, %q) = %v; want nil", ctx, user.Name, err)
+		}
 	})
 	return user
 }
@@ -115,7 +106,7 @@ func TestServer_GetUser(t *testing.T) {
 
 	f := setUp(t)
 	rootPassword := "root password"
-	root := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+	root := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
 		User: &streckuv1.User{
 			EmailAddress: "root@example.com",
 			DisplayName:  "Root",
@@ -123,7 +114,7 @@ func TestServer_GetUser(t *testing.T) {
 		},
 		Password: rootPassword,
 	})
-	otherRoot := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+	otherRoot := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
 		User: &streckuv1.User{
 			EmailAddress: "other-root@example.com",
 			DisplayName:  "Other Root",
@@ -132,7 +123,7 @@ func TestServer_GetUser(t *testing.T) {
 		Password: "other root password",
 	})
 	userPassword := "user password"
-	user := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+	user := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
 		User: &streckuv1.User{
 			EmailAddress: "user@example.com",
 			DisplayName:  "User",
@@ -140,7 +131,7 @@ func TestServer_GetUser(t *testing.T) {
 		},
 		Password: userPassword,
 	})
-	otherUser := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+	otherUser := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
 		User: &streckuv1.User{
 			EmailAddress: "other-user@example.com",
 			DisplayName:  "Other User",
@@ -222,7 +213,7 @@ func TestServer_ListUsers(t *testing.T) {
 
 	f := setUp(t)
 	rootPassword := "root password"
-	root := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+	root := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
 		User: &streckuv1.User{
 			EmailAddress: "root@example.com",
 			DisplayName:  "Root",
@@ -231,7 +222,7 @@ func TestServer_ListUsers(t *testing.T) {
 		Password: rootPassword,
 	})
 	userPassword := "user password"
-	user := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+	user := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
 		User: &streckuv1.User{
 			EmailAddress: "user@example.com",
 			DisplayName:  "User",
@@ -324,7 +315,7 @@ func TestServer_CreateUser(t *testing.T) {
 
 	f := setUp(t)
 	rootPassword := "root password"
-	root := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+	root := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
 		User: &streckuv1.User{
 			EmailAddress: "root@example.com",
 			DisplayName:  "Root",
@@ -333,7 +324,7 @@ func TestServer_CreateUser(t *testing.T) {
 		Password: rootPassword,
 	})
 	userPassword := "user password"
-	user := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+	user := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
 		User: &streckuv1.User{
 			EmailAddress: "user@example.com",
 			DisplayName:  "User",
@@ -527,7 +518,7 @@ func TestServer_GetStore(t *testing.T) {
 
 	f := setUp(t)
 	rootPassword := "root password"
-	root := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+	root := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
 		User: &streckuv1.User{
 			EmailAddress: "root@example.com",
 			DisplayName:  "Root",
@@ -536,7 +527,7 @@ func TestServer_GetStore(t *testing.T) {
 		Password: rootPassword,
 	})
 	userPassword := "user password"
-	user := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+	user := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
 		User: &streckuv1.User{
 			EmailAddress: "user@example.com",
 			DisplayName:  "User",
@@ -634,7 +625,7 @@ func TestServer_CreateStore(t *testing.T) {
 
 	f := setUp(t)
 	rootPassword := "root password"
-	root := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+	root := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
 		User: &streckuv1.User{
 			EmailAddress: "root@example.com",
 			DisplayName:  "Root",
@@ -644,7 +635,7 @@ func TestServer_CreateStore(t *testing.T) {
 	})
 	rootClient := f.authClient(ctx, t, root.EmailAddress, rootPassword)
 	userPassword := "user password"
-	user := f.backdoorCreateUser(t, &streckuv1.CreateUserRequest{
+	user := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
 		User: &streckuv1.User{
 			EmailAddress: "user@example.com",
 			DisplayName:  "User",
