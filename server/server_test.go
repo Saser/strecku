@@ -7,6 +7,7 @@ import (
 
 	"github.com/Saser/strecku/auth"
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
+	"github.com/Saser/strecku/stores"
 	"github.com/Saser/strecku/users"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/grpc"
@@ -32,7 +33,7 @@ type fixture struct {
 func setUp(t *testing.T) *fixture {
 	t.Helper()
 	f := &fixture{
-		srv: New(users.NewRepository()),
+		srv: New(users.NewRepository(), stores.NewRepository()),
 		lis: bufconn.Listen(bufSize),
 	}
 	creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
@@ -89,14 +90,17 @@ func (f *fixture) backdoorCreateUser(ctx context.Context, t *testing.T, req *str
 	return user
 }
 
-func (f *fixture) backdoorCreateStore(t *testing.T, req *streckuv1.CreateStoreRequest) *streckuv1.Store {
+func (f *fixture) backdoorCreateStore(ctx context.Context, t *testing.T, req *streckuv1.CreateStoreRequest) *streckuv1.Store {
 	t.Helper()
 	store := req.Store
-	store.Name = newStoreName()
-	f.srv.stores = append(f.srv.stores, store)
-	f.srv.storeIndices[store.Name] = len(f.srv.stores) - 1
+	store.Name = stores.GenerateName()
+	if err := f.srv.storeRepo.CreateStore(ctx, store); err != nil {
+		t.Fatalf("f.srv.storeRepo.CreateStore(%v, %v) = %v; want nil", ctx, store, err)
+	}
 	t.Cleanup(func() {
-		delete(f.srv.storeIndices, store.Name)
+		if err := f.srv.storeRepo.DeleteStore(ctx, store.Name); err != nil {
+			t.Fatalf("f.srv.storeRepo.DeleteStore(%v, %q) = %v; want nil", ctx, store.Name, err)
+		}
 	})
 	return store
 }
@@ -535,7 +539,7 @@ func TestServer_GetStore(t *testing.T) {
 		},
 		Password: userPassword,
 	})
-	store := f.backdoorCreateStore(t, &streckuv1.CreateStoreRequest{
+	store := f.backdoorCreateStore(ctx, t, &streckuv1.CreateStoreRequest{
 		Store: &streckuv1.Store{
 			DisplayName: "Store",
 		},

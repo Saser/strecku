@@ -3,46 +3,28 @@ package server
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/Saser/strecku/auth"
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
+	"github.com/Saser/strecku/stores"
 	"github.com/Saser/strecku/users"
-	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
-const (
-	stores = "stores"
-
-	authenticatedUserKey = "authenticatedUser"
-)
-
-type userEntry struct {
-	user *streckuv1.User
-	hash []byte
-}
-
 type Server struct {
 	streckuv1.UnimplementedStreckUServer
 
-	userRepo *users.Repository
-
-	stores       []*streckuv1.Store
-	storeIndices map[string]int // name -> index into stores
+	userRepo  *users.Repository
+	storeRepo *stores.Repository
 }
 
-func New(userRepo *users.Repository) *Server {
+func New(userRepo *users.Repository, storeRepo *stores.Repository) *Server {
 	return &Server{
-		userRepo:     userRepo,
-		storeIndices: make(map[string]int),
+		userRepo:  userRepo,
+		storeRepo: storeRepo,
 	}
-}
-
-func newStoreName() string {
-	return fmt.Sprintf("%s/%s", stores, uuid.New())
 }
 
 func (s *Server) authenticatedUser(ctx context.Context) (*streckuv1.User, error) {
@@ -154,26 +136,27 @@ func (s *Server) GetStore(ctx context.Context, req *streckuv1.GetStoreRequest) (
 	if err != nil {
 		return nil, err
 	}
-	index, ok := s.storeIndices[req.Name]
-	if !ok {
-		var err error
-		if au.Superuser {
-			err = status.Error(codes.NotFound, "Store not found.")
-		} else {
-			err = status.Error(codes.PermissionDenied, "Permission denied.")
+	store, err := s.storeRepo.LookupStore(ctx, req.Name)
+	if err != nil {
+		if notFound := new(stores.StoreNotFoundError); errors.As(err, &notFound) {
+			if !au.Superuser {
+				return nil, status.Error(codes.PermissionDenied, "Permission denied.")
+			}
+			return nil, status.Error(codes.NotFound, "Store not found.")
 		}
-		return nil, err
+		return nil, status.Error(codes.Internal, "Internal error.")
 	}
-	return s.stores[index], nil
+	return store, nil
 }
 
 func (s *Server) CreateStore(ctx context.Context, req *streckuv1.CreateStoreRequest) (*streckuv1.Store, error) {
 	store := req.Store
-	if store.DisplayName == "" {
-		return nil, status.Error(codes.InvalidArgument, "Display name is required.")
+	store.Name = stores.GenerateName()
+	if err := stores.Validate(store); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	store.Name = newStoreName()
-	s.stores = append(s.stores, store)
-	s.storeIndices[store.Name] = len(s.stores) - 1
+	if err := s.storeRepo.CreateStore(ctx, store); err != nil {
+		return nil, status.Error(codes.Internal, "Internal error.")
+	}
 	return store, nil
 }
