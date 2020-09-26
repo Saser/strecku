@@ -25,6 +25,8 @@ type StreckUClient interface {
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*User, error)
 	// GetStore gets a single store.
 	GetStore(ctx context.Context, in *GetStoreRequest, opts ...grpc.CallOption) (*Store, error)
+	// ListStores lists stores.
+	ListStores(ctx context.Context, in *ListStoresRequest, opts ...grpc.CallOption) (*ListStoresResponse, error)
 	// CreateStore creates a new store.
 	CreateStore(ctx context.Context, in *CreateStoreRequest, opts ...grpc.CallOption) (*Store, error)
 }
@@ -73,6 +75,15 @@ func (c *streckUClient) GetStore(ctx context.Context, in *GetStoreRequest, opts 
 	return out, nil
 }
 
+func (c *streckUClient) ListStores(ctx context.Context, in *ListStoresRequest, opts ...grpc.CallOption) (*ListStoresResponse, error) {
+	out := new(ListStoresResponse)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/ListStores", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *streckUClient) CreateStore(ctx context.Context, in *CreateStoreRequest, opts ...grpc.CallOption) (*Store, error) {
 	out := new(Store)
 	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/CreateStore", in, out, opts...)
@@ -94,6 +105,8 @@ type StreckUServer interface {
 	CreateUser(context.Context, *CreateUserRequest) (*User, error)
 	// GetStore gets a single store.
 	GetStore(context.Context, *GetStoreRequest) (*Store, error)
+	// ListStores lists stores.
+	ListStores(context.Context, *ListStoresRequest) (*ListStoresResponse, error)
 	// CreateStore creates a new store.
 	CreateStore(context.Context, *CreateStoreRequest) (*Store, error)
 	mustEmbedUnimplementedStreckUServer()
@@ -114,6 +127,9 @@ func (*UnimplementedStreckUServer) CreateUser(context.Context, *CreateUserReques
 }
 func (*UnimplementedStreckUServer) GetStore(context.Context, *GetStoreRequest) (*Store, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStore not implemented")
+}
+func (*UnimplementedStreckUServer) ListStores(context.Context, *ListStoresRequest) (*ListStoresResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListStores not implemented")
 }
 func (*UnimplementedStreckUServer) CreateStore(context.Context, *CreateStoreRequest) (*Store, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateStore not implemented")
@@ -196,6 +212,24 @@ func _StreckU_GetStore_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StreckU_ListStores_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListStoresRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).ListStores(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/ListStores",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).ListStores(ctx, req.(*ListStoresRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _StreckU_CreateStore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateStoreRequest)
 	if err := dec(in); err != nil {
@@ -233,6 +267,10 @@ var _StreckU_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetStore",
 			Handler:    _StreckU_GetStore_Handler,
+		},
+		{
+			MethodName: "ListStores",
+			Handler:    _StreckU_ListStores_Handler,
 		},
 		{
 			MethodName: "CreateStore",
