@@ -17,20 +17,27 @@ var (
 )
 
 func Validate(user *streckuv1.User) error {
-	if user.Name == "" {
-		return ErrNameEmpty
-	}
-	if !strings.HasPrefix(user.Name, prefix) {
-		return ErrNameInvalidFormat
-	}
-	if _, err := uuid.Parse(strings.TrimPrefix(user.Name, prefix)); err != nil {
-		return ErrNameInvalidFormat
+	if err := ValidateName(user.Name); err != nil {
+		return err
 	}
 	if user.EmailAddress == "" {
 		return ErrEmailAddressEmpty
 	}
 	if user.DisplayName == "" {
 		return ErrDisplayNameEmpty
+	}
+	return nil
+}
+
+func ValidateName(name string) error {
+	if name == "" {
+		return ErrNameEmpty
+	}
+	if !strings.HasPrefix(name, prefix) {
+		return ErrNameInvalidFormat
+	}
+	if _, err := uuid.Parse(strings.TrimPrefix(name, prefix)); err != nil {
+		return ErrNameInvalidFormat
 	}
 	return nil
 }

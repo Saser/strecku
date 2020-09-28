@@ -16,17 +16,24 @@ var (
 )
 
 func Validate(store *streckuv1.Store) error {
-	if store.Name == "" {
-		return ErrNameEmpty
-	}
-	if !strings.HasPrefix(store.Name, prefix) {
-		return ErrNameInvalidFormat
-	}
-	if _, err := uuid.Parse(strings.TrimPrefix(store.Name, prefix)); err != nil {
-		return ErrNameInvalidFormat
+	if err := ValidateName(store.Name); err != nil {
+		return err
 	}
 	if store.DisplayName == "" {
 		return ErrDisplayNameEmpty
+	}
+	return nil
+}
+
+func ValidateName(name string) error {
+	if name == "" {
+		return ErrNameEmpty
+	}
+	if !strings.HasPrefix(name, prefix) {
+		return ErrNameInvalidFormat
+	}
+	if _, err := uuid.Parse(strings.TrimPrefix(name, prefix)); err != nil {
+		return ErrNameInvalidFormat
 	}
 	return nil
 }
