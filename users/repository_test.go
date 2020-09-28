@@ -23,26 +23,6 @@ func userLess(u1, u2 *streckuv1.User) bool {
 	return u1.Name < u2.Name
 }
 
-func seed(t *testing.T, users []*streckuv1.User, passwords []string) *Repository {
-	t.Helper()
-	userCount := len(users)
-	if passwordCount := len(passwords); userCount != passwordCount {
-		t.Fatalf("len(users), len(passwords) = %v, %v; want them to be equal", userCount, passwordCount)
-	}
-	mUsers := make(map[string]*streckuv1.User, userCount)
-	mPasswords := make(map[string]string, userCount)
-	mNames := make(map[string]string, userCount)
-	for i, user := range users {
-		if got := Validate(user); got != nil {
-			t.Errorf("Validate(%v) = %v; want %v", user, got, nil)
-		}
-		mUsers[user.Name] = user
-		mPasswords[user.Name] = passwords[i]
-		mNames[user.EmailAddress] = user.Name
-	}
-	return newRepository(mUsers, mPasswords, mNames)
-}
-
 func TestUserNotFoundError_Error(t *testing.T) {
 	for _, test := range []struct {
 		name         string
@@ -330,7 +310,7 @@ func TestUsers_Authenticate(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := seed(t, test.users, test.passwords)
+			r := SeedRepository(t, test.users, test.passwords)
 			if got := r.Authenticate(ctx, test.name, test.password); !cmp.Equal(got, test.want) {
 				t.Errorf("r.Authenticate(%v, %q, %q) = %v; want %v", ctx, test.name, test.password, got, test.want)
 			}
@@ -420,7 +400,7 @@ func TestUsers_LookupUser(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := seed(t, test.users, test.passwords)
+			r := SeedRepository(t, test.users, test.passwords)
 			user, err := r.LookupUser(ctx, test.name)
 			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
 				t.Errorf("r.LookupUser(%v, %q) user != test.wantUser (-got +want)\n%s", ctx, test.name, diff)
@@ -514,7 +494,7 @@ func TestUsers_LookupUserByEmail(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := seed(t, test.users, test.passwords)
+			r := SeedRepository(t, test.users, test.passwords)
 			user, err := r.LookupUserByEmail(ctx, test.emailAddress)
 			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
 				t.Errorf("r.LookupUserByEmail(%v, %q) user != test.wantUser (-got +want)\n%s", ctx, test.emailAddress, diff)
@@ -556,7 +536,7 @@ func TestUsers_ListUsers(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := seed(t, test.users, test.passwords)
+			r := SeedRepository(t, test.users, test.passwords)
 			users, err := r.ListUsers(ctx)
 			if diff := cmp.Diff(
 				users, test.users, protocmp.Transform(),
@@ -659,7 +639,7 @@ func TestUsers_FilterUsers(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := seed(t, test.users, test.passwords)
+			r := SeedRepository(t, test.users, test.passwords)
 			users, err := r.FilterUsers(ctx, test.predicate)
 			if diff := cmp.Diff(
 				users, test.want, protocmp.Transform(),
@@ -763,7 +743,7 @@ func TestUsers_CreateUser(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := seed(t, test.users, test.passwords)
+			r := SeedRepository(t, test.users, test.passwords)
 			if got := r.CreateUser(ctx, test.user, test.password); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 				t.Errorf("r.CreateUser(%v, %v) = %v; want %v", ctx, test.user, got, test.want)
 			}
@@ -971,7 +951,7 @@ func TestUsers_UpdateUser(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := seed(t, test.users, test.passwords)
+			r := SeedRepository(t, test.users, test.passwords)
 			if got := r.UpdateUser(ctx, test.updated); !cmp.Equal(got, test.wantUpdateErr) {
 				t.Errorf("r.UpdateUser(%v, %v) = %v; want %v", ctx, test.updated, got, test.wantUpdateErr)
 			}
@@ -1087,7 +1067,7 @@ func TestUsers_DeleteUser(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := seed(t, test.users, test.passwords)
+			r := SeedRepository(t, test.users, test.passwords)
 			err := r.DeleteUser(ctx, test.name)
 			if got, want := err, test.want; !cmp.Equal(got, want) {
 				t.Errorf("r.DeleteUser(%v, %q) = %v; want %v", ctx, test.name, got, want)

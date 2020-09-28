@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"testing"
 
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 )
@@ -92,6 +93,29 @@ func (e *WrongPasswordError) Is(target error) bool {
 
 func NewRepository() *Repository {
 	return newRepository(make(map[string]*streckuv1.User), make(map[string]string), make(map[string]string))
+}
+
+func SeedRepository(t *testing.T, users []*streckuv1.User, passwords []string) *Repository {
+	t.Helper()
+	userCount := len(users)
+	if passwordCount := len(passwords); passwordCount != userCount {
+		t.Fatalf("len(users), len(passwords) = %v, %v; want equal", userCount, passwordCount)
+	}
+	mUsers := make(map[string]*streckuv1.User, userCount)
+	mPasswords := make(map[string]string, userCount)
+	mNames := make(map[string]string, userCount)
+	for i, user := range users {
+		if err := Validate(user); err != nil {
+			t.Errorf("Validate(%v) = %v; want nil", user, err)
+		}
+		mUsers[user.Name] = user
+		mPasswords[user.Name] = passwords[i]
+		mNames[user.EmailAddress] = user.Name
+	}
+	if t.Failed() {
+		t.FailNow()
+	}
+	return newRepository(mUsers, mPasswords, mNames)
 }
 
 func newRepository(users map[string]*streckuv1.User, passwords map[string]string, names map[string]string) *Repository {
