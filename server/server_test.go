@@ -624,6 +624,95 @@ func TestServer_GetStore(t *testing.T) {
 	})
 }
 
+func TestServer_ListStores(t *testing.T) {
+	ctx := context.Background()
+
+	f := setUp(t)
+	rootPassword := "root password"
+	root := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "root@example.com",
+			DisplayName:  "Root",
+			Superuser:    true,
+		},
+		Password: rootPassword,
+	})
+	userPassword := "user password"
+	user := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
+		User: &streckuv1.User{
+			EmailAddress: "user@example.com",
+			DisplayName:  "User",
+			Superuser:    false,
+		},
+		Password: userPassword,
+	})
+	testStores := []*streckuv1.Store{
+		{DisplayName: "Foo Store"},
+		{DisplayName: "Bar Store"},
+		{DisplayName: "Quux Store"},
+	}
+	for i, store := range testStores {
+		testStores[i] = f.backdoorCreateStore(ctx, t, &streckuv1.CreateStoreRequest{Store: store})
+	}
+
+	type testCase struct {
+		name     string
+		req      *streckuv1.ListStoresRequest
+		wantResp *streckuv1.ListStoresResponse
+		wantCode codes.Code
+	}
+	testCases := []testCase{
+		{
+			name: "OK",
+			req:  &streckuv1.ListStoresRequest{},
+			wantResp: &streckuv1.ListStoresResponse{
+				Stores:        testStores,
+				NextPageToken: "",
+			},
+			wantCode: codes.OK,
+		},
+		{
+			name:     "NegativePageSize",
+			req:      &streckuv1.ListStoresRequest{PageSize: -1},
+			wantResp: nil,
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name:     "PositivePageSize",
+			req:      &streckuv1.ListStoresRequest{PageSize: 1},
+			wantResp: nil,
+			wantCode: codes.Unimplemented,
+		},
+		{
+			name:     "NonEmptyPageToken",
+			req:      &streckuv1.ListStoresRequest{PageToken: "invalid"},
+			wantResp: nil,
+			wantCode: codes.Unimplemented,
+		},
+	}
+	testF := func(client streckuv1.StreckUClient) func(*testing.T) {
+		return func(t *testing.T) {
+			for _, test := range testCases {
+				t.Run(test.name, func(t *testing.T) {
+					gotResp, err := client.ListStores(ctx, test.req)
+					if gotCode := status.Code(err); gotCode != test.wantCode {
+						t.Errorf("status.Code(%v) = %v; want %v", err, gotCode, test.wantCode)
+					}
+					if diff := cmp.Diff(
+						gotResp, test.wantResp,
+						protocmp.Transform(),
+						protocmp.SortRepeatedFields(gotResp, "stores"),
+					); diff != "" {
+						t.Errorf("gotResp != test.wantResp (-got +want)\n%s", diff)
+					}
+				})
+			}
+		}
+	}
+	t.Run("AsSuperuser", testF(f.authClient(ctx, t, root.EmailAddress, rootPassword)))
+	t.Run("AsNormalUser", testF(f.authClient(ctx, t, user.EmailAddress, userPassword)))
+}
+
 func TestServer_CreateStore(t *testing.T) {
 	ctx := context.Background()
 

@@ -149,6 +149,23 @@ func (s *Server) GetStore(ctx context.Context, req *streckuv1.GetStoreRequest) (
 	return store, nil
 }
 
+func (s *Server) ListStores(ctx context.Context, req *streckuv1.ListStoresRequest) (*streckuv1.ListStoresResponse, error) {
+	if req.PageSize < 0 {
+		return nil, status.Error(codes.InvalidArgument, "Page size must be non-negative.")
+	}
+	if req.PageSize > 0 || req.PageToken != "" {
+		return nil, status.Error(codes.Unimplemented, "Pagination is not implemented.")
+	}
+	allStores, err := s.storeRepo.ListStores(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Internal error.")
+	}
+	return &streckuv1.ListStoresResponse{
+		Stores:        allStores,
+		NextPageToken: "",
+	}, nil
+}
+
 func (s *Server) CreateStore(ctx context.Context, req *streckuv1.CreateStoreRequest) (*streckuv1.Store, error) {
 	store := req.Store
 	store.Name = stores.GenerateName()
