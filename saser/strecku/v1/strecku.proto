@@ -61,6 +61,26 @@ message Store {
   string display_name = 2;
 }
 
+// Membership represents one instance of a many-to-many relation between users
+// and stores, meaning that a user is a member of a store.
+message Membership {
+  // name is the resource name of the membership.
+  // Format: memberships/{membership}
+  // Output only.
+  string name = 1;
+
+  // user is the resource name of the user.
+  // Format: users/{user}
+  string user = 2;
+
+  // store is the resource name of the store.
+  // Format: stores/{store}
+  string store = 3;
+
+  // administrator is true if the user is an administrator of the store.
+  bool administrator = 4;
+}
+
 // GetUserRequest is the request message for GetUser.
 message GetUserRequest {
   // name is the resource name of the user to get.
