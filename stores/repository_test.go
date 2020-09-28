@@ -23,18 +23,6 @@ func storeLess(u1, u2 *streckuv1.Store) bool {
 	return u1.Name < u2.Name
 }
 
-func seed(t *testing.T, stores []*streckuv1.Store) *Repository {
-	t.Helper()
-	mStores := make(map[string]*streckuv1.Store, len(stores))
-	for _, store := range stores {
-		if got := Validate(store); got != nil {
-			t.Errorf("Validate(%v) = %v; want %v", store, got, nil)
-		}
-		mStores[store.Name] = store
-	}
-	return newRepository(mStores)
-}
-
 func TestStoreNotFoundError_Error(t *testing.T) {
 	for _, test := range []struct {
 		name string
@@ -190,7 +178,7 @@ func TestStores_LookupStore(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := seed(t, test.stores)
+			r := SeedRepository(t, test.stores)
 			store, err := r.LookupStore(ctx, test.name)
 			if diff := cmp.Diff(store, test.wantStore, protocmp.Transform()); diff != "" {
 				t.Errorf("r.LookupStore(%v, %q) store != test.wantStore (-got +want)\n%s", ctx, test.name, diff)
@@ -225,7 +213,7 @@ func TestStores_ListStores(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := seed(t, test.stores)
+			r := SeedRepository(t, test.stores)
 			stores, err := r.ListStores(ctx)
 			if diff := cmp.Diff(
 				stores, test.stores, protocmp.Transform(),
@@ -310,7 +298,7 @@ func TestStores_FilterStores(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := seed(t, test.stores)
+			r := SeedRepository(t, test.stores)
 			stores, err := r.FilterStores(ctx, test.predicate)
 			if diff := cmp.Diff(
 				stores, test.want, protocmp.Transform(),
@@ -386,7 +374,7 @@ func TestStores_CreateStore(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := seed(t, test.stores)
+			r := SeedRepository(t, test.stores)
 			if got := r.CreateStore(ctx, test.store); !cmp.Equal(got, test.want) {
 				t.Errorf("r.CreateStore(%v, %v) = %v; want %v", ctx, test.store, got, test.want)
 			}
@@ -455,7 +443,7 @@ func TestStores_UpdateStore(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := seed(t, test.stores)
+			r := SeedRepository(t, test.stores)
 			if got := r.UpdateStore(ctx, test.updated); !cmp.Equal(got, test.wantUpdateErr) {
 				t.Errorf("r.UpdateStore(%v, %v) = %v; want %v", ctx, test.updated, got, test.wantUpdateErr)
 			}
@@ -553,7 +541,7 @@ func TestStores_DeleteStore(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := seed(t, test.stores)
+			r := SeedRepository(t, test.stores)
 			err := r.DeleteStore(ctx, test.name)
 			if got, want := err, test.want; !cmp.Equal(got, want) {
 				t.Errorf("r.DeleteStore(%v, %q) = %v; want %v", ctx, test.name, got, want)

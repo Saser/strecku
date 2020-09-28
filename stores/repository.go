@@ -3,6 +3,7 @@ package stores
 import (
 	"context"
 	"fmt"
+	"testing"
 
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 )
@@ -45,6 +46,21 @@ func (e *StoreExistsError) Is(target error) bool {
 
 func NewRepository() *Repository {
 	return newRepository(make(map[string]*streckuv1.Store))
+}
+
+func SeedRepository(t *testing.T, stores []*streckuv1.Store) *Repository {
+	t.Helper()
+	mStores := make(map[string]*streckuv1.Store, len(stores))
+	for _, store := range stores {
+		if got := Validate(store); got != nil {
+			t.Errorf("Validate(%v) = %v; want %v", store, got, nil)
+		}
+		mStores[store.Name] = store
+	}
+	if t.Failed() {
+		t.FailNow()
+	}
+	return newRepository(mStores)
 }
 
 func newRepository(stores map[string]*streckuv1.Store) *Repository {
