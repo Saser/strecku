@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	"github.com/Saser/strecku/auth"
+	"github.com/Saser/strecku/resources/stores"
+	"github.com/Saser/strecku/resources/users"
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
-	"github.com/Saser/strecku/stores"
-	"github.com/Saser/strecku/users"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
