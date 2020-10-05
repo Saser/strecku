@@ -25,11 +25,4 @@ var (
 		DisplayName:  "Carol",
 	}
 	CarolPassword = "Carol's password"
-
-	David = &streckuv1.User{
-		Name:         "users/9c05668c-a75b-4667-a9a9-a9faa93993fe",
-		EmailAddress: "david@example.com",
-		DisplayName:  "David",
-	}
-	DavidPassword = "David's password"
 )

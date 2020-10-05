@@ -12,7 +12,6 @@ func TestValid(t *testing.T) {
 		Alice,
 		Bob,
 		Carol,
-		David,
 	} {
 		if err := users.Validate(user); err != nil {
 			t.Errorf("users.Validate(%v) = %v; want nil", user, err)

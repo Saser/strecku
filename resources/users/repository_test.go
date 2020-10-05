@@ -660,8 +660,8 @@ func TestRepository_DeleteUser(t *testing.T) {
 			},
 			{
 				desc: "NotFound",
-				name: testusers.David.Name,
-				want: &UserNotFoundError{Name: testusers.David.Name},
+				name: testusers.Bob.Name,
+				want: &UserNotFoundError{Name: testusers.Bob.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
