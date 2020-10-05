@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
+	"google.golang.org/protobuf/proto"
 )
 
 type Repository struct {
@@ -44,6 +45,10 @@ func (e *StoreExistsError) Is(target error) bool {
 	return e.Name == other.Name
 }
 
+func Clone(store *streckuv1.Store) *streckuv1.Store {
+	return proto.Clone(store).(*streckuv1.Store)
+}
+
 func NewRepository() *Repository {
 	return newRepository(make(map[string]*streckuv1.Store))
 }
@@ -70,6 +75,9 @@ func newRepository(stores map[string]*streckuv1.Store) *Repository {
 }
 
 func (r *Repository) LookupStore(_ context.Context, name string) (*streckuv1.Store, error) {
+	if err := ValidateName(name); err != nil {
+		return nil, err
+	}
 	store, ok := r.stores[name]
 	if !ok {
 		return nil, &StoreNotFoundError{Name: name}
@@ -100,6 +108,9 @@ func (r *Repository) CreateStore(_ context.Context, store *streckuv1.Store) erro
 }
 
 func (r *Repository) UpdateStore(_ context.Context, updated *streckuv1.Store) error {
+	if err := Validate(updated); err != nil {
+		return err
+	}
 	if _, exists := r.stores[updated.Name]; !exists {
 		return &StoreNotFoundError{Name: updated.Name}
 	}
@@ -108,6 +119,9 @@ func (r *Repository) UpdateStore(_ context.Context, updated *streckuv1.Store) er
 }
 
 func (r *Repository) DeleteStore(_ context.Context, name string) error {
+	if err := ValidateName(name); err != nil {
+		return err
+	}
 	if _, exists := r.stores[name]; !exists {
 		return &StoreNotFoundError{Name: name}
 	}

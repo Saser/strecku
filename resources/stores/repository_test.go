@@ -3,9 +3,9 @@ package stores
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
+	"github.com/Saser/strecku/resources/stores/teststores"
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -23,20 +23,34 @@ func storeLess(u1, u2 *streckuv1.Store) bool {
 	return u1.Name < u2.Name
 }
 
+func seedBar(t *testing.T) *Repository {
+	return SeedRepository(t, []*streckuv1.Store{teststores.Bar})
+}
+
+func seedBarMall(t *testing.T) *Repository {
+	return SeedRepository(
+		t,
+		[]*streckuv1.Store{
+			teststores.Bar,
+			teststores.Mall,
+		})
+}
+
+func seedBarMallPharmacy(t *testing.T) *Repository {
+	return SeedRepository(
+		t,
+		[]*streckuv1.Store{
+			teststores.Bar,
+			teststores.Mall,
+			teststores.Pharmacy,
+		})
+}
+
 func TestStoreNotFoundError_Error(t *testing.T) {
-	for _, test := range []struct {
-		name string
-		want string
-	}{
-		{name: storeNames["foobar"], want: fmt.Sprintf("store not found: %q", storeNames["foobar"])},
-		{name: "some name", want: `store not found: "some name"`},
-	} {
-		err := &StoreNotFoundError{
-			Name: test.name,
-		}
-		if got := err.Error(); got != test.want {
-			t.Errorf("err.Error() = %q; want %q", got, test.want)
-		}
+	err := &StoreNotFoundError{Name: teststores.Bar.Name}
+	want := fmt.Sprintf("store not found: %q", teststores.Bar.Name)
+	if got := err.Error(); !cmp.Equal(got, want) {
+		t.Errorf("err.Error() = %q; want %q", got, want)
 	}
 }
 
@@ -47,18 +61,18 @@ func TestStoreNotFoundError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &StoreNotFoundError{Name: storeNames["foobar"]},
-			target: &StoreNotFoundError{Name: storeNames["foobar"]},
+			err:    &StoreNotFoundError{Name: teststores.Bar.Name},
+			target: &StoreNotFoundError{Name: teststores.Bar.Name},
 			want:   true,
 		},
 		{
-			err:    &StoreNotFoundError{Name: storeNames["foobar"]},
-			target: &StoreNotFoundError{Name: storeNames["barbaz"]},
+			err:    &StoreNotFoundError{Name: teststores.Bar.Name},
+			target: &StoreNotFoundError{Name: teststores.Pharmacy.Name},
 			want:   false,
 		},
 		{
-			err:    &StoreNotFoundError{Name: storeNames["foobar"]},
-			target: fmt.Errorf("store not found: %q", storeNames["foobar"]),
+			err:    &StoreNotFoundError{Name: teststores.Bar.Name},
+			target: fmt.Errorf("store not found: %q", teststores.Bar.Name),
 			want:   false,
 		},
 	} {
@@ -69,19 +83,10 @@ func TestStoreNotFoundError_Is(t *testing.T) {
 }
 
 func TestStoreExistsError_Error(t *testing.T) {
-	for _, test := range []struct {
-		name string
-		want string
-	}{
-		{name: storeNames["foobar"], want: fmt.Sprintf("store exists: %q", storeNames["foobar"])},
-		{name: "some name", want: `store exists: "some name"`},
-	} {
-		err := &StoreExistsError{
-			Name: test.name,
-		}
-		if got := err.Error(); got != test.want {
-			t.Errorf("err.Error() = %q; want %q", got, test.want)
-		}
+	err := &StoreExistsError{Name: teststores.Bar.Name}
+	want := fmt.Sprintf("store exists: %q", teststores.Bar.Name)
+	if got := err.Error(); !cmp.Equal(got, want) {
+		t.Errorf("err.Error() = %q; want %q", got, want)
 	}
 }
 
@@ -92,18 +97,18 @@ func TestStoreExistsError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &StoreExistsError{Name: storeNames["foobar"]},
-			target: &StoreExistsError{Name: storeNames["foobar"]},
+			err:    &StoreExistsError{Name: teststores.Bar.Name},
+			target: &StoreExistsError{Name: teststores.Bar.Name},
 			want:   true,
 		},
 		{
-			err:    &StoreExistsError{Name: storeNames["foobar"]},
-			target: &StoreExistsError{Name: storeNames["barbaz"]},
+			err:    &StoreExistsError{Name: teststores.Bar.Name},
+			target: &StoreExistsError{Name: teststores.Pharmacy.Name},
 			want:   false,
 		},
 		{
-			err:    &StoreExistsError{Name: storeNames["foobar"]},
-			target: fmt.Errorf("store exists: %q", storeNames["foobar"]),
+			err:    &StoreExistsError{Name: teststores.Bar.Name},
+			target: fmt.Errorf("store exists: %q", teststores.Bar.Name),
 			want:   false,
 		},
 	} {
@@ -113,192 +118,103 @@ func TestStoreExistsError_Is(t *testing.T) {
 	}
 }
 
-func TestStores_LookupStore(t *testing.T) {
+func TestRepository_LookupStore(t *testing.T) {
 	ctx := context.Background()
+	r := seedBar(t)
 	for _, test := range []struct {
 		desc      string
-		stores    []*streckuv1.Store
 		name      string
 		wantStore *streckuv1.Store
 		wantErr   error
 	}{
 		{
-			desc:      "EmptyDatabaseEmptyName",
-			stores:    nil,
+			desc:      "OK",
+			name:      teststores.Bar.Name,
+			wantStore: teststores.Bar,
+			wantErr:   nil,
+		},
+		{
+			desc:      "EmptyName",
 			name:      "",
 			wantStore: nil,
-			wantErr:   &StoreNotFoundError{Name: ""},
+			wantErr:   ErrNameEmpty,
 		},
 		{
-			desc:      "EmptyDatabaseNonEmptyName",
-			stores:    nil,
-			name:      storeNames["foobar"],
+			desc:      "NotFound",
+			name:      teststores.Pharmacy.Name,
 			wantStore: nil,
-			wantErr:   &StoreNotFoundError{Name: storeNames["foobar"]},
-		},
-		{
-			desc: "OneStoreOK",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Store"},
-			},
-			name:      storeNames["foobar"],
-			wantStore: &streckuv1.Store{Name: storeNames["foobar"], DisplayName: "Store"},
-			wantErr:   nil,
-		},
-		{
-			desc: "MultipleStoresOK",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-				{Name: storeNames["quux"], DisplayName: "Qu Ux"},
-			},
-			name:      storeNames["barbaz"],
-			wantStore: &streckuv1.Store{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-			wantErr:   nil,
-		},
-		{
-			desc: "OneStoreNotFound",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Store"},
-			},
-			name:      storeNames["barbaz"],
-			wantStore: nil,
-			wantErr:   &StoreNotFoundError{Name: storeNames["barbaz"]},
-		},
-		{
-			desc: "MultipleStoresNotFound",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-				{Name: storeNames["quux"], DisplayName: "Qu Ux"},
-			},
-			name:      storeNames["cookie"],
-			wantStore: nil,
-			wantErr:   &StoreNotFoundError{Name: storeNames["cookie"]},
+			wantErr:   &StoreNotFoundError{Name: teststores.Pharmacy.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := SeedRepository(t, test.stores)
 			store, err := r.LookupStore(ctx, test.name)
 			if diff := cmp.Diff(store, test.wantStore, protocmp.Transform()); diff != "" {
 				t.Errorf("r.LookupStore(%v, %q) store != test.wantStore (-got +want)\n%s", ctx, test.name, diff)
 			}
-			if got, want := err, test.wantErr; !cmp.Equal(got, want) {
+			if got, want := err, test.wantErr; !cmp.Equal(got, want, cmpopts.EquateErrors()) {
 				t.Errorf("r.LookupStore(%v, %q) err = %v; want %v", ctx, test.name, got, want)
 			}
 		})
 	}
 }
 
-func TestStores_ListStores(t *testing.T) {
+func TestRepository_ListStores(t *testing.T) {
 	ctx := context.Background()
-	for _, test := range []struct {
-		name   string
-		stores []*streckuv1.Store
-	}{
-		{name: "Empty", stores: nil},
-		{
-			name: "OneStore",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-			},
-		},
-		{
-			name: "ThreeStores",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-				{Name: storeNames["quux"], DisplayName: "Qu Ux"},
-			},
-		},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			r := SeedRepository(t, test.stores)
-			stores, err := r.ListStores(ctx)
-			if diff := cmp.Diff(
-				stores, test.stores, protocmp.Transform(),
-				cmpopts.EquateEmpty(),
-				cmpopts.SortSlices(storeLess),
-			); diff != "" {
-				t.Errorf("r.ListStores(%v) stores != test.stores (-got +want)\n%s", ctx, diff)
-			}
-			if got, want := err, error(nil); !cmp.Equal(got, want) {
-				t.Errorf("r.ListStores(%v) err = %v; want %v", ctx, got, want)
-			}
-		})
+	r := seedBarMallPharmacy(t)
+	want := []*streckuv1.Store{
+		teststores.Bar,
+		teststores.Mall,
+		teststores.Pharmacy,
+	}
+	stores, err := r.ListStores(ctx)
+	if diff := cmp.Diff(
+		stores, want, protocmp.Transform(),
+		cmpopts.SortSlices(storeLess),
+	); diff != "" {
+		t.Errorf("r.ListStores(%v) stores != want (-got +want)\n%s", ctx, diff)
+	}
+	if err != nil {
+		t.Errorf("r.ListStores(%v) err = %v; want nil", ctx, err)
 	}
 }
 
-func TestStores_FilterStores(t *testing.T) {
+func TestRepository_FilterStores(t *testing.T) {
 	ctx := context.Background()
+	r := seedBarMallPharmacy(t)
 	for _, test := range []struct {
 		name      string
-		stores    []*streckuv1.Store
 		predicate func(*streckuv1.Store) bool
 		want      []*streckuv1.Store
 	}{
 		{
-			name:      "Empty",
-			stores:    nil,
-			predicate: func(*streckuv1.Store) bool { return true },
+			name:      "NoneMatching",
+			predicate: func(*streckuv1.Store) bool { return false },
 			want:      nil,
 		},
 		{
-			name: "OneStoreNoneMatching",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-			},
-			predicate: func(store *streckuv1.Store) bool { return false },
-			want:      nil,
-		},
-		{
-			name: "MultipleStoresNoneMatching",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-				{Name: storeNames["quux"], DisplayName: "Qu Ux"},
-			},
-			predicate: func(store *streckuv1.Store) bool { return false },
-			want:      nil,
-		},
-		{
-			name: "OneStoreOneMatching",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-			},
-			predicate: func(store *streckuv1.Store) bool { return strings.HasPrefix(store.DisplayName, "Foo") },
+			name:      "OneMatching",
+			predicate: func(store *streckuv1.Store) bool { return store.Name == teststores.Bar.Name },
 			want: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
+				teststores.Bar,
 			},
 		},
 		{
-			name: "MultipleStoresOneMatching",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-				{Name: storeNames["quux"], DisplayName: "Qu Ux"},
+			name: "MultipleMatching",
+			predicate: func(store *streckuv1.Store) bool {
+				switch store.Name {
+				case teststores.Bar.Name, teststores.Mall.Name:
+					return true
+				default:
+					return false
+				}
 			},
-			predicate: func(store *streckuv1.Store) bool { return strings.HasPrefix(store.DisplayName, "Foo") },
 			want: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-			},
-		},
-		{
-			name: "MultipleStoresMultipleMatching",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-				{Name: storeNames["quux"], DisplayName: "Qu Ux"},
-			},
-			predicate: func(store *streckuv1.Store) bool { return strings.Contains(store.DisplayName, "Bar") },
-			want: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
+				teststores.Bar,
+				teststores.Mall,
 			},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := SeedRepository(t, test.stores)
 			stores, err := r.FilterStores(ctx, test.predicate)
 			if diff := cmp.Diff(
 				stores, test.want, protocmp.Transform(),
@@ -314,67 +230,26 @@ func TestStores_FilterStores(t *testing.T) {
 	}
 }
 
-func TestStores_CreateStore(t *testing.T) {
+func TestRepository_CreateStore(t *testing.T) {
 	ctx := context.Background()
 	for _, test := range []struct {
-		name   string
-		stores []*streckuv1.Store
-		store  *streckuv1.Store
-		want   error
+		name  string
+		store *streckuv1.Store
+		want  error
 	}{
 		{
-			name:   "Empty",
-			stores: nil,
-			store:  &streckuv1.Store{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-			want:   nil,
-		},
-		{
-			name: "OneStoreOK",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-			},
-			store: &streckuv1.Store{Name: storeNames["barbaz"], DisplayName: "Foo Bar"},
+			name:  "OneStoreOK",
+			store: teststores.Mall,
 			want:  nil,
 		},
 		{
-			name: "MultipleStoresOK",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-				{Name: storeNames["quux"], DisplayName: "Qu Ux"},
-			},
-			store: &streckuv1.Store{Name: storeNames["cookie"], DisplayName: "Cookie"},
-			want:  nil,
-		},
-		{
-			name: "OneStoreDuplicateName",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-			},
-			store: &streckuv1.Store{Name: storeNames["foobar"], DisplayName: "New Foo Bar"},
-			want:  &StoreExistsError{Name: storeNames["foobar"]},
-		},
-		{
-			name: "MultipleStoresDuplicateName",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-				{Name: storeNames["quux"], DisplayName: "Qu Ux"},
-			},
-			store: &streckuv1.Store{Name: storeNames["foobar"], DisplayName: "Another Foo Bar"},
-			want:  &StoreExistsError{Name: storeNames["foobar"]},
-		},
-		{
-			name: "DuplicateDisplayName",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-			},
-			store: &streckuv1.Store{Name: storeNames["barbaz"], DisplayName: "Foo Bar"},
-			want:  nil,
+			name:  "DuplicateName",
+			store: &streckuv1.Store{Name: teststores.Bar.Name, DisplayName: teststores.Mall.DisplayName},
+			want:  &StoreExistsError{Name: teststores.Bar.Name},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := SeedRepository(t, test.stores)
+			r := seedBar(t)
 			if got := r.CreateStore(ctx, test.store); !cmp.Equal(got, test.want) {
 				t.Errorf("r.CreateStore(%v, %v) = %v; want %v", ctx, test.store, got, test.want)
 			}
@@ -382,177 +257,122 @@ func TestStores_CreateStore(t *testing.T) {
 	}
 }
 
-func TestStores_UpdateStore(t *testing.T) {
+func TestRepository_UpdateStore(t *testing.T) {
 	ctx := context.Background()
-	for _, test := range []struct {
-		name          string
-		stores        []*streckuv1.Store
-		updated       *streckuv1.Store
-		wantUpdateErr error
-		lookupName    string
-		wantStore     *streckuv1.Store
-		wantLookupErr error
-	}{
-		{
-			name: "OneStoreDisplayName",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
+	// Test scenario where the update is successful.
+	t.Run("OK", func(t *testing.T) {
+		r := seedBar(t)
+		oldBar := Clone(teststores.Bar)
+		newBar := Clone(oldBar)
+		newBar.DisplayName = "New Bar"
+		if err := r.UpdateStore(ctx, newBar); err != nil {
+			t.Errorf("r.UpdateStore(%v, %v) = %v; want nil", ctx, newBar, err)
+		}
+		store, err := r.LookupStore(ctx, newBar.Name)
+		if diff := cmp.Diff(store, newBar, protocmp.Transform()); diff != "" {
+			t.Errorf("r.LookupStore(%v, %q) store != newBar (-got +want)\n%s", ctx, newBar.Name, diff)
+		}
+		if err != nil {
+			t.Errorf("r.LookupStore(%v, %q) err = %v; want nil", ctx, newBar.Name, err)
+		}
+	})
+
+	// Test scenario where the update fails.
+	t.Run("Errors", func(t *testing.T) {
+		r := seedBar(t)
+		for _, test := range []struct {
+			desc   string
+			modify func(bar *streckuv1.Store)
+			want   error
+		}{
+			{
+				desc:   "EmptyName",
+				modify: func(bar *streckuv1.Store) { bar.Name = "" },
+				want:   ErrNameEmpty,
 			},
-			updated:       &streckuv1.Store{Name: storeNames["foobar"], DisplayName: "New Foo Bar"},
-			wantUpdateErr: nil,
-			lookupName:    storeNames["foobar"],
-			wantStore:     &streckuv1.Store{Name: storeNames["foobar"], DisplayName: "New Foo Bar"},
-			wantLookupErr: nil,
-		},
-		{
-			name: "OneStoreNotFound",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
+			{
+				desc:   "EmptyDisplayName",
+				modify: func(bar *streckuv1.Store) { bar.DisplayName = "" },
+				want:   ErrDisplayNameEmpty,
 			},
-			updated:       &streckuv1.Store{Name: storeNames["barbaz"], DisplayName: "Foo Bar"},
-			wantUpdateErr: &StoreNotFoundError{Name: storeNames["barbaz"]},
-			lookupName:    storeNames["barbaz"],
-			wantStore:     nil,
-			wantLookupErr: &StoreNotFoundError{Name: storeNames["barbaz"]},
-		},
-		{
-			name: "MultipleStoresDisplayName",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-				{Name: storeNames["quux"], DisplayName: "Qu Ux"},
+			{
+				desc:   "NotFound",
+				modify: func(bar *streckuv1.Store) { bar.Name = teststores.Mall.Name },
+				want:   &StoreNotFoundError{Name: teststores.Mall.Name},
 			},
-			updated:       &streckuv1.Store{Name: storeNames["barbaz"], DisplayName: "All New Barba Z."},
-			wantUpdateErr: nil,
-			lookupName:    storeNames["barbaz"],
-			wantStore:     &streckuv1.Store{Name: storeNames["barbaz"], DisplayName: "All New Barba Z."},
-			wantLookupErr: nil,
-		},
-		{
-			name: "MultipleStoresNotFound",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-				{Name: storeNames["quux"], DisplayName: "Qu Ux"},
-			},
-			updated:       &streckuv1.Store{Name: storeNames["cookie"], DisplayName: "Barba Z."},
-			wantUpdateErr: &StoreNotFoundError{Name: storeNames["cookie"]},
-			lookupName:    storeNames["barbaz"],
-			wantStore:     &streckuv1.Store{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-			wantLookupErr: nil,
-		},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			r := SeedRepository(t, test.stores)
-			if got := r.UpdateStore(ctx, test.updated); !cmp.Equal(got, test.wantUpdateErr) {
-				t.Errorf("r.UpdateStore(%v, %v) = %v; want %v", ctx, test.updated, got, test.wantUpdateErr)
-			}
-			store, err := r.LookupStore(ctx, test.lookupName)
-			if diff := cmp.Diff(store, test.wantStore, protocmp.Transform()); diff != "" {
-				t.Errorf("r.LookupStore(%v, %q) store != test.wantStore (-got +want)\n%s", ctx, test.lookupName, diff)
-			}
-			if got, want := err, test.wantLookupErr; !cmp.Equal(got, want) {
-				t.Errorf("r.LookupStore(%v, %q) err = %v; want %v", ctx, test.lookupName, got, want)
-			}
-		})
-	}
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				updated := Clone(teststores.Bar)
+				test.modify(updated)
+				if got := r.UpdateStore(ctx, updated); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+					t.Errorf("r.UpdateStore(%v, %v) = %v; want %v", ctx, updated, got, test.want)
+				}
+			})
+		}
+	})
 }
 
-func TestStores_DeleteStore(t *testing.T) {
+func TestRepository_DeleteStore(t *testing.T) {
 	ctx := context.Background()
-	for _, test := range []struct {
-		desc          string
-		stores        []*streckuv1.Store
-		name          string
-		want          error
-		lookupName    string
-		wantStore     *streckuv1.Store
-		wantLookupErr error
-	}{
-		{
-			desc:          "Empty",
-			stores:        nil,
-			name:          storeNames["foobar"],
-			want:          &StoreNotFoundError{Name: storeNames["foobar"]},
-			lookupName:    storeNames["barbaz"],
-			wantStore:     nil,
-			wantLookupErr: &StoreNotFoundError{Name: storeNames["barbaz"]},
-		},
-		{
-			desc: "OneStoreOK",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
+
+	t.Run("OK", func(t *testing.T) {
+		r := seedBarMall(t)
+		if err := r.DeleteStore(ctx, teststores.Bar.Name); err != nil {
+			t.Errorf("r.DeleteStore(%v, %q) = %v; want nil", ctx, teststores.Bar.Name, err)
+		}
+		for _, test := range []struct {
+			desc      string
+			name      string
+			wantStore *streckuv1.Store
+			wantErr   error
+		}{
+			{
+				desc:      "LookupDeleted",
+				name:      teststores.Bar.Name,
+				wantStore: nil,
+				wantErr:   &StoreNotFoundError{Name: teststores.Bar.Name},
 			},
-			name:          storeNames["foobar"],
-			want:          nil,
-			lookupName:    storeNames["foobar"],
-			wantStore:     nil,
-			wantLookupErr: &StoreNotFoundError{Name: storeNames["foobar"]},
-		},
-		{
-			desc: "MultipleStoresLookupDeleted",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-				{Name: storeNames["quux"], DisplayName: "Qu Ux"},
+			{
+				desc:      "LookupExisting",
+				name:      teststores.Mall.Name,
+				wantStore: teststores.Mall,
+				wantErr:   nil,
 			},
-			name:          storeNames["barbaz"],
-			want:          nil,
-			lookupName:    storeNames["barbaz"],
-			wantStore:     nil,
-			wantLookupErr: &StoreNotFoundError{Name: storeNames["barbaz"]},
-		},
-		{
-			desc: "MultipleStoresLookupExisting",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-				{Name: storeNames["quux"], DisplayName: "Qu Ux"},
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				store, err := r.LookupStore(ctx, test.name)
+				if diff := cmp.Diff(store, test.wantStore, protocmp.Transform()); diff != "" {
+					t.Errorf("r.LookupStore(%v, %q) store != test.wantStore (-got +want)\n%s", ctx, test.name, diff)
+				}
+				if !cmp.Equal(err, test.wantErr, cmpopts.EquateErrors()) {
+					t.Errorf("r.LookupStore(%v, %q) err = %v; want %v", ctx, test.name, err, test.wantErr)
+				}
+			})
+		}
+	})
+	t.Run("Errors", func(t *testing.T) {
+		r := seedBar(t)
+		for _, test := range []struct {
+			desc string
+			name string
+			want error
+		}{
+			{
+				desc: "EmptyName",
+				name: "",
+				want: ErrNameEmpty,
 			},
-			name:          storeNames["barbaz"],
-			want:          nil,
-			lookupName:    storeNames["foobar"],
-			wantStore:     &streckuv1.Store{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-			wantLookupErr: nil,
-		},
-		{
-			desc: "OneStoreNotFound",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
+			{
+				desc: "NotFound",
+				name: teststores.Mall.Name,
+				want: &StoreNotFoundError{Name: teststores.Mall.Name},
 			},
-			name:          storeNames["barbaz"],
-			want:          &StoreNotFoundError{Name: storeNames["barbaz"]},
-			lookupName:    storeNames["foobar"],
-			wantStore:     &streckuv1.Store{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-			wantLookupErr: nil,
-		},
-		{
-			desc: "MultipleStoresNotFound",
-			stores: []*streckuv1.Store{
-				{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-				{Name: storeNames["barbaz"], DisplayName: "Barba Z."},
-				{Name: storeNames["quux"], DisplayName: "Qu Ux"},
-			},
-			name:          storeNames["cookie"],
-			want:          &StoreNotFoundError{Name: storeNames["cookie"]},
-			lookupName:    storeNames["foobar"],
-			wantStore:     &streckuv1.Store{Name: storeNames["foobar"], DisplayName: "Foo Bar"},
-			wantLookupErr: nil,
-		},
-	} {
-		t.Run(test.desc, func(t *testing.T) {
-			r := SeedRepository(t, test.stores)
-			err := r.DeleteStore(ctx, test.name)
-			if got, want := err, test.want; !cmp.Equal(got, want) {
-				t.Errorf("r.DeleteStore(%v, %q) = %v; want %v", ctx, test.name, got, want)
-			}
-			store, err := r.LookupStore(ctx, test.lookupName)
-			if diff := cmp.Diff(store, test.wantStore, protocmp.Transform()); diff != "" {
-				t.Errorf("r.LookupStore(%v, %q) store != test.wantStore (-got +want)\n%s", ctx, test.lookupName, diff)
-			}
-			if got, want := err, test.wantLookupErr; !cmp.Equal(got, want) {
-				t.Errorf("r.LookupStore(%v, %q) err = %v; want %v", ctx, test.lookupName, got, want)
-			}
-		})
-	}
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				if got := r.DeleteStore(ctx, test.name); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+					t.Errorf("r.DeleteStore(%v, %q) = %v; want %v", ctx, test.name, got, test.want)
+				}
+			})
+		}
+	})
 }
