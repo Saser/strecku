@@ -2,6 +2,9 @@ package memberships
 
 import (
 	"fmt"
+
+	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
+	"google.golang.org/protobuf/proto"
 )
 
 type MembershipNotFoundError struct {
@@ -50,4 +53,8 @@ func (e *MembershipExistsError) Is(target error) bool {
 		return false
 	}
 	return e.Name == other.Name && e.User == other.User && e.Store == other.Store
+}
+
+func Clone(membership *streckuv1.Membership) *streckuv1.Membership {
+	return proto.Clone(membership).(*streckuv1.Membership)
 }

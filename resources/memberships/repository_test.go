@@ -3,15 +3,10 @@ package memberships
 import (
 	"fmt"
 	"testing"
-)
 
-// Valid resource names of users, stores, and membership relations between them.
-const (
-	Alice = "users/6f2d193c-1460-491d-8157-7dd9535526c6"
-
-	GroceryStore = "stores/d8bbf79e-8c59-4fae-aef9-634fcac00e07"
-
-	Alice_GroceryStore = "memberships/9cd3ec05-e7af-418c-bd50-80a7c39a18cc"
+	"github.com/Saser/strecku/resources/memberships/testmemberships"
+	"github.com/Saser/strecku/resources/stores/teststores"
+	"github.com/Saser/strecku/resources/users/testusers"
 )
 
 func TestMembershipNotFoundError_Error(t *testing.T) {
@@ -21,16 +16,16 @@ func TestMembershipNotFoundError_Error(t *testing.T) {
 	}{
 		{
 			err: &MembershipNotFoundError{
-				Name: Alice_GroceryStore,
+				Name: testmemberships.Alice_Bar.Name,
 			},
-			want: fmt.Sprintf("membership not found: %q", Alice_GroceryStore),
+			want: fmt.Sprintf("membership not found: %q", testmemberships.Alice_Bar.Name),
 		},
 		{
 			err: &MembershipNotFoundError{
-				User:  Alice,
-				Store: GroceryStore,
+				User:  testusers.Alice.Name,
+				Store: teststores.Bar.Name,
 			},
-			want: fmt.Sprintf("membership not found: between %q and %q", Alice, GroceryStore),
+			want: fmt.Sprintf("membership not found: between %q and %q", testusers.Alice.Name, teststores.Bar.Name),
 		},
 	} {
 		if got := test.err.Error(); got != test.want {
@@ -47,41 +42,41 @@ func TestMembershipNotFoundError_Is(t *testing.T) {
 	}{
 		{
 			err: &MembershipNotFoundError{
-				Name: Alice_GroceryStore,
+				Name: testmemberships.Alice_Bar.Name,
 			},
 			target: &MembershipNotFoundError{
-				Name: Alice_GroceryStore,
+				Name: testmemberships.Alice_Bar.Name,
 			},
 			want: true,
 		},
 		{
 			err: &MembershipNotFoundError{
-				Name: Alice_GroceryStore,
+				Name: testmemberships.Alice_Bar.Name,
 			},
 			target: &MembershipNotFoundError{
-				User:  Alice,
-				Store: GroceryStore,
+				User:  testusers.Alice.Name,
+				Store: teststores.Bar.Name,
 			},
 			want: false,
 		},
 		{
 			err: &MembershipNotFoundError{
-				User:  Alice,
-				Store: GroceryStore,
+				User:  testusers.Alice.Name,
+				Store: teststores.Bar.Name,
 			},
 			target: &MembershipNotFoundError{
-				Name: Alice_GroceryStore,
+				Name: testmemberships.Alice_Bar.Name,
 			},
 			want: false,
 		},
 		{
 			err: &MembershipNotFoundError{
-				User:  Alice,
-				Store: GroceryStore,
+				User:  testusers.Alice.Name,
+				Store: teststores.Bar.Name,
 			},
 			target: &MembershipNotFoundError{
-				User:  Alice,
-				Store: GroceryStore,
+				User:  testusers.Alice.Name,
+				Store: teststores.Bar.Name,
 			},
 			want: true,
 		},
@@ -99,16 +94,16 @@ func TestMembershipExistsError_Error(t *testing.T) {
 	}{
 		{
 			err: &MembershipExistsError{
-				Name: Alice_GroceryStore,
+				Name: testmemberships.Alice_Bar.Name,
 			},
-			want: fmt.Sprintf("membership exists: %q", Alice_GroceryStore),
+			want: fmt.Sprintf("membership exists: %q", testmemberships.Alice_Bar.Name),
 		},
 		{
 			err: &MembershipExistsError{
-				User:  Alice,
-				Store: GroceryStore,
+				User:  testusers.Alice.Name,
+				Store: teststores.Bar.Name,
 			},
-			want: fmt.Sprintf("membership exists: between %q and %q", Alice, GroceryStore),
+			want: fmt.Sprintf("membership exists: between %q and %q", testusers.Alice.Name, teststores.Bar.Name),
 		},
 	} {
 		if got := test.err.Error(); got != test.want {
