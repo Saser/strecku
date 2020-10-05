@@ -270,7 +270,7 @@ func TestRepository_LookupUser(t *testing.T) {
 			desc:     "EmptyName",
 			name:     "",
 			wantUser: nil,
-			wantErr:  &UserNotFoundError{Name: ""},
+			wantErr:  ErrNameEmpty,
 		},
 		{
 			desc:     "NotFound",
@@ -284,7 +284,7 @@ func TestRepository_LookupUser(t *testing.T) {
 			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
 				t.Errorf("r.LookupUser(%v, %q) user != test.wantUser (-got +want)\n%s", ctx, test.name, diff)
 			}
-			if got, want := err, test.wantErr; !cmp.Equal(got, want) {
+			if got, want := err, test.wantErr; !cmp.Equal(got, want, cmpopts.EquateErrors()) {
 				t.Errorf("r.LookupUser(%v, %q) err = %v; want %v", ctx, test.name, got, want)
 			}
 		})
@@ -656,7 +656,7 @@ func TestRepository_DeleteUser(t *testing.T) {
 			{
 				desc: "EmptyName",
 				name: "",
-				want: &UserNotFoundError{Name: ""},
+				want: ErrNameEmpty,
 			},
 			{
 				desc: "NotFound",

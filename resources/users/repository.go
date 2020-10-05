@@ -143,6 +143,9 @@ func (r *Repository) Authenticate(_ context.Context, name string, password strin
 }
 
 func (r *Repository) LookupUser(_ context.Context, name string) (*streckuv1.User, error) {
+	if err := ValidateName(name); err != nil {
+		return nil, err
+	}
 	user, ok := r.users[name]
 	if !ok {
 		return nil, &UserNotFoundError{Name: name}
@@ -208,6 +211,9 @@ func (r *Repository) UpdateUser(_ context.Context, updated *streckuv1.User) erro
 }
 
 func (r *Repository) DeleteUser(_ context.Context, name string) error {
+	if err := ValidateName(name); err != nil {
+		return err
+	}
 	user, ok := r.users[name]
 	if !ok {
 		return &UserNotFoundError{Name: name}
