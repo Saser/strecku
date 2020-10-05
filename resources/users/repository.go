@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
+	"google.golang.org/protobuf/proto"
 )
 
 type Repository struct {
@@ -126,6 +127,10 @@ func newRepository(users map[string]*streckuv1.User, passwords map[string]string
 	}
 }
 
+func Clone(user *streckuv1.User) *streckuv1.User {
+	return proto.Clone(user).(*streckuv1.User)
+}
+
 func (r *Repository) Authenticate(_ context.Context, name string, password string) error {
 	storedPassword, ok := r.passwords[name]
 	if !ok {
@@ -142,7 +147,7 @@ func (r *Repository) LookupUser(_ context.Context, name string) (*streckuv1.User
 	if !ok {
 		return nil, &UserNotFoundError{Name: name}
 	}
-	return user, nil
+	return Clone(user), nil
 }
 
 func (r *Repository) LookupUserByEmail(ctx context.Context, emailAddress string) (*streckuv1.User, error) {
@@ -161,7 +166,7 @@ func (r *Repository) FilterUsers(_ context.Context, predicate func(*streckuv1.Us
 	var filtered []*streckuv1.User
 	for _, user := range r.users {
 		if predicate(user) {
-			filtered = append(filtered, user)
+			filtered = append(filtered, Clone(user))
 		}
 	}
 	return filtered, nil
@@ -186,6 +191,9 @@ func (r *Repository) CreateUser(_ context.Context, user *streckuv1.User, passwor
 }
 
 func (r *Repository) UpdateUser(_ context.Context, updated *streckuv1.User) error {
+	if err := Validate(updated); err != nil {
+		return err
+	}
 	old, exists := r.users[updated.Name]
 	if !exists {
 		return &UserNotFoundError{Name: updated.Name}

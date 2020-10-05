@@ -3,24 +3,37 @@ package users
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
+	"github.com/Saser/strecku/resources/users/testusers"
 	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
-var userNames = map[string]string{
-	"foobar": "users/6f2d193c-1460-491d-8157-7dd9535526c6",
-	"barbaz": "users/d8bbf79e-8c59-4fae-aef9-634fcac00e07",
-	"quux":   "users/9cd3ec05-e7af-418c-bd50-80a7c39a18cc",
-	"cookie": "users/7f8f2c29-3860-49fa-923d-896a53f0ca26",
-}
-
 func userLess(u1, u2 *streckuv1.User) bool {
 	return u1.Name < u2.Name
+}
+
+func seedAlice(t *testing.T) *Repository {
+	return SeedRepository(t, []*streckuv1.User{testusers.Alice}, []string{testusers.AlicePassword})
+}
+
+func seedAliceBob(t *testing.T) *Repository {
+	return SeedRepository(
+		t,
+		[]*streckuv1.User{testusers.Alice, testusers.Bob},
+		[]string{testusers.AlicePassword, testusers.BobPassword},
+	)
+}
+
+func seedAliceBobCarol(t *testing.T) *Repository {
+	return SeedRepository(
+		t,
+		[]*streckuv1.User{testusers.Alice, testusers.Bob, testusers.Carol},
+		[]string{testusers.AlicePassword, testusers.BobPassword, testusers.CarolPassword},
+	)
 }
 
 func TestUserNotFoundError_Error(t *testing.T) {
@@ -29,10 +42,8 @@ func TestUserNotFoundError_Error(t *testing.T) {
 		emailAddress string
 		want         string
 	}{
-		{name: userNames["foobar"], want: fmt.Sprintf("user not found: %q", userNames["foobar"])},
-		{name: "some name", want: `user not found: "some name"`},
-		{emailAddress: "user@example.com", want: `user email not found: "user@example.com"`},
-		{emailAddress: "some email", want: `user email not found: "some email"`},
+		{name: testusers.Alice.Name, want: fmt.Sprintf("user not found: %q", testusers.Alice.Name)},
+		{emailAddress: testusers.Alice.EmailAddress, want: fmt.Sprintf("user email not found: %q", testusers.Alice.EmailAddress)},
 	} {
 		err := &UserNotFoundError{
 			Name:         test.name,
@@ -51,43 +62,43 @@ func TestUserNotFoundError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &UserNotFoundError{Name: userNames["foobar"]},
-			target: &UserNotFoundError{Name: userNames["foobar"]},
+			err:    &UserNotFoundError{Name: testusers.Alice.Name},
+			target: &UserNotFoundError{Name: testusers.Alice.Name},
 			want:   true,
 		},
 		{
-			err:    &UserNotFoundError{Name: userNames["foobar"]},
-			target: &UserNotFoundError{Name: userNames["barbaz"]},
+			err:    &UserNotFoundError{Name: testusers.Alice.Name},
+			target: &UserNotFoundError{Name: testusers.Bob.Name},
 			want:   false,
 		},
 		{
-			err:    &UserNotFoundError{Name: userNames["foobar"]},
-			target: &UserNotFoundError{EmailAddress: "foobar@example.com"},
+			err:    &UserNotFoundError{Name: testusers.Alice.Name},
+			target: &UserNotFoundError{EmailAddress: testusers.Alice.EmailAddress},
 			want:   false,
 		},
 		{
-			err:    &UserNotFoundError{EmailAddress: "foobar@example.com"},
-			target: &UserNotFoundError{Name: userNames["foobar"]},
+			err:    &UserNotFoundError{EmailAddress: testusers.Alice.EmailAddress},
+			target: &UserNotFoundError{Name: testusers.Alice.Name},
 			want:   false,
 		},
 		{
-			err:    &UserNotFoundError{EmailAddress: "foobar@example.com"},
-			target: &UserNotFoundError{EmailAddress: "foobar@example.com"},
+			err:    &UserNotFoundError{EmailAddress: testusers.Alice.EmailAddress},
+			target: &UserNotFoundError{EmailAddress: testusers.Alice.EmailAddress},
 			want:   true,
 		},
 		{
-			err:    &UserNotFoundError{EmailAddress: "foobar@example.com"},
-			target: &UserNotFoundError{EmailAddress: "barbaz@example.com"},
+			err:    &UserNotFoundError{EmailAddress: testusers.Alice.EmailAddress},
+			target: &UserNotFoundError{EmailAddress: testusers.Bob.EmailAddress},
 			want:   false,
 		},
 		{
-			err:    &UserNotFoundError{Name: userNames["foobar"]},
-			target: fmt.Errorf("user not found: %q", userNames["foobar"]),
+			err:    &UserNotFoundError{Name: testusers.Alice.Name},
+			target: fmt.Errorf("user not found: %q", testusers.Alice.Name),
 			want:   false,
 		},
 		{
-			err:    &UserNotFoundError{EmailAddress: "foobar@example.com"},
-			target: fmt.Errorf("user email not found: %q", "foobar@example.com"),
+			err:    &UserNotFoundError{EmailAddress: testusers.Alice.EmailAddress},
+			target: fmt.Errorf("user email not found: %q", testusers.Alice.EmailAddress),
 			want:   false,
 		},
 	} {
@@ -103,10 +114,8 @@ func TestUserExistsError_Error(t *testing.T) {
 		emailAddress string
 		want         string
 	}{
-		{name: userNames["foobar"], want: fmt.Sprintf("user exists: %q", userNames["foobar"])},
-		{name: "some name", want: `user exists: "some name"`},
-		{emailAddress: "user@example.com", want: `user email exists: "user@example.com"`},
-		{emailAddress: "some email", want: `user email exists: "some email"`},
+		{name: testusers.Alice.Name, want: fmt.Sprintf("user exists: %q", testusers.Alice.Name)},
+		{emailAddress: testusers.Alice.EmailAddress, want: fmt.Sprintf("user email exists: %q", testusers.Alice.EmailAddress)},
 	} {
 		err := &UserExistsError{
 			Name:         test.name,
@@ -125,43 +134,43 @@ func TestUserExistsError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &UserExistsError{Name: userNames["foobar"]},
-			target: &UserExistsError{Name: userNames["foobar"]},
+			err:    &UserExistsError{Name: testusers.Alice.Name},
+			target: &UserExistsError{Name: testusers.Alice.Name},
 			want:   true,
 		},
 		{
-			err:    &UserExistsError{Name: userNames["foobar"]},
-			target: &UserExistsError{Name: userNames["barbaz"]},
+			err:    &UserExistsError{Name: testusers.Alice.Name},
+			target: &UserExistsError{Name: testusers.Bob.Name},
 			want:   false,
 		},
 		{
-			err:    &UserExistsError{Name: userNames["foobar"]},
-			target: &UserExistsError{EmailAddress: "foobar@example.com"},
+			err:    &UserExistsError{Name: testusers.Alice.Name},
+			target: &UserExistsError{EmailAddress: testusers.Alice.EmailAddress},
 			want:   false,
 		},
 		{
-			err:    &UserExistsError{EmailAddress: "foobar@example.com"},
-			target: &UserExistsError{Name: userNames["foobar"]},
+			err:    &UserExistsError{EmailAddress: testusers.Alice.EmailAddress},
+			target: &UserExistsError{Name: testusers.Alice.Name},
 			want:   false,
 		},
 		{
-			err:    &UserExistsError{EmailAddress: "foobar@example.com"},
-			target: &UserExistsError{EmailAddress: "foobar@example.com"},
+			err:    &UserExistsError{EmailAddress: testusers.Alice.EmailAddress},
+			target: &UserExistsError{EmailAddress: testusers.Alice.EmailAddress},
 			want:   true,
 		},
 		{
-			err:    &UserExistsError{EmailAddress: "foobar@example.com"},
-			target: &UserExistsError{EmailAddress: "barbaz@example.com"},
+			err:    &UserExistsError{EmailAddress: testusers.Alice.EmailAddress},
+			target: &UserExistsError{EmailAddress: testusers.Bob.EmailAddress},
 			want:   false,
 		},
 		{
-			err:    &UserExistsError{Name: userNames["foobar"]},
-			target: fmt.Errorf("user exists: %q", userNames["foobar"]),
+			err:    &UserExistsError{Name: testusers.Alice.Name},
+			target: fmt.Errorf("user exists: %q", testusers.Alice.Name),
 			want:   false,
 		},
 		{
-			err:    &UserExistsError{EmailAddress: "foobar@example.com"},
-			target: fmt.Errorf("user email exists: %q", "foobar@example.com"),
+			err:    &UserExistsError{EmailAddress: testusers.Alice.EmailAddress},
+			target: fmt.Errorf("user email exists: %q", testusers.Alice.EmailAddress),
 			want:   false,
 		},
 	} {
@@ -172,8 +181,8 @@ func TestUserExistsError_Is(t *testing.T) {
 }
 
 func TestWrongPasswordError_Error(t *testing.T) {
-	err := &WrongPasswordError{Name: userNames["foobar"]}
-	if got, want := err.Error(), fmt.Sprintf("wrong password for user %q", userNames["foobar"]); got != want {
+	err := &WrongPasswordError{Name: testusers.Alice.Name}
+	if got, want := err.Error(), fmt.Sprintf("wrong password for user %q", testusers.Alice.Name); got != want {
 		t.Errorf("err.Error() = %q; want %q", got, want)
 	}
 }
@@ -185,18 +194,18 @@ func TestWrongPasswordError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &WrongPasswordError{Name: userNames["foobar"]},
-			target: &WrongPasswordError{Name: userNames["foobar"]},
+			err:    &WrongPasswordError{Name: testusers.Alice.Name},
+			target: &WrongPasswordError{Name: testusers.Alice.Name},
 			want:   true,
 		},
 		{
-			err:    &WrongPasswordError{Name: userNames["foobar"]},
-			target: &WrongPasswordError{Name: userNames["barbaz"]},
+			err:    &WrongPasswordError{Name: testusers.Alice.Name},
+			target: &WrongPasswordError{Name: testusers.Bob.Name},
 			want:   false,
 		},
 		{
-			err:    &WrongPasswordError{Name: userNames["foobar"]},
-			target: fmt.Errorf("wrong password for user %q", userNames["foobar"]),
+			err:    &WrongPasswordError{Name: testusers.Alice.Name},
+			target: fmt.Errorf("wrong password for user %q", testusers.Alice.Name),
 			want:   false,
 		},
 	} {
@@ -206,111 +215,35 @@ func TestWrongPasswordError_Is(t *testing.T) {
 	}
 }
 
-func TestUsers_Authenticate(t *testing.T) {
+func TestRepository_Authenticate(t *testing.T) {
 	ctx := context.Background()
+	r := seedAlice(t)
 	for _, test := range []struct {
-		desc      string
-		users     []*streckuv1.User
-		passwords []string
-		name      string
-		password  string
-		want      error
+		desc     string
+		name     string
+		password string
+		want     error
 	}{
 		{
-			desc:      "Empty",
-			users:     nil,
-			passwords: nil,
-			name:      userNames["foobar"],
-			password:  "foobar",
-			want:      &UserNotFoundError{Name: userNames["foobar"]},
-		},
-		{
-			desc: "OneUserOK",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords: []string{
-				"foobar",
-			},
-			name:     userNames["foobar"],
-			password: "foobar",
+			desc:     "OK",
+			name:     testusers.Alice.Name,
+			password: testusers.AlicePassword,
 			want:     nil,
 		},
 		{
-			desc: "MultipleUsersOK",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			name:     userNames["barbaz"],
-			password: "barbaz",
-			want:     nil,
+			desc:     "NotFound",
+			name:     testusers.Bob.Name,
+			password: testusers.BobPassword,
+			want:     &UserNotFoundError{Name: testusers.Bob.Name},
 		},
 		{
-			desc: "OneUserNotFound",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords: []string{
-				"foobar",
-			},
-			name:     userNames["barbaz"],
-			password: "barbaz",
-			want:     &UserNotFoundError{Name: userNames["barbaz"]},
-		},
-		{
-			desc: "MultipleUsersNotFound",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			name:     userNames["cookie"],
-			password: "cookie",
-			want:     &UserNotFoundError{Name: userNames["cookie"]},
-		},
-		{
-			desc: "OneUserWrongPassword",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords: []string{
-				"foobar",
-			},
-			name:     userNames["foobar"],
+			desc:     "WrongPassword",
+			name:     testusers.Alice.Name,
 			password: "wrong password",
-			want:     &WrongPasswordError{Name: userNames["foobar"]},
-		},
-		{
-			desc: "MultipleUsersWrongPassword",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			name:     userNames["foobar"],
-			password: "wrong password",
-			want:     &WrongPasswordError{Name: userNames["foobar"]},
+			want:     &WrongPasswordError{Name: testusers.Alice.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := SeedRepository(t, test.users, test.passwords)
 			if got := r.Authenticate(ctx, test.name, test.password); !cmp.Equal(got, test.want) {
 				t.Errorf("r.Authenticate(%v, %q, %q) = %v; want %v", ctx, test.name, test.password, got, test.want)
 			}
@@ -318,89 +251,35 @@ func TestUsers_Authenticate(t *testing.T) {
 	}
 }
 
-func TestUsers_LookupUser(t *testing.T) {
+func TestRepository_LookupUser(t *testing.T) {
 	ctx := context.Background()
+	r := seedAlice(t)
 	for _, test := range []struct {
-		desc      string
-		users     []*streckuv1.User
-		passwords []string
-		name      string
-		wantUser  *streckuv1.User
-		wantErr   error
+		desc     string
+		name     string
+		wantUser *streckuv1.User
+		wantErr  error
 	}{
 		{
-			desc:      "EmptyDatabaseEmptyName",
-			users:     nil,
-			passwords: nil,
-			name:      "",
-			wantUser:  nil,
-			wantErr:   &UserNotFoundError{Name: ""},
-		},
-		{
-			desc:      "EmptyDatabaseNonEmptyName",
-			users:     nil,
-			passwords: nil,
-			name:      userNames["foobar"],
-			wantUser:  nil,
-			wantErr:   &UserNotFoundError{Name: userNames["foobar"]},
-		},
-		{
-			desc: "OneUserOK",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "user@example.com", DisplayName: "User"},
-			},
-			passwords: []string{
-				"foobar",
-			},
-			name:     userNames["foobar"],
-			wantUser: &streckuv1.User{Name: userNames["foobar"], EmailAddress: "user@example.com", DisplayName: "User"},
+			desc:     "OK",
+			name:     testusers.Alice.Name,
+			wantUser: testusers.Alice,
 			wantErr:  nil,
 		},
 		{
-			desc: "MultipleUsersOK",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			name:     userNames["barbaz"],
-			wantUser: &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-			wantErr:  nil,
-		},
-		{
-			desc: "OneUserNotFound",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "user@example.com", DisplayName: "User"},
-			},
-			passwords: []string{"foobar"},
-			name:      userNames["barbaz"],
-			wantUser:  nil,
-			wantErr:   &UserNotFoundError{Name: userNames["barbaz"]},
-		},
-		{
-			desc: "MultipleUsersNotFound",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			name:     userNames["cookie"],
+			desc:     "EmptyName",
+			name:     "",
 			wantUser: nil,
-			wantErr:  &UserNotFoundError{Name: userNames["cookie"]},
+			wantErr:  &UserNotFoundError{Name: ""},
+		},
+		{
+			desc:     "NotFound",
+			name:     testusers.Bob.Name,
+			wantUser: nil,
+			wantErr:  &UserNotFoundError{Name: testusers.Bob.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := SeedRepository(t, test.users, test.passwords)
 			user, err := r.LookupUser(ctx, test.name)
 			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
 				t.Errorf("r.LookupUser(%v, %q) user != test.wantUser (-got +want)\n%s", ctx, test.name, diff)
@@ -412,89 +291,35 @@ func TestUsers_LookupUser(t *testing.T) {
 	}
 }
 
-func TestUsers_LookupUserByEmail(t *testing.T) {
+func TestRepository_LookupUserByEmail(t *testing.T) {
 	ctx := context.Background()
+	r := seedAlice(t)
 	for _, test := range []struct {
 		desc         string
-		users        []*streckuv1.User
-		passwords    []string
 		emailAddress string
 		wantUser     *streckuv1.User
 		wantErr      error
 	}{
 		{
-			desc:         "EmptyDatabaseEmptyName",
-			users:        nil,
-			passwords:    nil,
+			desc:         "OK",
+			emailAddress: testusers.Alice.EmailAddress,
+			wantUser:     testusers.Alice,
+			wantErr:      nil,
+		},
+		{
+			desc:         "EmptyEmailAddress",
 			emailAddress: "",
 			wantUser:     nil,
 			wantErr:      &UserNotFoundError{EmailAddress: ""},
 		},
 		{
-			desc:         "EmptyDatabaseNonEmptyName",
-			users:        nil,
-			passwords:    nil,
-			emailAddress: "user@example.com",
+			desc:         "NotFound",
+			emailAddress: testusers.Bob.EmailAddress,
 			wantUser:     nil,
-			wantErr:      &UserNotFoundError{EmailAddress: "user@example.com"},
-		},
-		{
-			desc: "OneUserOK",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "user@example.com", DisplayName: "User"},
-			},
-			passwords: []string{
-				"foobar",
-			},
-			emailAddress: "user@example.com",
-			wantUser:     &streckuv1.User{Name: userNames["foobar"], EmailAddress: "user@example.com", DisplayName: "User"},
-			wantErr:      nil,
-		},
-		{
-			desc: "MultipleUsersOK",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			emailAddress: "barbaz@example.com",
-			wantUser:     &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-			wantErr:      nil,
-		},
-		{
-			desc: "OneUserNotFound",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "user@example.com", DisplayName: "User"},
-			},
-			passwords:    []string{"foobar"},
-			emailAddress: "notfoobar@example.com",
-			wantUser:     nil,
-			wantErr:      &UserNotFoundError{EmailAddress: "notfoobar@example.com"},
-		},
-		{
-			desc: "MultipleUsersNotFound",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			emailAddress: "notfoobar@example.com",
-			wantUser:     nil,
-			wantErr:      &UserNotFoundError{EmailAddress: "notfoobar@example.com"},
+			wantErr:      &UserNotFoundError{EmailAddress: testusers.Bob.EmailAddress},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := SeedRepository(t, test.users, test.passwords)
 			user, err := r.LookupUserByEmail(ctx, test.emailAddress)
 			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
 				t.Errorf("r.LookupUserByEmail(%v, %q) user != test.wantUser (-got +want)\n%s", ctx, test.emailAddress, diff)
@@ -506,140 +331,56 @@ func TestUsers_LookupUserByEmail(t *testing.T) {
 	}
 }
 
-func TestUsers_ListUsers(t *testing.T) {
+func TestRepository_ListUsers(t *testing.T) {
 	ctx := context.Background()
-	for _, test := range []struct {
-		name      string
-		users     []*streckuv1.User
-		passwords []string
-	}{
-		{name: "Empty", users: nil},
-		{
-			name: "OneUser",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "user@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords: []string{"foobar"},
-		},
-		{
-			name: "ThreeUsers",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-		},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			r := SeedRepository(t, test.users, test.passwords)
-			users, err := r.ListUsers(ctx)
-			if diff := cmp.Diff(
-				users, test.users, protocmp.Transform(),
-				cmpopts.EquateEmpty(),
-				cmpopts.SortSlices(userLess),
-			); diff != "" {
-				t.Errorf("r.ListUsers(%v) users != test.users (-got +want)\n%s", ctx, diff)
-			}
-			if got, want := err, error(nil); !cmp.Equal(got, want) {
-				t.Errorf("r.ListUsers(%v) err = %v; want %v", ctx, got, want)
-			}
-		})
+	allUsers := []*streckuv1.User{
+		testusers.Alice,
+		testusers.Bob,
+		testusers.Carol,
+	}
+	r := seedAliceBobCarol(t)
+	users, err := r.ListUsers(ctx)
+	if diff := cmp.Diff(
+		users, allUsers, protocmp.Transform(),
+		cmpopts.SortSlices(userLess),
+	); diff != "" {
+		t.Errorf("r.ListUsers(%v) users != allUsers (-got +want)\n%s", ctx, diff)
+	}
+	if err != nil {
+		t.Errorf("r.ListUsers(%v) err = %v; want nil", ctx, err)
 	}
 }
 
-func TestUsers_FilterUsers(t *testing.T) {
+func TestRepository_FilterUsers(t *testing.T) {
 	ctx := context.Background()
+	r := seedAliceBobCarol(t)
 	for _, test := range []struct {
 		name      string
-		users     []*streckuv1.User
-		passwords []string
 		predicate func(*streckuv1.User) bool
 		want      []*streckuv1.User
 	}{
 		{
-			name:      "Empty",
-			users:     nil,
-			predicate: func(*streckuv1.User) bool { return true },
-			want:      nil,
-		},
-		{
-			name: "OneUserNoneMatching",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "user@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords: []string{"foobar"},
+			name:      "NoneMatching",
 			predicate: func(user *streckuv1.User) bool { return false },
 			want:      nil,
 		},
 		{
-			name: "MultipleUsersNoneMatching",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			predicate: func(user *streckuv1.User) bool { return false },
-			want:      nil,
-		},
-		{
-			name: "OneUserOneMatching",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "user@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords: []string{"foobar"},
-			predicate: func(user *streckuv1.User) bool { return strings.HasPrefix(user.DisplayName, "Foo") },
+			name:      "OneMatching",
+			predicate: func(user *streckuv1.User) bool { return user.DisplayName == "Alice" },
 			want: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "user@example.com", DisplayName: "Foo Bar"},
+				testusers.Alice,
 			},
 		},
 		{
-			name: "MultipleUsersOneMatching",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			predicate: func(user *streckuv1.User) bool { return strings.HasPrefix(user.DisplayName, "Foo") },
+			name:      "SeveralMatching",
+			predicate: func(user *streckuv1.User) bool { return user.DisplayName == "Alice" || user.DisplayName == "Bob" },
 			want: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			},
-		},
-		{
-			name: "MultipleUsersMultipleMatching",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			predicate: func(user *streckuv1.User) bool { return strings.Contains(user.DisplayName, "Bar") },
-			want: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
+				testusers.Alice,
+				testusers.Bob,
 			},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := SeedRepository(t, test.users, test.passwords)
 			users, err := r.FilterUsers(ctx, test.predicate)
 			if diff := cmp.Diff(
 				users, test.want, protocmp.Transform(),
@@ -655,95 +396,44 @@ func TestUsers_FilterUsers(t *testing.T) {
 	}
 }
 
-func TestUsers_CreateUser(t *testing.T) {
+func TestRepository_CreateUser(t *testing.T) {
 	ctx := context.Background()
+	// The Repository will be seeded with testusers.Alice.
+	// However, since the repository is possibly mutated, it needs to be seeded
+	// for each test case.
 	for _, test := range []struct {
-		name      string
-		users     []*streckuv1.User
-		passwords []string
-		user      *streckuv1.User
-		password  string
-		want      error
+		name     string
+		user     *streckuv1.User
+		password string
+		want     error
 	}{
 		{
-			name:     "Empty",
-			users:    nil,
-			user:     &streckuv1.User{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			password: "foobar",
+			name:     "OK",
+			user:     testusers.Bob,
+			password: testusers.BobPassword,
 			want:     nil,
 		},
 		{
 			name:     "EmptyPassword",
-			users:    nil,
-			user:     &streckuv1.User{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+			user:     testusers.Bob,
 			password: "",
 			want:     ErrEmptyPassword,
 		},
 		{
-			name: "OneUserOK",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords: []string{"foobar"},
-			user:      &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-			password:  "barbaz",
-			want:      nil,
+			name:     "DuplicateEmail",
+			user:     &streckuv1.User{Name: testusers.Bob.Name, EmailAddress: testusers.Alice.EmailAddress, DisplayName: testusers.Bob.DisplayName},
+			password: testusers.BobPassword,
+			want:     &UserExistsError{EmailAddress: testusers.Alice.EmailAddress},
 		},
 		{
-			name: "MultipleUsersOK",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			user:     &streckuv1.User{Name: userNames["cookie"], EmailAddress: "cookie@example.com", DisplayName: "Cookie"},
-			password: "cookie",
-			want:     nil,
-		},
-		{
-			name: "OneUserDuplicateEmail",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords: []string{"foobar"},
-			user:      &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "foobar@example.com", DisplayName: "Barba Z."},
-			password:  "barbaz",
-			want:      &UserExistsError{EmailAddress: "foobar@example.com"},
-		},
-		{
-			name: "OneUserDuplicateName",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords: []string{"foobar"},
-			user:      &streckuv1.User{Name: userNames["foobar"], EmailAddress: "new-foobar@example.com", DisplayName: "New Foo Bar"},
-			password:  "foobar",
-			want:      &UserExistsError{Name: userNames["foobar"]},
-		},
-		{
-			name: "MultipleUsersDuplicateEmail",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			user:     &streckuv1.User{Name: userNames["cookie"], EmailAddress: "foobar@example.com", DisplayName: "Cookie"},
-			password: "cookie",
-			want:     &UserExistsError{EmailAddress: "foobar@example.com"},
+			name:     "DuplicateName",
+			user:     &streckuv1.User{Name: testusers.Alice.Name, EmailAddress: testusers.Bob.EmailAddress, DisplayName: testusers.Bob.DisplayName},
+			password: testusers.BobPassword,
+			want:     &UserExistsError{Name: testusers.Alice.Name},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			r := SeedRepository(t, test.users, test.passwords)
+			r := seedAlice(t)
 			if got := r.CreateUser(ctx, test.user, test.password); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 				t.Errorf("r.CreateUser(%v, %v) = %v; want %v", ctx, test.user, got, test.want)
 			}
@@ -751,334 +441,235 @@ func TestUsers_CreateUser(t *testing.T) {
 	}
 }
 
-func TestUsers_UpdateUser(t *testing.T) {
+func TestRepository_UpdateUser(t *testing.T) {
 	ctx := context.Background()
-	for _, test := range []struct {
-		name          string
-		users         []*streckuv1.User
-		passwords     []string
-		updated       *streckuv1.User
-		wantUpdateErr error
-		lookupEmail   string
-		wantUser      *streckuv1.User
-		wantLookupErr error
-	}{
-		{
-			name: "OneUserEmailAddressLookupNew",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords:     []string{"foobar"},
-			updated:       &streckuv1.User{Name: userNames["foobar"], EmailAddress: "new-foobar@example.com", DisplayName: "Foo Bar"},
-			wantUpdateErr: nil,
-			lookupEmail:   "new-foobar@example.com",
-			wantUser:      &streckuv1.User{Name: userNames["foobar"], EmailAddress: "new-foobar@example.com", DisplayName: "Foo Bar"},
-			wantLookupErr: nil,
-		},
-		{
-			name: "OneUserEmailAddressLookupOld",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords:     []string{"foobar"},
-			updated:       &streckuv1.User{Name: userNames["foobar"], EmailAddress: "new-foobar@example.com", DisplayName: "Foo Bar"},
-			wantUpdateErr: nil,
-			lookupEmail:   "foobar@example.com",
-			wantUser:      nil,
-			wantLookupErr: &UserNotFoundError{EmailAddress: "foobar@example.com"},
-		},
-		{
-			name: "OneUserDisplayName",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords:     []string{"foobar"},
-			updated:       &streckuv1.User{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "New Foo Bar"},
-			wantUpdateErr: nil,
-			lookupEmail:   "foobar@example.com",
-			wantUser:      &streckuv1.User{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "New Foo Bar"},
-			wantLookupErr: nil,
-		},
-		{
-			name: "OneUserMultipleFields",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords:     []string{"foobar"},
-			updated:       &streckuv1.User{Name: userNames["foobar"], EmailAddress: "new-foobar@example.com", DisplayName: "New Foo Bar"},
-			wantUpdateErr: nil,
-			lookupEmail:   "new-foobar@example.com",
-			wantUser:      &streckuv1.User{Name: userNames["foobar"], EmailAddress: "new-foobar@example.com", DisplayName: "New Foo Bar"},
-			wantLookupErr: nil,
-		},
-		{
-			name: "OneUserNotFound",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords:     []string{"foobar"},
-			updated:       &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "new-foobar@example.com", DisplayName: "Foo Bar"},
-			wantUpdateErr: &UserNotFoundError{Name: userNames["barbaz"]},
-			lookupEmail:   "new-foobar@example.com",
-			wantUser:      nil,
-			wantLookupErr: &UserNotFoundError{EmailAddress: "new-foobar@example.com"},
-		},
-		{
-			name: "MultipleUsersEmailAddressLookupNew",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			updated:       &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "new-barbaz@example.com", DisplayName: "Barba Z."},
-			wantUpdateErr: nil,
-			lookupEmail:   "new-barbaz@example.com",
-			wantUser:      &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "new-barbaz@example.com", DisplayName: "Barba Z."},
-			wantLookupErr: nil,
-		},
-		{
-			name: "MultipleUsersEmailAddressLookupOld",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			updated:       &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "new-barbaz@example.com", DisplayName: "Barba Z."},
-			wantUpdateErr: nil,
-			lookupEmail:   "barbaz@example.com",
-			wantUser:      nil,
-			wantLookupErr: &UserNotFoundError{EmailAddress: "barbaz@example.com"},
-		},
-		{
-			name: "MultipleUsersDisplayName",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			updated:       &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "All New Barba Z."},
-			wantUpdateErr: nil,
-			lookupEmail:   "barbaz@example.com",
-			wantUser:      &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "All New Barba Z."},
-			wantLookupErr: nil,
-		},
-		{
-			name: "MultipleUsersMultipleFields",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			updated:       &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "new-barbaz@example.com", DisplayName: "All New Barba Z."},
-			wantUpdateErr: nil,
-			lookupEmail:   "new-barbaz@example.com",
-			wantUser:      &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "new-barbaz@example.com", DisplayName: "All New Barba Z."},
-			wantLookupErr: nil,
-		},
-		{
-			name: "MultipleUsersNotFound",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			updated:       &streckuv1.User{Name: userNames["cookie"], EmailAddress: "new-barbaz@example.com", DisplayName: "Barba Z."},
-			wantUpdateErr: &UserNotFoundError{Name: userNames["cookie"]},
-			lookupEmail:   "barbaz@example.com",
-			wantUser:      &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-			wantLookupErr: nil,
-		},
-		{
-			name: "MultipleUsersDuplicateEmailAddressLookupNew",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			updated:       &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "foobar@example.com", DisplayName: "Barba Z."},
-			wantUpdateErr: &UserExistsError{EmailAddress: "foobar@example.com"},
-			lookupEmail:   "foobar@example.com",
-			wantUser:      &streckuv1.User{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			wantLookupErr: nil,
-		},
-		{
-			name: "MultipleUsersDuplicateEmailAddressLookupOld",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			updated:       &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "foobar@example.com", DisplayName: "All New Barba Z."},
-			wantUpdateErr: &UserExistsError{EmailAddress: "foobar@example.com"},
-			lookupEmail:   "barbaz@example.com",
-			wantUser:      &streckuv1.User{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-			wantLookupErr: nil,
-		},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			r := SeedRepository(t, test.users, test.passwords)
-			if got := r.UpdateUser(ctx, test.updated); !cmp.Equal(got, test.wantUpdateErr) {
-				t.Errorf("r.UpdateUser(%v, %v) = %v; want %v", ctx, test.updated, got, test.wantUpdateErr)
-			}
-			user, err := r.LookupUserByEmail(ctx, test.lookupEmail)
-			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
-				t.Errorf("r.LookupUserByEmail(%v, %v) user != test.wantUser (-got +want)\n%s", ctx, test.lookupEmail, diff)
-			}
-			if got, want := err, test.wantLookupErr; !cmp.Equal(got, want) {
-				t.Errorf("r.LookupUserByEmail(%v, %v) err = %v; want %v", ctx, test.lookupEmail, got, want)
-			}
-		})
+	type testCase struct {
+		desc        string
+		name, email string
+		wantUser    *streckuv1.User
+		wantErr     error
 	}
+	testF := func(t *testing.T, r *Repository, lookups []testCase) {
+		for _, test := range lookups {
+			t.Run(test.desc, func(t *testing.T) {
+				if (test.name == "" && test.email == "") || (test.name != "" && test.email != "") {
+					t.Fatalf("test.name, test.email = %q, %q; want exactly one to be non-empty", test.name, test.email)
+				}
+				var (
+					user   *streckuv1.User
+					err    error
+					lookup string
+				)
+				switch {
+				case test.name != "":
+					user, err = r.LookupUser(ctx, test.name)
+					lookup = fmt.Sprintf("r.LookupUser(%v, %q)", ctx, test.name)
+				case test.email != "":
+					user, err = r.LookupUserByEmail(ctx, test.email)
+					lookup = fmt.Sprintf("r.LookupUserByEmail(%v, %q)", ctx, test.email)
+				}
+				if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
+					t.Errorf("%s user != test.wantUser (-got +want)\n%s", lookup, diff)
+				}
+				if !cmp.Equal(err, test.wantErr, cmpopts.EquateErrors()) {
+					t.Errorf("%s err = %v; want %v", lookup, err, test.wantErr)
+				}
+			})
+		}
+	}
+
+	// Test scenarios where the update is successful.
+	t.Run("OK", func(t *testing.T) {
+		r := seedAlice(t)
+		oldAlice := Clone(testusers.Alice)
+		newAlice := Clone(oldAlice)
+		newAlice.EmailAddress = "new-alice@example.com"
+		newAlice.DisplayName = "New Alice"
+		if err := r.UpdateUser(ctx, newAlice); err != nil {
+			t.Errorf("r.UpdateUser(%v, %v) = %v; want nil", ctx, newAlice, err)
+		}
+		testCases := []testCase{
+			{
+				desc:     "ByName",
+				name:     testusers.Alice.Name,
+				email:    "",
+				wantUser: newAlice,
+				wantErr:  nil,
+			},
+			{
+				desc:     "ByOldEmail",
+				name:     "",
+				email:    oldAlice.EmailAddress,
+				wantUser: nil,
+				wantErr:  &UserNotFoundError{EmailAddress: oldAlice.EmailAddress},
+			},
+			{
+				desc:     "ByNewEmail",
+				name:     "",
+				email:    newAlice.EmailAddress,
+				wantUser: newAlice,
+				wantErr:  nil,
+			},
+		}
+		testF(t, r, testCases)
+	})
+
+	// Test scenarios where the update fails due to trying to update to an existing email address.
+	t.Run("ExistingEmailAddress", func(t *testing.T) {
+		r := seedAliceBob(t)
+		oldAlice := Clone(testusers.Alice)
+		newAlice := Clone(oldAlice)
+		newAlice.EmailAddress = testusers.Bob.EmailAddress
+		want := &UserExistsError{EmailAddress: testusers.Bob.EmailAddress}
+		if got := r.UpdateUser(ctx, newAlice); !cmp.Equal(got, want, cmpopts.EquateErrors()) {
+			t.Errorf("r.UpdateUser(%v, %v) = %v; want %v", ctx, newAlice, got, want)
+		}
+		testCases := []testCase{
+			{
+				desc:     "ByName_Alice",
+				name:     oldAlice.Name,
+				email:    "",
+				wantUser: oldAlice,
+				wantErr:  nil,
+			},
+			{
+				desc:     "ByName_Bob",
+				name:     testusers.Bob.Name,
+				email:    "",
+				wantUser: testusers.Bob,
+				wantErr:  nil,
+			},
+			{
+				desc:     "ByEmail_OldAlice",
+				name:     "",
+				email:    oldAlice.EmailAddress,
+				wantUser: oldAlice,
+				wantErr:  nil,
+			},
+			{
+				desc:     "ByEmail_NewAlice",
+				name:     "",
+				email:    newAlice.EmailAddress,
+				wantUser: testusers.Bob,
+				wantErr:  nil,
+			},
+			{
+				desc:     "ByEmail_Bob",
+				name:     "",
+				email:    testusers.Bob.EmailAddress,
+				wantUser: testusers.Bob,
+				wantErr:  nil,
+			},
+		}
+		testF(t, r, testCases)
+	})
+
+	// Test scenarios where the update fails for other reasons.
+	t.Run("Errors", func(t *testing.T) {
+		r := seedAlice(t)
+		for _, test := range []struct {
+			desc   string
+			modify func(alice *streckuv1.User)
+			want   error
+		}{
+			{
+				desc:   "EmptyName",
+				modify: func(alice *streckuv1.User) { alice.Name = "" },
+				want:   ErrNameEmpty,
+			},
+			{
+				desc:   "EmptyEmailAddress",
+				modify: func(alice *streckuv1.User) { alice.EmailAddress = "" },
+				want:   ErrEmailAddressEmpty,
+			},
+			{
+				desc:   "EmptyDisplayName",
+				modify: func(alice *streckuv1.User) { alice.DisplayName = "" },
+				want:   ErrDisplayNameEmpty,
+			},
+			{
+				desc:   "NotFound",
+				modify: func(alice *streckuv1.User) { alice.Name = testusers.Bob.Name },
+				want:   &UserNotFoundError{Name: testusers.Bob.Name},
+			},
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				updated := Clone(testusers.Alice)
+				test.modify(updated)
+				if got := r.UpdateUser(ctx, updated); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+					t.Errorf("r.UpdateUser(%v, %v) = %v; want %v", ctx, updated, got, test.want)
+				}
+			})
+		}
+	})
 }
 
-func TestUsers_DeleteUser(t *testing.T) {
+func TestRepository_DeleteUser(t *testing.T) {
 	ctx := context.Background()
-	for _, test := range []struct {
-		desc          string
-		users         []*streckuv1.User
-		passwords     []string
-		name          string
-		want          error
-		lookupName    string
-		wantUser      *streckuv1.User
-		wantLookupErr error
-	}{
-		{
-			desc:          "Empty",
-			users:         nil,
-			name:          userNames["foobar"],
-			want:          &UserNotFoundError{Name: userNames["foobar"]},
-			lookupName:    userNames["barbaz"],
-			wantUser:      nil,
-			wantLookupErr: &UserNotFoundError{Name: userNames["barbaz"]},
-		},
-		{
-			desc: "OneUserOK",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
+
+	// Test scenarios where the delete succeeded.
+	t.Run("OK", func(t *testing.T) {
+		r := seedAliceBob(t)
+		if err := r.DeleteUser(ctx, testusers.Alice.Name); err != nil {
+			t.Fatalf("r.DeleteUser(%v, %q) = %v; want nil", ctx, testusers.Alice.Name, err)
+		}
+		// Test the effects of the delete by looking up users.
+		for _, test := range []struct {
+			desc     string
+			name     string
+			wantUser *streckuv1.User
+			wantErr  error
+		}{
+			{
+				desc:     "LookupDeleted",
+				name:     testusers.Alice.Name,
+				wantUser: nil,
+				wantErr:  &UserNotFoundError{Name: testusers.Alice.Name},
 			},
-			passwords:     []string{"foobar"},
-			name:          userNames["foobar"],
-			want:          nil,
-			lookupName:    userNames["foobar"],
-			wantUser:      nil,
-			wantLookupErr: &UserNotFoundError{Name: userNames["foobar"]},
-		},
-		{
-			desc: "MultipleUsersLookupDeleted",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			{
+				desc:     "LookupExisting",
+				name:     testusers.Bob.Name,
+				wantUser: testusers.Bob,
+				wantErr:  nil,
 			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				user, err := r.LookupUser(ctx, test.name)
+				if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
+					t.Errorf("r.LookupUser(%v, %q) user != test.wantUser (-got +want)\n%s", ctx, test.name, diff)
+				}
+				if got, want := err, test.wantErr; !cmp.Equal(got, want) {
+					t.Errorf("r.LookupUser(%v, %q) err = %v; want %v", ctx, test.name, got, want)
+				}
+			})
+		}
+	})
+
+	// Test scenarios where the delete should not succeed.
+	t.Run("Errors", func(t *testing.T) {
+		// The repository will be seeded with only Alice.
+		for _, test := range []struct {
+			desc string
+			name string
+			want error
+		}{
+			{
+				desc: "EmptyName",
+				name: "",
+				want: &UserNotFoundError{Name: ""},
 			},
-			name:          userNames["barbaz"],
-			want:          nil,
-			lookupName:    userNames["barbaz"],
-			wantUser:      nil,
-			wantLookupErr: &UserNotFoundError{Name: userNames["barbaz"]},
-		},
-		{
-			desc: "MultipleUsersLookupExisting",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
+			{
+				desc: "NotFound",
+				name: testusers.David.Name,
+				want: &UserNotFoundError{Name: testusers.David.Name},
 			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			name:          userNames["barbaz"],
-			want:          nil,
-			lookupName:    userNames["foobar"],
-			wantUser:      &streckuv1.User{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			wantLookupErr: nil,
-		},
-		{
-			desc: "OneUserNotFound",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			},
-			passwords:     []string{"foobar"},
-			name:          userNames["barbaz"],
-			want:          &UserNotFoundError{Name: userNames["barbaz"]},
-			lookupName:    userNames["foobar"],
-			wantUser:      &streckuv1.User{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			wantLookupErr: nil,
-		},
-		{
-			desc: "MultipleUsersNotFound",
-			users: []*streckuv1.User{
-				{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-				{Name: userNames["barbaz"], EmailAddress: "barbaz@example.com", DisplayName: "Barba Z."},
-				{Name: userNames["quux"], EmailAddress: "quux@example.com", DisplayName: "Qu Ux"},
-			},
-			passwords: []string{
-				"foobar",
-				"barbaz",
-				"quux",
-			},
-			name:          userNames["cookie"],
-			want:          &UserNotFoundError{Name: userNames["cookie"]},
-			lookupName:    userNames["foobar"],
-			wantUser:      &streckuv1.User{Name: userNames["foobar"], EmailAddress: "foobar@example.com", DisplayName: "Foo Bar"},
-			wantLookupErr: nil,
-		},
-	} {
-		t.Run(test.desc, func(t *testing.T) {
-			r := SeedRepository(t, test.users, test.passwords)
-			err := r.DeleteUser(ctx, test.name)
-			if got, want := err, test.want; !cmp.Equal(got, want) {
-				t.Errorf("r.DeleteUser(%v, %q) = %v; want %v", ctx, test.name, got, want)
-			}
-			user, err := r.LookupUser(ctx, test.lookupName)
-			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
-				t.Errorf("r.LookupUser(%v, %q) user != test.wantUser (-got +want)\n%s", ctx, test.lookupName, diff)
-			}
-			if got, want := err, test.wantLookupErr; !cmp.Equal(got, want) {
-				t.Errorf("r.LookupUser(%v, %q) err = %v; want %v", ctx, test.lookupName, got, want)
-			}
-		})
-	}
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				r := seedAlice(t)
+				if got := r.DeleteUser(ctx, test.name); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+					t.Errorf("r.DeleteUser(%v, %q) = %v; want %v", ctx, test.name, got, test.want)
+				}
+			})
+		}
+	})
 }
