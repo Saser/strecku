@@ -5,32 +5,25 @@ import (
 	"fmt"
 	"testing"
 
+	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/stores/teststores"
-	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
-var storeNames = map[string]string{
-	"foobar": "stores/6f2d193c-1460-491d-8157-7dd9535526c6",
-	"barbaz": "stores/d8bbf79e-8c59-4fae-aef9-634fcac00e07",
-	"quux":   "stores/9cd3ec05-e7af-418c-bd50-80a7c39a18cc",
-	"cookie": "stores/7f8f2c29-3860-49fa-923d-896a53f0ca26",
-}
-
-func storeLess(u1, u2 *streckuv1.Store) bool {
+func storeLess(u1, u2 *pb.Store) bool {
 	return u1.Name < u2.Name
 }
 
 func seedBar(t *testing.T) *Repository {
-	return SeedRepository(t, []*streckuv1.Store{teststores.Bar})
+	return SeedRepository(t, []*pb.Store{teststores.Bar})
 }
 
 func seedBarMall(t *testing.T) *Repository {
 	return SeedRepository(
 		t,
-		[]*streckuv1.Store{
+		[]*pb.Store{
 			teststores.Bar,
 			teststores.Mall,
 		})
@@ -39,7 +32,7 @@ func seedBarMall(t *testing.T) *Repository {
 func seedBarMallPharmacy(t *testing.T) *Repository {
 	return SeedRepository(
 		t,
-		[]*streckuv1.Store{
+		[]*pb.Store{
 			teststores.Bar,
 			teststores.Mall,
 			teststores.Pharmacy,
@@ -124,7 +117,7 @@ func TestRepository_LookupStore(t *testing.T) {
 	for _, test := range []struct {
 		desc      string
 		name      string
-		wantStore *streckuv1.Store
+		wantStore *pb.Store
 		wantErr   error
 	}{
 		{
@@ -161,7 +154,7 @@ func TestRepository_LookupStore(t *testing.T) {
 func TestRepository_ListStores(t *testing.T) {
 	ctx := context.Background()
 	r := seedBarMallPharmacy(t)
-	want := []*streckuv1.Store{
+	want := []*pb.Store{
 		teststores.Bar,
 		teststores.Mall,
 		teststores.Pharmacy,
@@ -183,24 +176,24 @@ func TestRepository_FilterStores(t *testing.T) {
 	r := seedBarMallPharmacy(t)
 	for _, test := range []struct {
 		name      string
-		predicate func(*streckuv1.Store) bool
-		want      []*streckuv1.Store
+		predicate func(*pb.Store) bool
+		want      []*pb.Store
 	}{
 		{
 			name:      "NoneMatching",
-			predicate: func(*streckuv1.Store) bool { return false },
+			predicate: func(*pb.Store) bool { return false },
 			want:      nil,
 		},
 		{
 			name:      "OneMatching",
-			predicate: func(store *streckuv1.Store) bool { return store.Name == teststores.Bar.Name },
-			want: []*streckuv1.Store{
+			predicate: func(store *pb.Store) bool { return store.Name == teststores.Bar.Name },
+			want: []*pb.Store{
 				teststores.Bar,
 			},
 		},
 		{
 			name: "MultipleMatching",
-			predicate: func(store *streckuv1.Store) bool {
+			predicate: func(store *pb.Store) bool {
 				switch store.Name {
 				case teststores.Bar.Name, teststores.Mall.Name:
 					return true
@@ -208,7 +201,7 @@ func TestRepository_FilterStores(t *testing.T) {
 					return false
 				}
 			},
-			want: []*streckuv1.Store{
+			want: []*pb.Store{
 				teststores.Bar,
 				teststores.Mall,
 			},
@@ -234,7 +227,7 @@ func TestRepository_CreateStore(t *testing.T) {
 	ctx := context.Background()
 	for _, test := range []struct {
 		name  string
-		store *streckuv1.Store
+		store *pb.Store
 		want  error
 	}{
 		{
@@ -244,7 +237,7 @@ func TestRepository_CreateStore(t *testing.T) {
 		},
 		{
 			name:  "DuplicateName",
-			store: &streckuv1.Store{Name: teststores.Bar.Name, DisplayName: teststores.Mall.DisplayName},
+			store: &pb.Store{Name: teststores.Bar.Name, DisplayName: teststores.Mall.DisplayName},
 			want:  &StoreExistsError{Name: teststores.Bar.Name},
 		},
 	} {
@@ -282,22 +275,22 @@ func TestRepository_UpdateStore(t *testing.T) {
 		r := seedBar(t)
 		for _, test := range []struct {
 			desc   string
-			modify func(bar *streckuv1.Store)
+			modify func(bar *pb.Store)
 			want   error
 		}{
 			{
 				desc:   "EmptyName",
-				modify: func(bar *streckuv1.Store) { bar.Name = "" },
+				modify: func(bar *pb.Store) { bar.Name = "" },
 				want:   ErrNameEmpty,
 			},
 			{
 				desc:   "EmptyDisplayName",
-				modify: func(bar *streckuv1.Store) { bar.DisplayName = "" },
+				modify: func(bar *pb.Store) { bar.DisplayName = "" },
 				want:   ErrDisplayNameEmpty,
 			},
 			{
 				desc:   "NotFound",
-				modify: func(bar *streckuv1.Store) { bar.Name = teststores.Mall.Name },
+				modify: func(bar *pb.Store) { bar.Name = teststores.Mall.Name },
 				want:   &StoreNotFoundError{Name: teststores.Mall.Name},
 			},
 		} {
@@ -323,7 +316,7 @@ func TestRepository_DeleteStore(t *testing.T) {
 		for _, test := range []struct {
 			desc      string
 			name      string
-			wantStore *streckuv1.Store
+			wantStore *pb.Store
 			wantErr   error
 		}{
 			{

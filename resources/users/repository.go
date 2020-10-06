@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"testing"
 
-	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
+	pb "github.com/Saser/strecku/api/v1"
 	"google.golang.org/protobuf/proto"
 )
 
 type Repository struct {
-	users     map[string]*streckuv1.User // name -> user
-	passwords map[string]string          // name -> password (plaintext)
-	names     map[string]string          // email address -> name
+	users     map[string]*pb.User // name -> user
+	passwords map[string]string   // name -> password (plaintext)
+	names     map[string]string   // email address -> name
 }
 
 var ErrEmptyPassword = errors.New("empty password")
@@ -93,16 +93,16 @@ func (e *WrongPasswordError) Is(target error) bool {
 }
 
 func NewRepository() *Repository {
-	return newRepository(make(map[string]*streckuv1.User), make(map[string]string), make(map[string]string))
+	return newRepository(make(map[string]*pb.User), make(map[string]string), make(map[string]string))
 }
 
-func SeedRepository(t *testing.T, users []*streckuv1.User, passwords []string) *Repository {
+func SeedRepository(t *testing.T, users []*pb.User, passwords []string) *Repository {
 	t.Helper()
 	userCount := len(users)
 	if passwordCount := len(passwords); passwordCount != userCount {
 		t.Fatalf("len(users), len(passwords) = %v, %v; want equal", userCount, passwordCount)
 	}
-	mUsers := make(map[string]*streckuv1.User, userCount)
+	mUsers := make(map[string]*pb.User, userCount)
 	mPasswords := make(map[string]string, userCount)
 	mNames := make(map[string]string, userCount)
 	for i, user := range users {
@@ -119,7 +119,7 @@ func SeedRepository(t *testing.T, users []*streckuv1.User, passwords []string) *
 	return newRepository(mUsers, mPasswords, mNames)
 }
 
-func newRepository(users map[string]*streckuv1.User, passwords map[string]string, names map[string]string) *Repository {
+func newRepository(users map[string]*pb.User, passwords map[string]string, names map[string]string) *Repository {
 	return &Repository{
 		users:     users,
 		passwords: passwords,
@@ -127,8 +127,8 @@ func newRepository(users map[string]*streckuv1.User, passwords map[string]string
 	}
 }
 
-func Clone(user *streckuv1.User) *streckuv1.User {
-	return proto.Clone(user).(*streckuv1.User)
+func Clone(user *pb.User) *pb.User {
+	return proto.Clone(user).(*pb.User)
 }
 
 func (r *Repository) Authenticate(_ context.Context, name string, password string) error {
@@ -142,7 +142,7 @@ func (r *Repository) Authenticate(_ context.Context, name string, password strin
 	return nil
 }
 
-func (r *Repository) LookupUser(_ context.Context, name string) (*streckuv1.User, error) {
+func (r *Repository) LookupUser(_ context.Context, name string) (*pb.User, error) {
 	if err := ValidateName(name); err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (r *Repository) LookupUser(_ context.Context, name string) (*streckuv1.User
 	return Clone(user), nil
 }
 
-func (r *Repository) LookupUserByEmail(ctx context.Context, emailAddress string) (*streckuv1.User, error) {
+func (r *Repository) LookupUserByEmail(ctx context.Context, emailAddress string) (*pb.User, error) {
 	name, ok := r.names[emailAddress]
 	if !ok {
 		return nil, &UserNotFoundError{EmailAddress: emailAddress}
@@ -161,12 +161,12 @@ func (r *Repository) LookupUserByEmail(ctx context.Context, emailAddress string)
 	return r.LookupUser(ctx, name)
 }
 
-func (r *Repository) ListUsers(ctx context.Context) ([]*streckuv1.User, error) {
-	return r.FilterUsers(ctx, func(*streckuv1.User) bool { return true })
+func (r *Repository) ListUsers(ctx context.Context) ([]*pb.User, error) {
+	return r.FilterUsers(ctx, func(*pb.User) bool { return true })
 }
 
-func (r *Repository) FilterUsers(_ context.Context, predicate func(*streckuv1.User) bool) ([]*streckuv1.User, error) {
-	var filtered []*streckuv1.User
+func (r *Repository) FilterUsers(_ context.Context, predicate func(*pb.User) bool) ([]*pb.User, error) {
+	var filtered []*pb.User
 	for _, user := range r.users {
 		if predicate(user) {
 			filtered = append(filtered, Clone(user))
@@ -175,7 +175,7 @@ func (r *Repository) FilterUsers(_ context.Context, predicate func(*streckuv1.Us
 	return filtered, nil
 }
 
-func (r *Repository) CreateUser(_ context.Context, user *streckuv1.User, password string) error {
+func (r *Repository) CreateUser(_ context.Context, user *pb.User, password string) error {
 	name := user.Name
 	emailAddress := user.EmailAddress
 	if _, exists := r.users[name]; exists {
@@ -193,7 +193,7 @@ func (r *Repository) CreateUser(_ context.Context, user *streckuv1.User, passwor
 	return nil
 }
 
-func (r *Repository) UpdateUser(_ context.Context, updated *streckuv1.User) error {
+func (r *Repository) UpdateUser(_ context.Context, updated *pb.User) error {
 	if err := Validate(updated); err != nil {
 		return err
 	}

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"testing"
 
-	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
+	pb "github.com/Saser/strecku/api/v1"
 	"google.golang.org/protobuf/proto"
 )
 
 type Repository struct {
-	stores map[string]*streckuv1.Store // name -> store
+	stores map[string]*pb.Store // name -> store
 }
 
 type StoreNotFoundError struct {
@@ -45,17 +45,17 @@ func (e *StoreExistsError) Is(target error) bool {
 	return e.Name == other.Name
 }
 
-func Clone(store *streckuv1.Store) *streckuv1.Store {
-	return proto.Clone(store).(*streckuv1.Store)
+func Clone(store *pb.Store) *pb.Store {
+	return proto.Clone(store).(*pb.Store)
 }
 
 func NewRepository() *Repository {
-	return newRepository(make(map[string]*streckuv1.Store))
+	return newRepository(make(map[string]*pb.Store))
 }
 
-func SeedRepository(t *testing.T, stores []*streckuv1.Store) *Repository {
+func SeedRepository(t *testing.T, stores []*pb.Store) *Repository {
 	t.Helper()
-	mStores := make(map[string]*streckuv1.Store, len(stores))
+	mStores := make(map[string]*pb.Store, len(stores))
 	for _, store := range stores {
 		if got := Validate(store); got != nil {
 			t.Errorf("Validate(%v) = %v; want %v", store, got, nil)
@@ -68,13 +68,13 @@ func SeedRepository(t *testing.T, stores []*streckuv1.Store) *Repository {
 	return newRepository(mStores)
 }
 
-func newRepository(stores map[string]*streckuv1.Store) *Repository {
+func newRepository(stores map[string]*pb.Store) *Repository {
 	return &Repository{
 		stores: stores,
 	}
 }
 
-func (r *Repository) LookupStore(_ context.Context, name string) (*streckuv1.Store, error) {
+func (r *Repository) LookupStore(_ context.Context, name string) (*pb.Store, error) {
 	if err := ValidateName(name); err != nil {
 		return nil, err
 	}
@@ -85,12 +85,12 @@ func (r *Repository) LookupStore(_ context.Context, name string) (*streckuv1.Sto
 	return store, nil
 }
 
-func (r *Repository) ListStores(ctx context.Context) ([]*streckuv1.Store, error) {
-	return r.FilterStores(ctx, func(*streckuv1.Store) bool { return true })
+func (r *Repository) ListStores(ctx context.Context) ([]*pb.Store, error) {
+	return r.FilterStores(ctx, func(*pb.Store) bool { return true })
 }
 
-func (r *Repository) FilterStores(_ context.Context, predicate func(*streckuv1.Store) bool) ([]*streckuv1.Store, error) {
-	var filtered []*streckuv1.Store
+func (r *Repository) FilterStores(_ context.Context, predicate func(*pb.Store) bool) ([]*pb.Store, error) {
+	var filtered []*pb.Store
 	for _, store := range r.stores {
 		if predicate(store) {
 			filtered = append(filtered, store)
@@ -99,7 +99,7 @@ func (r *Repository) FilterStores(_ context.Context, predicate func(*streckuv1.S
 	return filtered, nil
 }
 
-func (r *Repository) CreateStore(_ context.Context, store *streckuv1.Store) error {
+func (r *Repository) CreateStore(_ context.Context, store *pb.Store) error {
 	if _, exists := r.stores[store.Name]; exists {
 		return &StoreExistsError{Name: store.Name}
 	}
@@ -107,7 +107,7 @@ func (r *Repository) CreateStore(_ context.Context, store *streckuv1.Store) erro
 	return nil
 }
 
-func (r *Repository) UpdateStore(_ context.Context, updated *streckuv1.Store) error {
+func (r *Repository) UpdateStore(_ context.Context, updated *pb.Store) error {
 	if err := Validate(updated); err != nil {
 		return err
 	}

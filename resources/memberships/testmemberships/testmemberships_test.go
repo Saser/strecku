@@ -3,12 +3,12 @@ package testmemberships
 import (
 	"testing"
 
+	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/memberships"
-	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 )
 
 func TestValid(t *testing.T) {
-	for _, membership := range []*streckuv1.Membership{
+	for _, membership := range []*pb.Membership{
 		Alice_Bar,
 	} {
 		if err := memberships.Validate(membership); err != nil {

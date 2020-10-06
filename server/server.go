@@ -4,17 +4,17 @@ import (
 	"context"
 	"errors"
 
+	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/auth"
 	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/users"
-	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
 type Server struct {
-	streckuv1.UnimplementedStreckUServer
+	pb.UnimplementedStreckUServer
 
 	userRepo  *users.Repository
 	storeRepo *stores.Repository
@@ -27,7 +27,7 @@ func New(userRepo *users.Repository, storeRepo *stores.Repository) *Server {
 	}
 }
 
-func (s *Server) authenticatedUser(ctx context.Context) (*streckuv1.User, error) {
+func (s *Server) authenticatedUser(ctx context.Context) (*pb.User, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "Missing metadata.")
@@ -50,7 +50,7 @@ func (s *Server) authenticatedUser(ctx context.Context) (*streckuv1.User, error)
 	return user, nil
 }
 
-func (s *Server) GetUser(ctx context.Context, req *streckuv1.GetUserRequest) (*streckuv1.User, error) {
+func (s *Server) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.User, error) {
 	if req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "Name is required.")
 	}
@@ -74,7 +74,7 @@ func (s *Server) GetUser(ctx context.Context, req *streckuv1.GetUserRequest) (*s
 	return user, nil
 }
 
-func (s *Server) ListUsers(ctx context.Context, req *streckuv1.ListUsersRequest) (*streckuv1.ListUsersResponse, error) {
+func (s *Server) ListUsers(ctx context.Context, req *pb.ListUsersRequest) (*pb.ListUsersResponse, error) {
 	if req.PageSize < 0 {
 		return nil, status.Error(codes.InvalidArgument, "Page size must be non-negative.")
 	}
@@ -89,8 +89,8 @@ func (s *Server) ListUsers(ctx context.Context, req *streckuv1.ListUsersRequest)
 		return nil, err
 	}
 	if !au.Superuser {
-		return &streckuv1.ListUsersResponse{
-			Users:         []*streckuv1.User{au},
+		return &pb.ListUsersResponse{
+			Users:         []*pb.User{au},
 			NextPageToken: "",
 		}, nil
 	}
@@ -98,12 +98,12 @@ func (s *Server) ListUsers(ctx context.Context, req *streckuv1.ListUsersRequest)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Internal error.")
 	}
-	return &streckuv1.ListUsersResponse{
+	return &pb.ListUsersResponse{
 		Users: allUsers,
 	}, nil
 }
 
-func (s *Server) CreateUser(ctx context.Context, req *streckuv1.CreateUserRequest) (*streckuv1.User, error) {
+func (s *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.User, error) {
 	user := req.User
 	user.Name = users.GenerateName()
 	if err := users.Validate(user); err != nil {
@@ -128,7 +128,7 @@ func (s *Server) CreateUser(ctx context.Context, req *streckuv1.CreateUserReques
 	return user, nil
 }
 
-func (s *Server) GetStore(ctx context.Context, req *streckuv1.GetStoreRequest) (*streckuv1.Store, error) {
+func (s *Server) GetStore(ctx context.Context, req *pb.GetStoreRequest) (*pb.Store, error) {
 	if req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "Name is required.")
 	}
@@ -149,7 +149,7 @@ func (s *Server) GetStore(ctx context.Context, req *streckuv1.GetStoreRequest) (
 	return store, nil
 }
 
-func (s *Server) ListStores(ctx context.Context, req *streckuv1.ListStoresRequest) (*streckuv1.ListStoresResponse, error) {
+func (s *Server) ListStores(ctx context.Context, req *pb.ListStoresRequest) (*pb.ListStoresResponse, error) {
 	if req.PageSize < 0 {
 		return nil, status.Error(codes.InvalidArgument, "Page size must be non-negative.")
 	}
@@ -160,13 +160,13 @@ func (s *Server) ListStores(ctx context.Context, req *streckuv1.ListStoresReques
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Internal error.")
 	}
-	return &streckuv1.ListStoresResponse{
+	return &pb.ListStoresResponse{
 		Stores:        allStores,
 		NextPageToken: "",
 	}, nil
 }
 
-func (s *Server) CreateStore(ctx context.Context, req *streckuv1.CreateStoreRequest) (*streckuv1.Store, error) {
+func (s *Server) CreateStore(ctx context.Context, req *pb.CreateStoreRequest) (*pb.Store, error) {
 	store := req.Store
 	store.Name = stores.GenerateName()
 	if err := stores.Validate(store); err != nil {

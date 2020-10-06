@@ -5,25 +5,25 @@ import (
 	"fmt"
 	"testing"
 
+	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/users/testusers"
-	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
-func userLess(u1, u2 *streckuv1.User) bool {
+func userLess(u1, u2 *pb.User) bool {
 	return u1.Name < u2.Name
 }
 
 func seedAlice(t *testing.T) *Repository {
-	return SeedRepository(t, []*streckuv1.User{testusers.Alice}, []string{testusers.AlicePassword})
+	return SeedRepository(t, []*pb.User{testusers.Alice}, []string{testusers.AlicePassword})
 }
 
 func seedAliceBob(t *testing.T) *Repository {
 	return SeedRepository(
 		t,
-		[]*streckuv1.User{testusers.Alice, testusers.Bob},
+		[]*pb.User{testusers.Alice, testusers.Bob},
 		[]string{testusers.AlicePassword, testusers.BobPassword},
 	)
 }
@@ -31,7 +31,7 @@ func seedAliceBob(t *testing.T) *Repository {
 func seedAliceBobCarol(t *testing.T) *Repository {
 	return SeedRepository(
 		t,
-		[]*streckuv1.User{testusers.Alice, testusers.Bob, testusers.Carol},
+		[]*pb.User{testusers.Alice, testusers.Bob, testusers.Carol},
 		[]string{testusers.AlicePassword, testusers.BobPassword, testusers.CarolPassword},
 	)
 }
@@ -257,7 +257,7 @@ func TestRepository_LookupUser(t *testing.T) {
 	for _, test := range []struct {
 		desc     string
 		name     string
-		wantUser *streckuv1.User
+		wantUser *pb.User
 		wantErr  error
 	}{
 		{
@@ -297,7 +297,7 @@ func TestRepository_LookupUserByEmail(t *testing.T) {
 	for _, test := range []struct {
 		desc         string
 		emailAddress string
-		wantUser     *streckuv1.User
+		wantUser     *pb.User
 		wantErr      error
 	}{
 		{
@@ -333,7 +333,7 @@ func TestRepository_LookupUserByEmail(t *testing.T) {
 
 func TestRepository_ListUsers(t *testing.T) {
 	ctx := context.Background()
-	allUsers := []*streckuv1.User{
+	allUsers := []*pb.User{
 		testusers.Alice,
 		testusers.Bob,
 		testusers.Carol,
@@ -356,25 +356,25 @@ func TestRepository_FilterUsers(t *testing.T) {
 	r := seedAliceBobCarol(t)
 	for _, test := range []struct {
 		name      string
-		predicate func(*streckuv1.User) bool
-		want      []*streckuv1.User
+		predicate func(*pb.User) bool
+		want      []*pb.User
 	}{
 		{
 			name:      "NoneMatching",
-			predicate: func(user *streckuv1.User) bool { return false },
+			predicate: func(user *pb.User) bool { return false },
 			want:      nil,
 		},
 		{
 			name:      "OneMatching",
-			predicate: func(user *streckuv1.User) bool { return user.DisplayName == "Alice" },
-			want: []*streckuv1.User{
+			predicate: func(user *pb.User) bool { return user.DisplayName == "Alice" },
+			want: []*pb.User{
 				testusers.Alice,
 			},
 		},
 		{
 			name:      "SeveralMatching",
-			predicate: func(user *streckuv1.User) bool { return user.DisplayName == "Alice" || user.DisplayName == "Bob" },
-			want: []*streckuv1.User{
+			predicate: func(user *pb.User) bool { return user.DisplayName == "Alice" || user.DisplayName == "Bob" },
+			want: []*pb.User{
 				testusers.Alice,
 				testusers.Bob,
 			},
@@ -403,7 +403,7 @@ func TestRepository_CreateUser(t *testing.T) {
 	// for each test case.
 	for _, test := range []struct {
 		name     string
-		user     *streckuv1.User
+		user     *pb.User
 		password string
 		want     error
 	}{
@@ -421,13 +421,13 @@ func TestRepository_CreateUser(t *testing.T) {
 		},
 		{
 			name:     "DuplicateEmail",
-			user:     &streckuv1.User{Name: testusers.Bob.Name, EmailAddress: testusers.Alice.EmailAddress, DisplayName: testusers.Bob.DisplayName},
+			user:     &pb.User{Name: testusers.Bob.Name, EmailAddress: testusers.Alice.EmailAddress, DisplayName: testusers.Bob.DisplayName},
 			password: testusers.BobPassword,
 			want:     &UserExistsError{EmailAddress: testusers.Alice.EmailAddress},
 		},
 		{
 			name:     "DuplicateName",
-			user:     &streckuv1.User{Name: testusers.Alice.Name, EmailAddress: testusers.Bob.EmailAddress, DisplayName: testusers.Bob.DisplayName},
+			user:     &pb.User{Name: testusers.Alice.Name, EmailAddress: testusers.Bob.EmailAddress, DisplayName: testusers.Bob.DisplayName},
 			password: testusers.BobPassword,
 			want:     &UserExistsError{Name: testusers.Alice.Name},
 		},
@@ -446,7 +446,7 @@ func TestRepository_UpdateUser(t *testing.T) {
 	type testCase struct {
 		desc        string
 		name, email string
-		wantUser    *streckuv1.User
+		wantUser    *pb.User
 		wantErr     error
 	}
 	testF := func(t *testing.T, r *Repository, lookups []testCase) {
@@ -456,7 +456,7 @@ func TestRepository_UpdateUser(t *testing.T) {
 					t.Fatalf("test.name, test.email = %q, %q; want exactly one to be non-empty", test.name, test.email)
 				}
 				var (
-					user   *streckuv1.User
+					user   *pb.User
 					err    error
 					lookup string
 				)
@@ -569,27 +569,27 @@ func TestRepository_UpdateUser(t *testing.T) {
 		r := seedAlice(t)
 		for _, test := range []struct {
 			desc   string
-			modify func(alice *streckuv1.User)
+			modify func(alice *pb.User)
 			want   error
 		}{
 			{
 				desc:   "EmptyName",
-				modify: func(alice *streckuv1.User) { alice.Name = "" },
+				modify: func(alice *pb.User) { alice.Name = "" },
 				want:   ErrNameEmpty,
 			},
 			{
 				desc:   "EmptyEmailAddress",
-				modify: func(alice *streckuv1.User) { alice.EmailAddress = "" },
+				modify: func(alice *pb.User) { alice.EmailAddress = "" },
 				want:   ErrEmailAddressEmpty,
 			},
 			{
 				desc:   "EmptyDisplayName",
-				modify: func(alice *streckuv1.User) { alice.DisplayName = "" },
+				modify: func(alice *pb.User) { alice.DisplayName = "" },
 				want:   ErrDisplayNameEmpty,
 			},
 			{
 				desc:   "NotFound",
-				modify: func(alice *streckuv1.User) { alice.Name = testusers.Bob.Name },
+				modify: func(alice *pb.User) { alice.Name = testusers.Bob.Name },
 				want:   &UserNotFoundError{Name: testusers.Bob.Name},
 			},
 		} {
@@ -617,7 +617,7 @@ func TestRepository_DeleteUser(t *testing.T) {
 		for _, test := range []struct {
 			desc     string
 			name     string
-			wantUser *streckuv1.User
+			wantUser *pb.User
 			wantErr  error
 		}{
 			{

@@ -5,10 +5,10 @@ import (
 	"net"
 	"testing"
 
+	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/auth"
 	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/users"
-	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -41,7 +41,7 @@ func setUp(t *testing.T) *fixture {
 		t.Fatal(err)
 	}
 	s := grpc.NewServer(grpc.Creds(creds))
-	streckuv1.RegisterStreckUServer(s, f.srv)
+	pb.RegisterStreckUServer(s, f.srv)
 	go func() {
 		if err := s.Serve(f.lis); err != nil {
 			t.Errorf("s.Serve(f.lis) = %v", err)
@@ -51,7 +51,7 @@ func setUp(t *testing.T) *fixture {
 	return f
 }
 
-func (f *fixture) client(ctx context.Context, t *testing.T, opts ...grpc.DialOption) streckuv1.StreckUClient {
+func (f *fixture) client(ctx context.Context, t *testing.T, opts ...grpc.DialOption) pb.StreckUClient {
 	t.Helper()
 	dial := func(context.Context, string) (net.Conn, error) { return f.lis.Dial() }
 	opts = append(opts, grpc.WithContextDialer(dial))
@@ -64,10 +64,10 @@ func (f *fixture) client(ctx context.Context, t *testing.T, opts ...grpc.DialOpt
 	if err != nil {
 		t.Fatal(err)
 	}
-	return streckuv1.NewStreckUClient(cc)
+	return pb.NewStreckUClient(cc)
 }
 
-func (f *fixture) authClient(ctx context.Context, t *testing.T, emailAddress, password string) streckuv1.StreckUClient {
+func (f *fixture) authClient(ctx context.Context, t *testing.T, emailAddress, password string) pb.StreckUClient {
 	t.Helper()
 	return f.client(ctx, t, grpc.WithPerRPCCredentials(auth.Basic{
 		Username: emailAddress,
@@ -75,7 +75,7 @@ func (f *fixture) authClient(ctx context.Context, t *testing.T, emailAddress, pa
 	}))
 }
 
-func (f *fixture) backdoorCreateUser(ctx context.Context, t *testing.T, req *streckuv1.CreateUserRequest) *streckuv1.User {
+func (f *fixture) backdoorCreateUser(ctx context.Context, t *testing.T, req *pb.CreateUserRequest) *pb.User {
 	t.Helper()
 	user := req.User
 	user.Name = users.GenerateName()
@@ -90,7 +90,7 @@ func (f *fixture) backdoorCreateUser(ctx context.Context, t *testing.T, req *str
 	return user
 }
 
-func (f *fixture) backdoorCreateStore(ctx context.Context, t *testing.T, req *streckuv1.CreateStoreRequest) *streckuv1.Store {
+func (f *fixture) backdoorCreateStore(ctx context.Context, t *testing.T, req *pb.CreateStoreRequest) *pb.Store {
 	t.Helper()
 	store := req.Store
 	store.Name = stores.GenerateName()
@@ -110,16 +110,16 @@ func TestServer_GetUser(t *testing.T) {
 
 	f := setUp(t)
 	rootPassword := "root password"
-	root := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	root := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "root@example.com",
 			DisplayName:  "Root",
 			Superuser:    true,
 		},
 		Password: rootPassword,
 	})
-	otherRoot := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	otherRoot := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "other-root@example.com",
 			DisplayName:  "Other Root",
 			Superuser:    true,
@@ -127,16 +127,16 @@ func TestServer_GetUser(t *testing.T) {
 		Password: "other root password",
 	})
 	userPassword := "user password"
-	user := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	user := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "user@example.com",
 			DisplayName:  "User",
 			Superuser:    false,
 		},
 		Password: userPassword,
 	})
-	otherUser := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	otherUser := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "other-user@example.com",
 			DisplayName:  "Other User",
 			Superuser:    false,
@@ -149,17 +149,17 @@ func TestServer_GetUser(t *testing.T) {
 		client := f.authClient(ctx, t, root.EmailAddress, rootPassword)
 		for _, test := range []struct {
 			name     string
-			req      *streckuv1.GetUserRequest
-			wantUser *streckuv1.User
+			req      *pb.GetUserRequest
+			wantUser *pb.User
 			wantCode codes.Code
 		}{
-			{name: "Me", req: &streckuv1.GetUserRequest{Name: "users/me"}, wantUser: root},
-			{name: "Root", req: &streckuv1.GetUserRequest{Name: root.Name}, wantUser: root},
-			{name: "OtherRoot", req: &streckuv1.GetUserRequest{Name: otherRoot.Name}, wantUser: otherRoot},
-			{name: "User", req: &streckuv1.GetUserRequest{Name: user.Name}, wantUser: user},
-			{name: "OtherUser", req: &streckuv1.GetUserRequest{Name: otherUser.Name}, wantUser: otherUser},
-			{name: "Nonexistent", req: &streckuv1.GetUserRequest{Name: "nonexistent"}, wantCode: codes.NotFound},
-			{name: "EmptyName", req: &streckuv1.GetUserRequest{Name: ""}, wantCode: codes.InvalidArgument},
+			{name: "Me", req: &pb.GetUserRequest{Name: "users/me"}, wantUser: root},
+			{name: "Root", req: &pb.GetUserRequest{Name: root.Name}, wantUser: root},
+			{name: "OtherRoot", req: &pb.GetUserRequest{Name: otherRoot.Name}, wantUser: otherRoot},
+			{name: "User", req: &pb.GetUserRequest{Name: user.Name}, wantUser: user},
+			{name: "OtherUser", req: &pb.GetUserRequest{Name: otherUser.Name}, wantUser: otherUser},
+			{name: "Nonexistent", req: &pb.GetUserRequest{Name: "nonexistent"}, wantCode: codes.NotFound},
+			{name: "EmptyName", req: &pb.GetUserRequest{Name: ""}, wantCode: codes.InvalidArgument},
 		} {
 			t.Run(test.name, func(t *testing.T) {
 				gotUser, err := client.GetUser(ctx, test.req)
@@ -184,17 +184,17 @@ func TestServer_GetUser(t *testing.T) {
 		client := f.authClient(ctx, t, user.EmailAddress, userPassword)
 		for _, test := range []struct {
 			name     string
-			req      *streckuv1.GetUserRequest
-			wantUser *streckuv1.User
+			req      *pb.GetUserRequest
+			wantUser *pb.User
 			wantCode codes.Code
 		}{
-			{name: "Me", req: &streckuv1.GetUserRequest{Name: "users/me"}, wantUser: user},
-			{name: "Root", req: &streckuv1.GetUserRequest{Name: root.Name}, wantCode: codes.PermissionDenied},
-			{name: "OtherRoot", req: &streckuv1.GetUserRequest{Name: otherRoot.Name}, wantCode: codes.PermissionDenied},
-			{name: "User", req: &streckuv1.GetUserRequest{Name: user.Name}, wantUser: user},
-			{name: "OtherUser", req: &streckuv1.GetUserRequest{Name: otherUser.Name}, wantCode: codes.PermissionDenied},
-			{name: "Nonexistent", req: &streckuv1.GetUserRequest{Name: "nonexistent"}, wantCode: codes.PermissionDenied},
-			{name: "Empty", req: &streckuv1.GetUserRequest{Name: ""}, wantCode: codes.InvalidArgument},
+			{name: "Me", req: &pb.GetUserRequest{Name: "users/me"}, wantUser: user},
+			{name: "Root", req: &pb.GetUserRequest{Name: root.Name}, wantCode: codes.PermissionDenied},
+			{name: "OtherRoot", req: &pb.GetUserRequest{Name: otherRoot.Name}, wantCode: codes.PermissionDenied},
+			{name: "User", req: &pb.GetUserRequest{Name: user.Name}, wantUser: user},
+			{name: "OtherUser", req: &pb.GetUserRequest{Name: otherUser.Name}, wantCode: codes.PermissionDenied},
+			{name: "Nonexistent", req: &pb.GetUserRequest{Name: "nonexistent"}, wantCode: codes.PermissionDenied},
+			{name: "Empty", req: &pb.GetUserRequest{Name: ""}, wantCode: codes.InvalidArgument},
 		} {
 			t.Run(test.name, func(t *testing.T) {
 				gotUser, err := client.GetUser(ctx, test.req)
@@ -217,8 +217,8 @@ func TestServer_ListUsers(t *testing.T) {
 
 	f := setUp(t)
 	rootPassword := "root password"
-	root := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	root := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "root@example.com",
 			DisplayName:  "Root",
 			Superuser:    true,
@@ -226,8 +226,8 @@ func TestServer_ListUsers(t *testing.T) {
 		Password: rootPassword,
 	})
 	userPassword := "user password"
-	user := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	user := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "user@example.com",
 			DisplayName:  "User",
 			Superuser:    false,
@@ -240,20 +240,20 @@ func TestServer_ListUsers(t *testing.T) {
 		client := f.authClient(ctx, t, root.EmailAddress, rootPassword)
 		for _, test := range []struct {
 			name     string
-			req      *streckuv1.ListUsersRequest
-			wantResp *streckuv1.ListUsersResponse
+			req      *pb.ListUsersRequest
+			wantResp *pb.ListUsersResponse
 			wantCode codes.Code
 		}{
 			{
 				name: "OK",
-				req:  &streckuv1.ListUsersRequest{},
-				wantResp: &streckuv1.ListUsersResponse{
-					Users: []*streckuv1.User{root, user},
+				req:  &pb.ListUsersRequest{},
+				wantResp: &pb.ListUsersResponse{
+					Users: []*pb.User{root, user},
 				},
 			},
-			{name: "NegativePageSize", req: &streckuv1.ListUsersRequest{PageSize: -1}, wantCode: codes.InvalidArgument},
-			{name: "NonEmptyPageToken", req: &streckuv1.ListUsersRequest{PageToken: "token"}, wantCode: codes.Unimplemented},
-			{name: "PositivePageSize", req: &streckuv1.ListUsersRequest{PageSize: 1}, wantCode: codes.Unimplemented},
+			{name: "NegativePageSize", req: &pb.ListUsersRequest{PageSize: -1}, wantCode: codes.InvalidArgument},
+			{name: "NonEmptyPageToken", req: &pb.ListUsersRequest{PageToken: "token"}, wantCode: codes.Unimplemented},
+			{name: "PositivePageSize", req: &pb.ListUsersRequest{PageSize: 1}, wantCode: codes.Unimplemented},
 		} {
 			t.Run(test.name, func(t *testing.T) {
 				gotResp, err := client.ListUsers(ctx, test.req)
@@ -280,20 +280,20 @@ func TestServer_ListUsers(t *testing.T) {
 		client := f.authClient(ctx, t, user.EmailAddress, userPassword)
 		for _, test := range []struct {
 			name     string
-			req      *streckuv1.ListUsersRequest
-			wantResp *streckuv1.ListUsersResponse
+			req      *pb.ListUsersRequest
+			wantResp *pb.ListUsersResponse
 			wantCode codes.Code
 		}{
 			{
 				name: "OK",
-				req:  &streckuv1.ListUsersRequest{},
-				wantResp: &streckuv1.ListUsersResponse{
-					Users: []*streckuv1.User{user},
+				req:  &pb.ListUsersRequest{},
+				wantResp: &pb.ListUsersResponse{
+					Users: []*pb.User{user},
 				},
 			},
-			{name: "NegativePageSize", req: &streckuv1.ListUsersRequest{PageSize: -1}, wantCode: codes.InvalidArgument},
-			{name: "NonEmptyPageToken", req: &streckuv1.ListUsersRequest{PageToken: "token"}, wantCode: codes.Unimplemented},
-			{name: "PositivePageSize", req: &streckuv1.ListUsersRequest{PageSize: 1}, wantCode: codes.Unimplemented},
+			{name: "NegativePageSize", req: &pb.ListUsersRequest{PageSize: -1}, wantCode: codes.InvalidArgument},
+			{name: "NonEmptyPageToken", req: &pb.ListUsersRequest{PageToken: "token"}, wantCode: codes.Unimplemented},
+			{name: "PositivePageSize", req: &pb.ListUsersRequest{PageSize: 1}, wantCode: codes.Unimplemented},
 		} {
 			t.Run(test.name, func(t *testing.T) {
 				gotResp, err := client.ListUsers(ctx, test.req)
@@ -319,8 +319,8 @@ func TestServer_CreateUser(t *testing.T) {
 
 	f := setUp(t)
 	rootPassword := "root password"
-	root := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	root := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "root@example.com",
 			DisplayName:  "Root",
 			Superuser:    true,
@@ -328,8 +328,8 @@ func TestServer_CreateUser(t *testing.T) {
 		Password: rootPassword,
 	})
 	userPassword := "user password"
-	user := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	user := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "user@example.com",
 			DisplayName:  "User",
 			Superuser:    false,
@@ -342,13 +342,13 @@ func TestServer_CreateUser(t *testing.T) {
 		client := f.authClient(ctx, t, root.EmailAddress, rootPassword)
 		for _, test := range []struct {
 			name     string
-			req      *streckuv1.CreateUserRequest
+			req      *pb.CreateUserRequest
 			wantCode codes.Code
 		}{
 			{
 				name: "CreateSuperuser",
-				req: &streckuv1.CreateUserRequest{
-					User: &streckuv1.User{
+				req: &pb.CreateUserRequest{
+					User: &pb.User{
 						EmailAddress: "other-root@example.com",
 						DisplayName:  "Other Root",
 						Superuser:    true,
@@ -358,8 +358,8 @@ func TestServer_CreateUser(t *testing.T) {
 			},
 			{
 				name: "CreateNormalUser",
-				req: &streckuv1.CreateUserRequest{
-					User: &streckuv1.User{
+				req: &pb.CreateUserRequest{
+					User: &pb.User{
 						EmailAddress: "other-user@example.com",
 						DisplayName:  "Other User",
 						Superuser:    false,
@@ -369,8 +369,8 @@ func TestServer_CreateUser(t *testing.T) {
 			},
 			{
 				name: "DuplicateEmailAddress",
-				req: &streckuv1.CreateUserRequest{
-					User: &streckuv1.User{
+				req: &pb.CreateUserRequest{
+					User: &pb.User{
 						EmailAddress: user.EmailAddress,
 						DisplayName:  "User Again",
 						Superuser:    false,
@@ -381,8 +381,8 @@ func TestServer_CreateUser(t *testing.T) {
 			},
 			{
 				name: "EmptyEmailAddress",
-				req: &streckuv1.CreateUserRequest{
-					User: &streckuv1.User{
+				req: &pb.CreateUserRequest{
+					User: &pb.User{
 						EmailAddress: "",
 						DisplayName:  "User",
 					},
@@ -392,8 +392,8 @@ func TestServer_CreateUser(t *testing.T) {
 			},
 			{
 				name: "EmptyDisplayName",
-				req: &streckuv1.CreateUserRequest{
-					User: &streckuv1.User{
+				req: &pb.CreateUserRequest{
+					User: &pb.User{
 						EmailAddress: "other-user@example.com",
 						DisplayName:  "",
 					},
@@ -403,8 +403,8 @@ func TestServer_CreateUser(t *testing.T) {
 			},
 			{
 				name: "EmptyPassword",
-				req: &streckuv1.CreateUserRequest{
-					User: &streckuv1.User{
+				req: &pb.CreateUserRequest{
+					User: &pb.User{
 						EmailAddress: "other-user@example.com",
 						DisplayName:  "Other User",
 					},
@@ -434,13 +434,13 @@ func TestServer_CreateUser(t *testing.T) {
 		client := f.authClient(ctx, t, user.EmailAddress, userPassword)
 		for _, test := range []struct {
 			name string
-			req  *streckuv1.CreateUserRequest
+			req  *pb.CreateUserRequest
 			want codes.Code
 		}{
 			{
 				name: "CreateSuperuser",
-				req: &streckuv1.CreateUserRequest{
-					User: &streckuv1.User{
+				req: &pb.CreateUserRequest{
+					User: &pb.User{
 						EmailAddress: "other-root@example.com",
 						DisplayName:  "Other Root",
 						Superuser:    true,
@@ -451,8 +451,8 @@ func TestServer_CreateUser(t *testing.T) {
 			},
 			{
 				name: "CreateNormalUser",
-				req: &streckuv1.CreateUserRequest{
-					User: &streckuv1.User{
+				req: &pb.CreateUserRequest{
+					User: &pb.User{
 						EmailAddress: "other-user@example.com",
 						DisplayName:  "Other User",
 						Superuser:    false,
@@ -463,8 +463,8 @@ func TestServer_CreateUser(t *testing.T) {
 			},
 			{
 				name: "DuplicateEmailAddress",
-				req: &streckuv1.CreateUserRequest{
-					User: &streckuv1.User{
+				req: &pb.CreateUserRequest{
+					User: &pb.User{
 						EmailAddress: user.EmailAddress,
 						DisplayName:  "User Again",
 						Superuser:    false,
@@ -475,8 +475,8 @@ func TestServer_CreateUser(t *testing.T) {
 			},
 			{
 				name: "EmptyEmailAddress",
-				req: &streckuv1.CreateUserRequest{
-					User: &streckuv1.User{
+				req: &pb.CreateUserRequest{
+					User: &pb.User{
 						EmailAddress: "",
 						DisplayName:  "User",
 					},
@@ -486,8 +486,8 @@ func TestServer_CreateUser(t *testing.T) {
 			},
 			{
 				name: "EmptyDisplayName",
-				req: &streckuv1.CreateUserRequest{
-					User: &streckuv1.User{
+				req: &pb.CreateUserRequest{
+					User: &pb.User{
 						EmailAddress: "other-user@example.com",
 						DisplayName:  "",
 					},
@@ -497,8 +497,8 @@ func TestServer_CreateUser(t *testing.T) {
 			},
 			{
 				name: "EmptyPassword",
-				req: &streckuv1.CreateUserRequest{
-					User: &streckuv1.User{
+				req: &pb.CreateUserRequest{
+					User: &pb.User{
 						EmailAddress: "other-user@example.com",
 						DisplayName:  "Other User",
 					},
@@ -522,8 +522,8 @@ func TestServer_GetStore(t *testing.T) {
 
 	f := setUp(t)
 	rootPassword := "root password"
-	root := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	root := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "root@example.com",
 			DisplayName:  "Root",
 			Superuser:    true,
@@ -531,16 +531,16 @@ func TestServer_GetStore(t *testing.T) {
 		Password: rootPassword,
 	})
 	userPassword := "user password"
-	user := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	user := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "user@example.com",
 			DisplayName:  "User",
 			Superuser:    false,
 		},
 		Password: userPassword,
 	})
-	store := f.backdoorCreateStore(ctx, t, &streckuv1.CreateStoreRequest{
-		Store: &streckuv1.Store{
+	store := f.backdoorCreateStore(ctx, t, &pb.CreateStoreRequest{
+		Store: &pb.Store{
 			DisplayName: "Store",
 		},
 	})
@@ -549,24 +549,24 @@ func TestServer_GetStore(t *testing.T) {
 		client := f.authClient(ctx, t, root.EmailAddress, rootPassword)
 		for _, test := range []struct {
 			name      string
-			req       *streckuv1.GetStoreRequest
-			wantStore *streckuv1.Store
+			req       *pb.GetStoreRequest
+			wantStore *pb.Store
 			wantCode  codes.Code
 		}{
 			{
 				name:      "OK",
-				req:       &streckuv1.GetStoreRequest{Name: store.Name},
+				req:       &pb.GetStoreRequest{Name: store.Name},
 				wantStore: store,
 			},
 			{
 				name:     "EmptyName",
-				req:      &streckuv1.GetStoreRequest{Name: ""},
+				req:      &pb.GetStoreRequest{Name: ""},
 				wantCode: codes.InvalidArgument,
 			},
 			// TODO: reenable the below test after migrating to teststores.
 			//{
 			//	name:     "Nonexistent",
-			//	req:      &streckuv1.GetStoreRequest{Name: "nonexistent"},
+			//	req:      &pb.GetStoreRequest{Name: "nonexistent"},
 			//	wantCode: codes.NotFound,
 			//},
 		} {
@@ -589,24 +589,24 @@ func TestServer_GetStore(t *testing.T) {
 		client := f.authClient(ctx, t, user.EmailAddress, userPassword)
 		for _, test := range []struct {
 			name      string
-			req       *streckuv1.GetStoreRequest
-			wantStore *streckuv1.Store
+			req       *pb.GetStoreRequest
+			wantStore *pb.Store
 			wantCode  codes.Code
 		}{
 			{
 				name:      "OK",
-				req:       &streckuv1.GetStoreRequest{Name: store.Name},
+				req:       &pb.GetStoreRequest{Name: store.Name},
 				wantStore: store,
 			},
 			{
 				name:     "EmptyName",
-				req:      &streckuv1.GetStoreRequest{Name: ""},
+				req:      &pb.GetStoreRequest{Name: ""},
 				wantCode: codes.InvalidArgument,
 			},
 			// TODO: reenable the below test after migrating to teststores.
 			//{
 			//	name:     "Nonexistent",
-			//	req:      &streckuv1.GetStoreRequest{Name: "nonexistent"},
+			//	req:      &pb.GetStoreRequest{Name: "nonexistent"},
 			//	wantCode: codes.PermissionDenied,
 			//},
 		} {
@@ -631,8 +631,8 @@ func TestServer_ListStores(t *testing.T) {
 
 	f := setUp(t)
 	rootPassword := "root password"
-	root := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	root := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "root@example.com",
 			DisplayName:  "Root",
 			Superuser:    true,
@@ -640,34 +640,34 @@ func TestServer_ListStores(t *testing.T) {
 		Password: rootPassword,
 	})
 	userPassword := "user password"
-	user := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	user := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "user@example.com",
 			DisplayName:  "User",
 			Superuser:    false,
 		},
 		Password: userPassword,
 	})
-	testStores := []*streckuv1.Store{
+	testStores := []*pb.Store{
 		{DisplayName: "Foo Store"},
 		{DisplayName: "Bar Store"},
 		{DisplayName: "Quux Store"},
 	}
 	for i, store := range testStores {
-		testStores[i] = f.backdoorCreateStore(ctx, t, &streckuv1.CreateStoreRequest{Store: store})
+		testStores[i] = f.backdoorCreateStore(ctx, t, &pb.CreateStoreRequest{Store: store})
 	}
 
 	type testCase struct {
 		name     string
-		req      *streckuv1.ListStoresRequest
-		wantResp *streckuv1.ListStoresResponse
+		req      *pb.ListStoresRequest
+		wantResp *pb.ListStoresResponse
 		wantCode codes.Code
 	}
 	testCases := []testCase{
 		{
 			name: "OK",
-			req:  &streckuv1.ListStoresRequest{},
-			wantResp: &streckuv1.ListStoresResponse{
+			req:  &pb.ListStoresRequest{},
+			wantResp: &pb.ListStoresResponse{
 				Stores:        testStores,
 				NextPageToken: "",
 			},
@@ -675,24 +675,24 @@ func TestServer_ListStores(t *testing.T) {
 		},
 		{
 			name:     "NegativePageSize",
-			req:      &streckuv1.ListStoresRequest{PageSize: -1},
+			req:      &pb.ListStoresRequest{PageSize: -1},
 			wantResp: nil,
 			wantCode: codes.InvalidArgument,
 		},
 		{
 			name:     "PositivePageSize",
-			req:      &streckuv1.ListStoresRequest{PageSize: 1},
+			req:      &pb.ListStoresRequest{PageSize: 1},
 			wantResp: nil,
 			wantCode: codes.Unimplemented,
 		},
 		{
 			name:     "NonEmptyPageToken",
-			req:      &streckuv1.ListStoresRequest{PageToken: "invalid"},
+			req:      &pb.ListStoresRequest{PageToken: "invalid"},
 			wantResp: nil,
 			wantCode: codes.Unimplemented,
 		},
 	}
-	testF := func(client streckuv1.StreckUClient) func(*testing.T) {
+	testF := func(client pb.StreckUClient) func(*testing.T) {
 		return func(t *testing.T) {
 			for _, test := range testCases {
 				t.Run(test.name, func(t *testing.T) {
@@ -720,8 +720,8 @@ func TestServer_CreateStore(t *testing.T) {
 
 	f := setUp(t)
 	rootPassword := "root password"
-	root := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	root := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "root@example.com",
 			DisplayName:  "Root",
 			Superuser:    true,
@@ -730,8 +730,8 @@ func TestServer_CreateStore(t *testing.T) {
 	})
 	rootClient := f.authClient(ctx, t, root.EmailAddress, rootPassword)
 	userPassword := "user password"
-	user := f.backdoorCreateUser(ctx, t, &streckuv1.CreateUserRequest{
-		User: &streckuv1.User{
+	user := f.backdoorCreateUser(ctx, t, &pb.CreateUserRequest{
+		User: &pb.User{
 			EmailAddress: "user@example.com",
 			DisplayName:  "User",
 			Superuser:    false,
@@ -742,33 +742,33 @@ func TestServer_CreateStore(t *testing.T) {
 
 	type testCase struct {
 		name      string
-		req       *streckuv1.CreateStoreRequest
-		wantStore *streckuv1.Store
+		req       *pb.CreateStoreRequest
+		wantStore *pb.Store
 		wantCode  codes.Code
 	}
 	testCases := []testCase{
 		{
 			name: "OK",
-			req: &streckuv1.CreateStoreRequest{
-				Store: &streckuv1.Store{
+			req: &pb.CreateStoreRequest{
+				Store: &pb.Store{
 					DisplayName: "Store",
 				},
 			},
-			wantStore: &streckuv1.Store{
+			wantStore: &pb.Store{
 				DisplayName: "Store",
 			},
 		},
 		{
 			name: "EmptyDisplayName",
-			req: &streckuv1.CreateStoreRequest{
-				Store: &streckuv1.Store{
+			req: &pb.CreateStoreRequest{
+				Store: &pb.Store{
 					DisplayName: "",
 				},
 			},
 			wantCode: codes.InvalidArgument,
 		},
 	}
-	testF := func(client streckuv1.StreckUClient, test testCase) func(t *testing.T) {
+	testF := func(client pb.StreckUClient, test testCase) func(t *testing.T) {
 		return func(t *testing.T) {
 			gotStore, err := client.CreateStore(ctx, test.req)
 			if gotCode := status.Code(err); gotCode != test.wantCode {

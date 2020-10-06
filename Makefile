@@ -1,6 +1,6 @@
 include tools.mk
 
-proto_files := $(wildcard saser/strecku/v1/*.proto)
+proto_files := $(wildcard api/saser/strecku/v1/*.proto)
 go_module := $(shell go list -m)
 
 server/testdata/cert.key server/testdata/cert.crt:
@@ -36,6 +36,7 @@ generate: \
 	$(protoc-gen-go-grpc)
 generate:
 	$(protoc) \
+		--proto_path=api \
 		--plugin='$(protoc-gen-go)' \
 		--go_out=. \
 		--go_opt=module='$(go_module)' \

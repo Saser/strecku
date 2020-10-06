@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
+	pb "github.com/Saser/strecku/api/v1"
 	"github.com/google/uuid"
 )
 
@@ -16,7 +16,7 @@ var (
 	ErrDisplayNameEmpty  = errors.New("display name is empty")
 )
 
-func Validate(user *streckuv1.User) error {
+func Validate(user *pb.User) error {
 	if err := ValidateName(user.Name); err != nil {
 		return err
 	}

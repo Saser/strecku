@@ -1,12 +1,12 @@
 package testmemberships
 
 import (
+	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/stores/teststores"
 	"github.com/Saser/strecku/resources/users/testusers"
-	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 )
 
-var Alice_Bar = &streckuv1.Membership{
+var Alice_Bar = &pb.Membership{
 	Name:          "memberships/bd96a64b-7da2-4254-a315-b82675548a8f",
 	User:          testusers.Alice.Name,
 	Store:         teststores.Bar.Name,

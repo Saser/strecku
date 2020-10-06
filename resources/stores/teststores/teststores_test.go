@@ -3,12 +3,12 @@ package teststores
 import (
 	"testing"
 
+	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/stores"
-	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 )
 
 func TestValid(t *testing.T) {
-	for _, store := range []*streckuv1.Store{
+	for _, store := range []*pb.Store{
 		Pharmacy,
 		Bar,
 	} {

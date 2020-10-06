@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/users"
-	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 	"github.com/google/uuid"
 )
 
@@ -16,7 +16,7 @@ var (
 	ErrNameInvalidFormat = fmt.Errorf("name must have format %q", prefix+"<uuid>")
 )
 
-func Validate(membership *streckuv1.Membership) error {
+func Validate(membership *pb.Membership) error {
 	if err := ValidateName(membership.Name); err != nil {
 		return err
 	}

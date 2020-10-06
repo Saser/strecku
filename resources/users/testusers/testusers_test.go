@@ -3,12 +3,12 @@ package testusers
 import (
 	"testing"
 
+	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/users"
-	streckuv1 "github.com/Saser/strecku/saser/strecku/v1"
 )
 
 func TestValid(t *testing.T) {
-	for _, user := range []*streckuv1.User{
+	for _, user := range []*pb.User{
 		Alice,
 		Bob,
 		Carol,
