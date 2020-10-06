@@ -63,17 +63,24 @@ func Clone(membership *pb.Membership) *pb.Membership {
 	return proto.Clone(membership).(*pb.Membership)
 }
 
+type composite struct {
+	user  string
+	store string
+}
+
 type Repository struct {
 	memberships map[string]*pb.Membership // name -> membership
+	names       map[composite]string      // (user name, store name) -> membership name
 }
 
 func NewRepository() *Repository {
-	return newRepository(make(map[string]*pb.Membership))
+	return newRepository(make(map[string]*pb.Membership), make(map[composite]string))
 }
 
 func SeedRepository(t *testing.T, memberships []*pb.Membership) *Repository {
 	t.Helper()
 	mMemberships := make(map[string]*pb.Membership, len(memberships))
+	names := make(map[composite]string)
 	for _, membership := range memberships {
 		if err := Validate(membership); err != nil {
 			t.Errorf("Validate(%v) = %v; want nil", membership, err)
@@ -85,16 +92,18 @@ func SeedRepository(t *testing.T, memberships []*pb.Membership) *Repository {
 			t.Errorf("stores.ValidateName(%q) err = %v; want nil", membership.Store, err)
 		}
 		mMemberships[membership.Name] = membership
+		names[composite{user: membership.User, store: membership.Store}] = membership.Name
 	}
 	if t.Failed() {
 		t.FailNow()
 	}
-	return newRepository(mMemberships)
+	return newRepository(mMemberships, names)
 }
 
-func newRepository(memberships map[string]*pb.Membership) *Repository {
+func newRepository(memberships map[string]*pb.Membership, names map[composite]string) *Repository {
 	return &Repository{
 		memberships: memberships,
+		names:       names,
 	}
 }
 
@@ -107,4 +116,18 @@ func (r *Repository) LookupMembership(_ context.Context, name string) (*pb.Membe
 		return nil, &MembershipNotFoundError{Name: name}
 	}
 	return membership, nil
+}
+
+func (r *Repository) LookupMembershipBetween(ctx context.Context, user string, store string) (*pb.Membership, error) {
+	if err := users.ValidateName(user); err != nil {
+		return nil, err
+	}
+	if err := stores.ValidateName(store); err != nil {
+		return nil, err
+	}
+	name, ok := r.names[composite{user: user, store: store}]
+	if !ok {
+		return nil, &MembershipNotFoundError{User: user, Store: store}
+	}
+	return r.LookupMembership(ctx, name)
 }

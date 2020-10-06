@@ -7,7 +7,9 @@ import (
 
 	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/memberships/testmemberships"
+	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/stores/teststores"
+	"github.com/Saser/strecku/resources/users"
 	"github.com/Saser/strecku/resources/users/testusers"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -152,6 +154,64 @@ func TestRepository_LookupMembership(t *testing.T) {
 			}
 			if !cmp.Equal(err, test.wantErr, cmpopts.EquateErrors()) {
 				t.Errorf("r.LookupMembership(%v, %q) err = %v; want %v", ctx, test.name, err, test.wantErr)
+			}
+		})
+	}
+}
+
+func TestRepository_LookupMembershipBetween(t *testing.T) {
+	ctx := context.Background()
+	r := SeedRepository(t, []*pb.Membership{testmemberships.Alice_Bar})
+	for _, test := range []struct {
+		desc           string
+		user           string
+		store          string
+		wantMembership *pb.Membership
+		wantErr        error
+	}{
+		{
+			desc:           "OK",
+			user:           testusers.Alice.Name,
+			store:          teststores.Bar.Name,
+			wantMembership: testmemberships.Alice_Bar,
+			wantErr:        nil,
+		},
+		{
+			desc:           "EmptyUser",
+			user:           "",
+			store:          teststores.Bar.Name,
+			wantMembership: nil,
+			wantErr:        users.ErrNameEmpty,
+		},
+		{
+			desc:           "EmptyStore",
+			user:           testusers.Alice.Name,
+			store:          "",
+			wantMembership: nil,
+			wantErr:        stores.ErrNameEmpty,
+		},
+		{
+			desc:           "WrongUser",
+			user:           testusers.Bob.Name,
+			store:          teststores.Bar.Name,
+			wantMembership: nil,
+			wantErr:        &MembershipNotFoundError{User: testusers.Bob.Name, Store: teststores.Bar.Name},
+		},
+		{
+			desc:           "WrongStore",
+			user:           testusers.Alice.Name,
+			store:          teststores.Mall.Name,
+			wantMembership: nil,
+			wantErr:        &MembershipNotFoundError{User: testusers.Alice.Name, Store: teststores.Mall.Name},
+		},
+	} {
+		t.Run(test.desc, func(t *testing.T) {
+			membership, err := r.LookupMembershipBetween(ctx, test.user, test.store)
+			if diff := cmp.Diff(membership, test.wantMembership, protocmp.Transform()); diff != "" {
+				t.Errorf("r.LookupMembership(%v, %q, %q) membership != test.wantMembership (-got +want)\n%s", ctx, test.user, test.store, diff)
+			}
+			if !cmp.Equal(err, test.wantErr, cmpopts.EquateErrors()) {
+				t.Errorf("r.LookupMembership(%v, %q, %q) err = %v; want %v", ctx, test.user, test.store, err, test.wantErr)
 			}
 		})
 	}
