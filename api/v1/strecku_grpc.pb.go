@@ -11,7 +11,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
+const _ = grpc.SupportPackageIsVersion7
 
 // StreckUClient is the client API for StreckU service.
 //
@@ -116,25 +116,32 @@ type StreckUServer interface {
 type UnimplementedStreckUServer struct {
 }
 
-func (*UnimplementedStreckUServer) GetUser(context.Context, *GetUserRequest) (*User, error) {
+func (UnimplementedStreckUServer) GetUser(context.Context, *GetUserRequest) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
-func (*UnimplementedStreckUServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error) {
+func (UnimplementedStreckUServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
 }
-func (*UnimplementedStreckUServer) CreateUser(context.Context, *CreateUserRequest) (*User, error) {
+func (UnimplementedStreckUServer) CreateUser(context.Context, *CreateUserRequest) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
-func (*UnimplementedStreckUServer) GetStore(context.Context, *GetStoreRequest) (*Store, error) {
+func (UnimplementedStreckUServer) GetStore(context.Context, *GetStoreRequest) (*Store, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStore not implemented")
 }
-func (*UnimplementedStreckUServer) ListStores(context.Context, *ListStoresRequest) (*ListStoresResponse, error) {
+func (UnimplementedStreckUServer) ListStores(context.Context, *ListStoresRequest) (*ListStoresResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListStores not implemented")
 }
-func (*UnimplementedStreckUServer) CreateStore(context.Context, *CreateStoreRequest) (*Store, error) {
+func (UnimplementedStreckUServer) CreateStore(context.Context, *CreateStoreRequest) (*Store, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateStore not implemented")
 }
-func (*UnimplementedStreckUServer) mustEmbedUnimplementedStreckUServer() {}
+func (UnimplementedStreckUServer) mustEmbedUnimplementedStreckUServer() {}
+
+// UnsafeStreckUServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to StreckUServer will
+// result in compilation errors.
+type UnsafeStreckUServer interface {
+	mustEmbedUnimplementedStreckUServer()
+}
 
 func RegisterStreckUServer(s *grpc.Server, srv StreckUServer) {
 	s.RegisterService(&_StreckU_serviceDesc, srv)
