@@ -1,12 +1,17 @@
 package memberships
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
+	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/memberships/testmemberships"
 	"github.com/Saser/strecku/resources/stores/teststores"
 	"github.com/Saser/strecku/resources/users/testusers"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"google.golang.org/protobuf/testing/protocmp"
 )
 
 func TestMembershipNotFoundError_Error(t *testing.T) {
@@ -109,5 +114,45 @@ func TestMembershipExistsError_Error(t *testing.T) {
 		if got := test.err.Error(); got != test.want {
 			t.Errorf("test.err.Error() = %q; want %q", got, test.want)
 		}
+	}
+}
+
+func TestRepository_LookupMembership(t *testing.T) {
+	ctx := context.Background()
+	r := SeedRepository(t, []*pb.Membership{testmemberships.Alice_Bar})
+	for _, test := range []struct {
+		desc           string
+		name           string
+		wantMembership *pb.Membership
+		wantErr        error
+	}{
+		{
+			desc:           "OK",
+			name:           testmemberships.Alice_Bar.Name,
+			wantMembership: testmemberships.Alice_Bar,
+			wantErr:        nil,
+		},
+		{
+			desc:           "EmptyName",
+			name:           "",
+			wantMembership: nil,
+			wantErr:        ErrNameEmpty,
+		},
+		{
+			desc:           "NotFound",
+			name:           testmemberships.Alice_Mall.Name,
+			wantMembership: nil,
+			wantErr:        &MembershipNotFoundError{Name: testmemberships.Alice_Mall.Name},
+		},
+	} {
+		t.Run(test.desc, func(t *testing.T) {
+			membership, err := r.LookupMembership(ctx, test.name)
+			if diff := cmp.Diff(membership, test.wantMembership, protocmp.Transform()); diff != "" {
+				t.Errorf("r.LookupMembership(%v, %q) membership != test.wantMembership (-got +want)\n%s", ctx, test.name, diff)
+			}
+			if !cmp.Equal(err, test.wantErr, cmpopts.EquateErrors()) {
+				t.Errorf("r.LookupMembership(%v, %q) err = %v; want %v", ctx, test.name, err, test.wantErr)
+			}
+		})
 	}
 }
