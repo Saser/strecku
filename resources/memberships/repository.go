@@ -131,3 +131,17 @@ func (r *Repository) LookupMembershipBetween(ctx context.Context, user string, s
 	}
 	return r.LookupMembership(ctx, name)
 }
+
+func (r *Repository) ListMemberships(ctx context.Context) ([]*pb.Membership, error) {
+	return r.filterMemberships(ctx, func(*pb.Membership) bool { return true })
+}
+
+func (r *Repository) filterMemberships(_ context.Context, predicate func(*pb.Membership) bool) ([]*pb.Membership, error) {
+	var filtered []*pb.Membership
+	for _, membership := range r.memberships {
+		if predicate(membership) {
+			filtered = append(filtered, membership)
+		}
+	}
+	return filtered, nil
+}

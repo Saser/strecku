@@ -19,4 +19,16 @@ var (
 		Store:         teststores.Mall.Name,
 		Administrator: false,
 	}
+	Bob_Bar = &pb.Membership{
+		Name:          "memberships/ad8a0fc4-1482-4f00-b69c-f6d26104e504",
+		User:          testusers.Bob.Name,
+		Store:         teststores.Bar.Name,
+		Administrator: false,
+	}
+	Bob_Mall = &pb.Membership{
+		Name:          "memberships/70d30eac-d059-4712-9d16-f5ec5926d4f0",
+		User:          testusers.Bob.Name,
+		Store:         teststores.Mall.Name,
+		Administrator: false,
+	}
 )

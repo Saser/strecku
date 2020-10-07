@@ -16,6 +16,10 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
+func membershipLess(m1, m2 *pb.Membership) bool {
+	return m1.Name < m2.Name
+}
+
 func TestMembershipNotFoundError_Error(t *testing.T) {
 	for _, test := range []struct {
 		err  *MembershipNotFoundError
@@ -214,5 +218,23 @@ func TestRepository_LookupMembershipBetween(t *testing.T) {
 				t.Errorf("r.LookupMembership(%v, %q, %q) err = %v; want %v", ctx, test.user, test.store, err, test.wantErr)
 			}
 		})
+	}
+}
+
+func TestRepository_ListMemberships(t *testing.T) {
+	ctx := context.Background()
+	allMemberships := []*pb.Membership{
+		testmemberships.Alice_Bar,
+		testmemberships.Alice_Mall,
+		testmemberships.Bob_Bar,
+		testmemberships.Bob_Mall,
+	}
+	r := SeedRepository(t, allMemberships)
+	memberships, err := r.ListMemberships(ctx)
+	if diff := cmp.Diff(memberships, allMemberships, protocmp.Transform(), cmpopts.SortSlices(membershipLess)); diff != "" {
+		t.Errorf("r.ListMemberships(%v) memberships != allMemberships (-got +want)\n%s", ctx, diff)
+	}
+	if err != nil {
+		t.Errorf("r.ListMemberships(%v) err = %v; want nil", ctx, err)
 	}
 }
