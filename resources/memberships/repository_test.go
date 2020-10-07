@@ -288,3 +288,53 @@ func TestRepository_FilterMemberships(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_CreateMembership(t *testing.T) {
+	ctx := context.Background()
+	for _, test := range []struct {
+		desc       string
+		membership *pb.Membership
+		want       error
+	}{
+		{
+			desc:       "OK_SameUser",
+			membership: testmemberships.Alice_Mall,
+			want:       nil,
+		},
+		{
+			desc:       "OK_SameStore",
+			membership: testmemberships.Bob_Bar,
+			want:       nil,
+		},
+		{
+			desc: "DuplicateName",
+			membership: &pb.Membership{
+				Name:          testmemberships.Alice_Bar.Name,
+				User:          testusers.Bob.Name,   // chosen arbitrarily
+				Store:         teststores.Mall.Name, // chosen arbitrarily
+				Administrator: false,
+			},
+			want: &MembershipExistsError{Name: testmemberships.Alice_Bar.Name},
+		},
+		{
+			desc: "DuplicateUserAndStore",
+			membership: &pb.Membership{
+				Name:          testmemberships.Bob_Mall.Name, // chosen arbitrarily
+				User:          testusers.Alice.Name,
+				Store:         teststores.Bar.Name,
+				Administrator: false,
+			},
+			want: &MembershipExistsError{
+				User:  testusers.Alice.Name,
+				Store: teststores.Bar.Name,
+			},
+		},
+	} {
+		t.Run(test.desc, func(t *testing.T) {
+			r := SeedRepository(t, []*pb.Membership{testmemberships.Alice_Bar})
+			if got := r.CreateMembership(ctx, test.membership); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+				t.Errorf("r.CreateMembership(%v, %v) = %v; want %v", ctx, test.membership, got, test.want)
+			}
+		})
+	}
+}

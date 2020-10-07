@@ -145,3 +145,20 @@ func (r *Repository) FilterMemberships(_ context.Context, predicate func(*pb.Mem
 	}
 	return filtered, nil
 }
+
+func (r *Repository) CreateMembership(_ context.Context, membership *pb.Membership) error {
+	name := membership.Name
+	if _, exists := r.memberships[name]; exists {
+		return &MembershipExistsError{Name: name}
+	}
+	key := composite{user: membership.User, store: membership.Store}
+	if _, exists := r.names[key]; exists {
+		return &MembershipExistsError{
+			User:  membership.User,
+			Store: membership.Store,
+		}
+	}
+	r.memberships[name] = membership
+	r.names[key] = name
+	return nil
+}
