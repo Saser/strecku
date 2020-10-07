@@ -2,6 +2,7 @@ package memberships
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -9,6 +10,11 @@ import (
 	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/users"
 	"google.golang.org/protobuf/proto"
+)
+
+var (
+	ErrUpdateUser  = errors.New("user cannot be updated")
+	ErrUpdateStore = errors.New("store cannot be updated")
 )
 
 type MembershipNotFoundError struct {
@@ -160,5 +166,20 @@ func (r *Repository) CreateMembership(_ context.Context, membership *pb.Membersh
 	}
 	r.memberships[name] = membership
 	r.names[key] = name
+	return nil
+}
+
+func (r *Repository) UpdateMembership(_ context.Context, updated *pb.Membership) error {
+	membership, ok := r.memberships[updated.Name]
+	if !ok {
+		return &MembershipNotFoundError{Name: updated.Name}
+	}
+	if updated.User != membership.User {
+		return ErrUpdateUser
+	}
+	if updated.Store != membership.Store {
+		return ErrUpdateStore
+	}
+	r.memberships[updated.Name] = updated
 	return nil
 }

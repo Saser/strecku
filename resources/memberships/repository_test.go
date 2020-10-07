@@ -338,3 +338,81 @@ func TestRepository_CreateMembership(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_UpdateMembership(t *testing.T) {
+	ctx := context.Background()
+	t.Run("OK", func(t *testing.T) {
+		for _, test := range []struct {
+			desc   string
+			modify func(aliceBar *pb.Membership)
+			want   error
+		}{
+			{
+				desc:   "NoOp",
+				modify: func(aliceBar *pb.Membership) {},
+				want:   nil,
+			},
+			{
+				desc:   "UpdateAdministrator",
+				modify: func(aliceBar *pb.Membership) { aliceBar.Administrator = true },
+				want:   nil,
+			},
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				r := SeedRepository(t, []*pb.Membership{testmemberships.Alice_Bar})
+				updated := Clone(testmemberships.Alice_Bar)
+				test.modify(updated)
+				if got := r.UpdateMembership(ctx, updated); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+					t.Errorf("r.UpdateMembership(%v, %v) = %v; want %v", ctx, updated, got, test.want)
+				}
+				membership, err := r.LookupMembership(ctx, updated.Name)
+				if diff := cmp.Diff(membership, updated, protocmp.Transform()); diff != "" {
+					t.Errorf("r.LookupMembership(%v, %q) membership != updated (-got +want)\n%s", ctx, updated.Name, diff)
+				}
+				if err != nil {
+					t.Errorf("r.LookupMembership(%v, %q) err = %v; want nil", ctx, updated.Name, err)
+				}
+			})
+		}
+	})
+	t.Run("Errors", func(t *testing.T) {
+		for _, test := range []struct {
+			desc   string
+			modify func(aliceBar *pb.Membership)
+			want   error
+		}{
+			{
+				desc:   "UpdateUser",
+				modify: func(aliceBar *pb.Membership) { aliceBar.User = testusers.Bob.Name },
+				want:   ErrUpdateUser,
+			},
+			{
+				desc:   "UpdateStore",
+				modify: func(aliceBar *pb.Membership) { aliceBar.Store = teststores.Mall.Name },
+				want:   ErrUpdateStore,
+			},
+			{
+				desc:   "NotFound",
+				modify: func(aliceBar *pb.Membership) { aliceBar.Name = testmemberships.Alice_Mall.Name },
+				want:   &MembershipNotFoundError{Name: testmemberships.Alice_Mall.Name},
+			},
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				r := SeedRepository(t, []*pb.Membership{testmemberships.Alice_Bar})
+				oldAliceBar := testmemberships.Alice_Bar
+				newAliceBar := Clone(oldAliceBar)
+				test.modify(newAliceBar)
+				if got := r.UpdateMembership(ctx, newAliceBar); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+					t.Errorf("r.UpdateMembership(%v, %v) = %v; want %v", ctx, newAliceBar, got, test.want)
+				}
+				membership, err := r.LookupMembership(ctx, oldAliceBar.Name)
+				if diff := cmp.Diff(membership, oldAliceBar, protocmp.Transform()); diff != "" {
+					t.Errorf("r.LookupMembership(%v, %q) membership != testmemberships.Alice_Bar (-got +want)\n%s", ctx, oldAliceBar.Name, diff)
+				}
+				if err != nil {
+					t.Errorf("r.LookupMembership(%v, %q) err = %v; want nil", ctx, oldAliceBar.Name, err)
+				}
+			})
+		}
+	})
+}
