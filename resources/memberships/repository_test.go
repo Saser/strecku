@@ -238,3 +238,53 @@ func TestRepository_ListMemberships(t *testing.T) {
 		t.Errorf("r.ListMemberships(%v) err = %v; want nil", ctx, err)
 	}
 }
+
+func TestRepository_FilterMemberships(t *testing.T) {
+	ctx := context.Background()
+	r := SeedRepository(t, []*pb.Membership{
+		testmemberships.Alice_Bar,
+		testmemberships.Alice_Mall,
+		testmemberships.Bob_Bar,
+		testmemberships.Bob_Mall,
+	})
+	for _, test := range []struct {
+		desc      string
+		predicate func(*pb.Membership) bool
+		want      []*pb.Membership
+	}{
+		{
+			desc:      "NoneMatching",
+			predicate: func(*pb.Membership) bool { return false },
+			want:      nil,
+		},
+		{
+			desc:      "OneMatching",
+			predicate: func(membership *pb.Membership) bool { return membership.Name == testmemberships.Alice_Bar.Name },
+			want: []*pb.Membership{
+				testmemberships.Alice_Bar,
+			},
+		},
+		{
+			desc:      "MultipleMatching",
+			predicate: func(membership *pb.Membership) bool { return membership.User == testusers.Alice.Name },
+			want: []*pb.Membership{
+				testmemberships.Alice_Bar,
+				testmemberships.Alice_Mall,
+			},
+		},
+	} {
+		t.Run(test.desc, func(t *testing.T) {
+			filtered, err := r.FilterMemberships(ctx, test.predicate)
+			if diff := cmp.Diff(
+				filtered, test.want, protocmp.Transform(),
+				cmpopts.EquateEmpty(),
+				cmpopts.SortSlices(membershipLess),
+			); diff != "" {
+				t.Errorf("r.FilterMemberships(%v, test.predicate) filtered != test.want (-got +want)\n%s", ctx, diff)
+			}
+			if err != nil {
+				t.Errorf("r.FilterMemberships(%v) err = %v; want nil", ctx, err)
+			}
+		})
+	}
+}
