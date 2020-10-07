@@ -3,22 +3,6 @@ include tools.mk
 proto_files := $(wildcard api/saser/strecku/v1/*.proto)
 go_module := $(shell go list -m)
 
-server/testdata/cert.key server/testdata/cert.crt:
-	openssl \
-		req \
-		-x509 \
-		-sha256 \
-		-days 3650 \
-		-subj '/CN=localhost' \
-		-addext 'subjectAltName=DNS:localhost' \
-		-newkey rsa:4096 \
-		-nodes \
-		-keyout 'server/testdata/cert.key' \
-		-out 'server/testdata/cert.crt'
-
-.PHONY: testcert
-testcert: server/testdata/cert.key server/testdata/cert.crt
-
 .PHONY: lint
 lint: \
 	$(api-linter) \
