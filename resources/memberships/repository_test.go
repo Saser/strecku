@@ -416,3 +416,82 @@ func TestRepository_UpdateMembership(t *testing.T) {
 		}
 	})
 }
+
+func TestRepository_DeleteMembership(t *testing.T) {
+	ctx := context.Background()
+	// Test scenario where the delete succeeds.
+	t.Run("OK", func(t *testing.T) {
+		r := SeedRepository(t, []*pb.Membership{testmemberships.Alice_Bar})
+		// First, delete the membership.
+		if err := r.DeleteMembership(ctx, testmemberships.Alice_Bar.Name); err != nil {
+			t.Errorf("r.DeleteMembership(%v, %q) = %v; want nil", ctx, testmemberships.Alice_Bar.Name, err)
+		}
+		// Then, verify that looking it up by name fails.
+		wantMembership := (*pb.Membership)(nil)
+		wantErr := &MembershipNotFoundError{Name: testmemberships.Alice_Bar.Name}
+		membership, err := r.LookupMembership(ctx, testmemberships.Alice_Bar.Name)
+		if diff := cmp.Diff(membership, wantMembership, protocmp.Transform()); diff != "" {
+			t.Errorf("r.LookupMembership(%v, %q) membership != wantMembership (-got +want)\n%s", ctx, testmemberships.Alice_Bar.Name, diff)
+		}
+		if !cmp.Equal(err, wantErr, cmpopts.EquateErrors()) {
+			t.Errorf("r.LookupMembership(%v, %q) err = %v; want %v", ctx, testmemberships.Alice_Bar.Name, err, wantErr)
+		}
+		// Finally, verify that looking it up by user and store fails also.
+		wantMembership = (*pb.Membership)(nil)
+		wantErr = &MembershipNotFoundError{
+			User:  testusers.Alice.Name,
+			Store: teststores.Bar.Name,
+		}
+		membership, err = r.LookupMembershipBetween(ctx, testusers.Alice.Name, teststores.Bar.Name)
+		if diff := cmp.Diff(membership, wantMembership, protocmp.Transform()); diff != "" {
+			t.Errorf("r.LookupMembershipBetween(%v, %q, %q) membership != wantMembership (-got +want)\n%s", ctx, testusers.Alice.Name, teststores.Bar.Name, diff)
+		}
+		if !cmp.Equal(err, wantErr, cmpopts.EquateErrors()) {
+			t.Errorf("r.LookupMembershipBetween(%v, %q, %q) err = %v; want %v", ctx, testusers.Alice.Name, teststores.Bar.Name, err, wantErr)
+		}
+	})
+	// Test scenarios where the delete fails.
+	t.Run("Errors", func(t *testing.T) {
+		for _, test := range []struct {
+			desc string
+			name string
+			want error
+		}{
+			{
+				desc: "EmptyName",
+				name: "",
+				want: ErrNameEmpty,
+			},
+			{
+				desc: "NotFound",
+				name: testmemberships.Alice_Mall.Name,
+				want: &MembershipNotFoundError{Name: testmemberships.Alice_Mall.Name},
+			},
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				r := SeedRepository(t, []*pb.Membership{testmemberships.Alice_Bar})
+				// First, try and fail to delete the membership.
+				if got := r.DeleteMembership(ctx, test.name); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+					t.Errorf("r.DeleteMembership(%v, %q) = %v; want %v", ctx, test.name, got, test.want)
+				}
+				wantMembership := testmemberships.Alice_Bar
+				// Then, verify that a lookup by name succeeds.
+				membership, err := r.LookupMembership(ctx, testmemberships.Alice_Bar.Name)
+				if diff := cmp.Diff(membership, wantMembership, protocmp.Transform()); diff != "" {
+					t.Errorf("r.LookupMembership(%v, %q) membership != wantMembership (-got +want)\n%s", ctx, testmemberships.Alice_Bar.Name, diff)
+				}
+				if err != nil {
+					t.Errorf("r.LookupMembership(%v, %q) err = %v; want nil", ctx, testmemberships.Alice_Bar.Name, err)
+				}
+				// Finally, verify that a lookup by user and store succeeds.
+				membership, err = r.LookupMembershipBetween(ctx, testusers.Alice.Name, teststores.Bar.Name)
+				if diff := cmp.Diff(membership, wantMembership, protocmp.Transform()); diff != "" {
+					t.Errorf("r.LookupMembershipBetween(%v, %q, %q) membership != wantMembership (-got +want)\n%s", ctx, testusers.Alice.Name, teststores.Bar.Name, diff)
+				}
+				if err != nil {
+					t.Errorf("r.LookupMembershipBetween(%v, %q, %q) err = %v; want nil", ctx, testusers.Alice.Name, teststores.Bar.Name, err)
+				}
+			})
+		}
+	})
+}

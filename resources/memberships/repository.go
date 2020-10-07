@@ -183,3 +183,16 @@ func (r *Repository) UpdateMembership(_ context.Context, updated *pb.Membership)
 	r.memberships[updated.Name] = updated
 	return nil
 }
+
+func (r *Repository) DeleteMembership(_ context.Context, name string) error {
+	if err := ValidateName(name); err != nil {
+		return err
+	}
+	membership, ok := r.memberships[name]
+	if !ok {
+		return &MembershipNotFoundError{Name: name}
+	}
+	delete(r.memberships, name)
+	delete(r.names, composite{user: membership.User, store: membership.Store})
+	return nil
+}
