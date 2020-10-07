@@ -7,7 +7,6 @@ var (
 		Name:         "users/6f2d193c-1460-491d-8157-7dd9535526c6",
 		EmailAddress: "alice@example.com",
 		DisplayName:  "Alice",
-		Superuser:    false,
 	}
 	AlicePassword = "Alice's password"
 
@@ -15,7 +14,6 @@ var (
 		Name:         "users/1c0334cf-9eb2-40b2-accc-43157fedb7ca",
 		EmailAddress: "bob@example.com",
 		DisplayName:  "Bob",
-		Superuser:    false,
 	}
 	BobPassword = "Bob's password"
 
