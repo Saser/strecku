@@ -107,7 +107,7 @@ message Product {
   // applying a discount, if any. It must be a non-positive amount. It must be
   // of equal or smaller magnitude compared to full_price_cents.
   // Required.
-  int64 discounted_price_cents = 5;
+  int64 discount_price_cents = 5;
 }
 
 // GetUserRequest is the request message for GetUser.
