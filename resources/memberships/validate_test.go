@@ -4,8 +4,11 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/resources/memberships/testmemberships"
 	"github.com/Saser/strecku/resources/stores"
+	"github.com/Saser/strecku/resources/stores/teststores"
 	"github.com/Saser/strecku/resources/users"
+	"github.com/Saser/strecku/resources/users/testusers"
 )
 
 func TestValidate(t *testing.T) {
@@ -15,102 +18,23 @@ func TestValidate(t *testing.T) {
 	}{
 		{
 			membership: &pb.Membership{
-				Name:          "memberships/6f2d193c-1460-491d-8157-7dd9535526c6",
-				User:          "users/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Store:         "stores/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Administrator: false,
-			},
-			want: nil,
-		},
-		{
-			membership: &pb.Membership{
-				Name:          "",
-				User:          "users/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Store:         "stores/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Administrator: false,
-			},
-			want: ErrNameEmpty,
-		},
-		{
-			membership: &pb.Membership{
-				Name:          "invalidprefix/6f2d193c-1460-491d-8157-7dd9535526c6",
-				User:          "users/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Store:         "stores/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Administrator: false,
-			},
-			want: ErrNameInvalidFormat,
-		},
-		{
-			membership: &pb.Membership{
-				Name:          "6f2d193c-1460-491d-8157-7dd9535526c6",
-				User:          "users/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Store:         "stores/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Administrator: false,
-			},
-			want: ErrNameInvalidFormat,
-		},
-		{
-			membership: &pb.Membership{
-				Name:          "memberships/not a UUID",
-				User:          "users/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Store:         "stores/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Administrator: false,
-			},
-			want: ErrNameInvalidFormat,
-		},
-		{
-			membership: &pb.Membership{
-				Name:          "memberships/6f2d193c-1460-491d-8157-7dd9535526c6",
+				Name:          testmemberships.Alice_Bar.Name,
 				User:          "",
-				Store:         "stores/6f2d193c-1460-491d-8157-7dd9535526c6",
+				Store:         teststores.Bar.Name,
 				Administrator: false,
+				Discount:      false,
 			},
 			want: users.ErrNameEmpty,
 		},
 		{
 			membership: &pb.Membership{
-				Name:          "memberships/6f2d193c-1460-491d-8157-7dd9535526c6",
-				User:          "invalidprefix/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Store:         "stores/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Administrator: false,
-			},
-			want: users.ErrNameInvalidFormat,
-		},
-		{
-			membership: &pb.Membership{
-				Name:          "memberships/6f2d193c-1460-491d-8157-7dd9535526c6",
-				User:          "users/not a UUID",
-				Store:         "stores/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Administrator: false,
-			},
-			want: users.ErrNameInvalidFormat,
-		},
-		{
-			membership: &pb.Membership{
-				Name:          "memberships/6f2d193c-1460-491d-8157-7dd9535526c6",
-				User:          "users/6f2d193c-1460-491d-8157-7dd9535526c6",
+				Name:          testmemberships.Alice_Bar.Name,
+				User:          testusers.Alice.Name,
 				Store:         "",
 				Administrator: false,
+				Discount:      false,
 			},
 			want: stores.ErrNameEmpty,
-		},
-		{
-			membership: &pb.Membership{
-				Name:          "memberships/6f2d193c-1460-491d-8157-7dd9535526c6",
-				User:          "users/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Store:         "invalidprefix/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Administrator: false,
-			},
-			want: stores.ErrNameInvalidFormat,
-		},
-		{
-			membership: &pb.Membership{
-				Name:          "memberships/6f2d193c-1460-491d-8157-7dd9535526c6",
-				User:          "users/6f2d193c-1460-491d-8157-7dd9535526c6",
-				Store:         "stores/not a UUID",
-				Administrator: false,
-			},
-			want: stores.ErrNameInvalidFormat,
 		},
 	} {
 		if got := Validate(test.membership); got != test.want {
