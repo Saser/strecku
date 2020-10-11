@@ -91,6 +91,14 @@ func TestNotFoundError_Is(t *testing.T) {
 			},
 			want: true,
 		},
+		{
+			err: &NotFoundError{
+				User:  testusers.Alice.Name,
+				Store: teststores.Bar.Name,
+			},
+			target: fmt.Errorf("membership not found: between %q and %q", testusers.Alice.Name, teststores.Bar.Name),
+			want:   false,
+		},
 	} {
 		if got := test.err.Is(test.target); got != test.want {
 			t.Errorf("test.err.Is(%v) = %v; want %v", test.target, got, test.want)
