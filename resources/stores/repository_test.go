@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/stores/teststores"
+	"github.com/Saser/strecku/resources/testresources"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -17,15 +17,15 @@ func storeLess(u1, u2 *pb.Store) bool {
 }
 
 func seedBar(t *testing.T) *Repository {
-	return SeedRepository(t, []*pb.Store{teststores.Bar})
+	return SeedRepository(t, []*pb.Store{testresources.Bar})
 }
 
 func seedBarMall(t *testing.T) *Repository {
 	return SeedRepository(
 		t,
 		[]*pb.Store{
-			teststores.Bar,
-			teststores.Mall,
+			testresources.Bar,
+			testresources.Mall,
 		})
 }
 
@@ -33,15 +33,15 @@ func seedBarMallPharmacy(t *testing.T) *Repository {
 	return SeedRepository(
 		t,
 		[]*pb.Store{
-			teststores.Bar,
-			teststores.Mall,
-			teststores.Pharmacy,
+			testresources.Bar,
+			testresources.Mall,
+			testresources.Pharmacy,
 		})
 }
 
 func TestNotFoundError_Error(t *testing.T) {
-	err := &NotFoundError{Name: teststores.Bar.Name}
-	want := fmt.Sprintf("store not found: %q", teststores.Bar.Name)
+	err := &NotFoundError{Name: testresources.Bar.Name}
+	want := fmt.Sprintf("store not found: %q", testresources.Bar.Name)
 	if got := err.Error(); !cmp.Equal(got, want) {
 		t.Errorf("err.Error() = %q; want %q", got, want)
 	}
@@ -54,18 +54,18 @@ func TestNotFoundError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &NotFoundError{Name: teststores.Bar.Name},
-			target: &NotFoundError{Name: teststores.Bar.Name},
+			err:    &NotFoundError{Name: testresources.Bar.Name},
+			target: &NotFoundError{Name: testresources.Bar.Name},
 			want:   true,
 		},
 		{
-			err:    &NotFoundError{Name: teststores.Bar.Name},
-			target: &NotFoundError{Name: teststores.Pharmacy.Name},
+			err:    &NotFoundError{Name: testresources.Bar.Name},
+			target: &NotFoundError{Name: testresources.Pharmacy.Name},
 			want:   false,
 		},
 		{
-			err:    &NotFoundError{Name: teststores.Bar.Name},
-			target: fmt.Errorf("store not found: %q", teststores.Bar.Name),
+			err:    &NotFoundError{Name: testresources.Bar.Name},
+			target: fmt.Errorf("store not found: %q", testresources.Bar.Name),
 			want:   false,
 		},
 	} {
@@ -76,8 +76,8 @@ func TestNotFoundError_Is(t *testing.T) {
 }
 
 func TestExistsError_Error(t *testing.T) {
-	err := &ExistsError{Name: teststores.Bar.Name}
-	want := fmt.Sprintf("store exists: %q", teststores.Bar.Name)
+	err := &ExistsError{Name: testresources.Bar.Name}
+	want := fmt.Sprintf("store exists: %q", testresources.Bar.Name)
 	if got := err.Error(); !cmp.Equal(got, want) {
 		t.Errorf("err.Error() = %q; want %q", got, want)
 	}
@@ -90,18 +90,18 @@ func TestExistsError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &ExistsError{Name: teststores.Bar.Name},
-			target: &ExistsError{Name: teststores.Bar.Name},
+			err:    &ExistsError{Name: testresources.Bar.Name},
+			target: &ExistsError{Name: testresources.Bar.Name},
 			want:   true,
 		},
 		{
-			err:    &ExistsError{Name: teststores.Bar.Name},
-			target: &ExistsError{Name: teststores.Pharmacy.Name},
+			err:    &ExistsError{Name: testresources.Bar.Name},
+			target: &ExistsError{Name: testresources.Pharmacy.Name},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{Name: teststores.Bar.Name},
-			target: fmt.Errorf("store exists: %q", teststores.Bar.Name),
+			err:    &ExistsError{Name: testresources.Bar.Name},
+			target: fmt.Errorf("store exists: %q", testresources.Bar.Name),
 			want:   false,
 		},
 	} {
@@ -122,8 +122,8 @@ func TestRepository_LookupStore(t *testing.T) {
 	}{
 		{
 			desc:      "OK",
-			name:      teststores.Bar.Name,
-			wantStore: teststores.Bar,
+			name:      testresources.Bar.Name,
+			wantStore: testresources.Bar,
 			wantErr:   nil,
 		},
 		{
@@ -134,9 +134,9 @@ func TestRepository_LookupStore(t *testing.T) {
 		},
 		{
 			desc:      "NotFound",
-			name:      teststores.Pharmacy.Name,
+			name:      testresources.Pharmacy.Name,
 			wantStore: nil,
-			wantErr:   &NotFoundError{Name: teststores.Pharmacy.Name},
+			wantErr:   &NotFoundError{Name: testresources.Pharmacy.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
@@ -155,9 +155,9 @@ func TestRepository_ListStores(t *testing.T) {
 	ctx := context.Background()
 	r := seedBarMallPharmacy(t)
 	want := []*pb.Store{
-		teststores.Bar,
-		teststores.Mall,
-		teststores.Pharmacy,
+		testresources.Bar,
+		testresources.Mall,
+		testresources.Pharmacy,
 	}
 	stores, err := r.ListStores(ctx)
 	if diff := cmp.Diff(
@@ -186,24 +186,24 @@ func TestRepository_FilterStores(t *testing.T) {
 		},
 		{
 			name:      "OneMatching",
-			predicate: func(store *pb.Store) bool { return store.Name == teststores.Bar.Name },
+			predicate: func(store *pb.Store) bool { return store.Name == testresources.Bar.Name },
 			want: []*pb.Store{
-				teststores.Bar,
+				testresources.Bar,
 			},
 		},
 		{
 			name: "MultipleMatching",
 			predicate: func(store *pb.Store) bool {
 				switch store.Name {
-				case teststores.Bar.Name, teststores.Mall.Name:
+				case testresources.Bar.Name, testresources.Mall.Name:
 					return true
 				default:
 					return false
 				}
 			},
 			want: []*pb.Store{
-				teststores.Bar,
-				teststores.Mall,
+				testresources.Bar,
+				testresources.Mall,
 			},
 		},
 	} {
@@ -232,13 +232,13 @@ func TestRepository_CreateStore(t *testing.T) {
 	}{
 		{
 			name:  "OneStoreOK",
-			store: teststores.Mall,
+			store: testresources.Mall,
 			want:  nil,
 		},
 		{
 			name:  "DuplicateName",
-			store: &pb.Store{Name: teststores.Bar.Name, DisplayName: teststores.Mall.DisplayName},
-			want:  &ExistsError{Name: teststores.Bar.Name},
+			store: &pb.Store{Name: testresources.Bar.Name, DisplayName: testresources.Mall.DisplayName},
+			want:  &ExistsError{Name: testresources.Bar.Name},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -255,7 +255,7 @@ func TestRepository_UpdateStore(t *testing.T) {
 	// Test scenario where the update is successful.
 	t.Run("OK", func(t *testing.T) {
 		r := seedBar(t)
-		oldBar := Clone(teststores.Bar)
+		oldBar := Clone(testresources.Bar)
 		newBar := Clone(oldBar)
 		newBar.DisplayName = "New Bar"
 		if err := r.UpdateStore(ctx, newBar); err != nil {
@@ -290,12 +290,12 @@ func TestRepository_UpdateStore(t *testing.T) {
 			},
 			{
 				desc:   "NotFound",
-				modify: func(bar *pb.Store) { bar.Name = teststores.Mall.Name },
-				want:   &NotFoundError{Name: teststores.Mall.Name},
+				modify: func(bar *pb.Store) { bar.Name = testresources.Mall.Name },
+				want:   &NotFoundError{Name: testresources.Mall.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				updated := Clone(teststores.Bar)
+				updated := Clone(testresources.Bar)
 				test.modify(updated)
 				if got := r.UpdateStore(ctx, updated); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 					t.Errorf("r.UpdateStore(%v, %v) = %v; want %v", ctx, updated, got, test.want)
@@ -310,8 +310,8 @@ func TestRepository_DeleteStore(t *testing.T) {
 
 	t.Run("OK", func(t *testing.T) {
 		r := seedBarMall(t)
-		if err := r.DeleteStore(ctx, teststores.Bar.Name); err != nil {
-			t.Errorf("r.DeleteStore(%v, %q) = %v; want nil", ctx, teststores.Bar.Name, err)
+		if err := r.DeleteStore(ctx, testresources.Bar.Name); err != nil {
+			t.Errorf("r.DeleteStore(%v, %q) = %v; want nil", ctx, testresources.Bar.Name, err)
 		}
 		for _, test := range []struct {
 			desc      string
@@ -321,14 +321,14 @@ func TestRepository_DeleteStore(t *testing.T) {
 		}{
 			{
 				desc:      "LookupDeleted",
-				name:      teststores.Bar.Name,
+				name:      testresources.Bar.Name,
 				wantStore: nil,
-				wantErr:   &NotFoundError{Name: teststores.Bar.Name},
+				wantErr:   &NotFoundError{Name: testresources.Bar.Name},
 			},
 			{
 				desc:      "LookupExisting",
-				name:      teststores.Mall.Name,
-				wantStore: teststores.Mall,
+				name:      testresources.Mall.Name,
+				wantStore: testresources.Mall,
 				wantErr:   nil,
 			},
 		} {
@@ -357,8 +357,8 @@ func TestRepository_DeleteStore(t *testing.T) {
 			},
 			{
 				desc: "NotFound",
-				name: teststores.Mall.Name,
-				want: &NotFoundError{Name: teststores.Mall.Name},
+				name: testresources.Mall.Name,
+				want: &NotFoundError{Name: testresources.Mall.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {

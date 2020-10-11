@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/stores/teststores"
+	"github.com/Saser/strecku/resources/testresources"
 )
 
 func TestValidate(t *testing.T) {
@@ -14,7 +14,7 @@ func TestValidate(t *testing.T) {
 	}{
 		{
 			store: &pb.Store{
-				Name:        teststores.Bar.Name,
+				Name:        testresources.Bar.Name,
 				DisplayName: "",
 			},
 			want: ErrDisplayNameEmpty,

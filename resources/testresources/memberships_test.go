@@ -1,4 +1,4 @@
-package testmemberships
+package testresources
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	"github.com/Saser/strecku/resources/memberships"
 )
 
-func TestValid(t *testing.T) {
+func TestMembershipsValid(t *testing.T) {
 	for _, membership := range []*pb.Membership{
 		Alice_Bar,
 		Alice_Mall,

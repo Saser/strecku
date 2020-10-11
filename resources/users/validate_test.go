@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/users/testusers"
+	"github.com/Saser/strecku/resources/testresources"
 )
 
 func TestValidate(t *testing.T) {
@@ -14,16 +14,16 @@ func TestValidate(t *testing.T) {
 	}{
 		{
 			user: &pb.User{
-				Name:         testusers.Alice.Name,
+				Name:         testresources.Alice.Name,
 				EmailAddress: "",
-				DisplayName:  testusers.Alice.DisplayName,
+				DisplayName:  testresources.Alice.DisplayName,
 			},
 			want: ErrEmailAddressEmpty,
 		},
 		{
 			user: &pb.User{
-				Name:         testusers.Alice.Name,
-				EmailAddress: testusers.Alice.EmailAddress,
+				Name:         testresources.Alice.Name,
+				EmailAddress: testresources.Alice.EmailAddress,
 				DisplayName:  "",
 			},
 			want: ErrDisplayNameEmpty,

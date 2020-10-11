@@ -1,4 +1,4 @@
-package testusers
+package testresources
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	"github.com/Saser/strecku/resources/users"
 )
 
-func TestValid(t *testing.T) {
+func TestUsersValid(t *testing.T) {
 	for _, user := range []*pb.User{
 		Alice,
 		Bob,

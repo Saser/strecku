@@ -1,4 +1,4 @@
-package teststores
+package testresources
 
 import pb "github.com/Saser/strecku/api/v1"
 

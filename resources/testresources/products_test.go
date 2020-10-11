@@ -1,4 +1,4 @@
-package testproducts
+package testresources
 
 import (
 	"testing"
@@ -7,12 +7,12 @@ import (
 	"github.com/Saser/strecku/resources/products"
 )
 
-func TestValid(t *testing.T) {
+func TestProductsValid(t *testing.T) {
 	for _, product := range []*pb.Product{
-		Bar_Beer,
-		Bar_Cocktail,
-		Pharmacy_Pills,
-		Pharmacy_Lotion,
+		Beer,
+		Cocktail,
+		Pills,
+		Lotion,
 	} {
 		if err := products.Validate(product); err != nil {
 			t.Errorf("products.Validate(%v) = %v; want nil", product, err)

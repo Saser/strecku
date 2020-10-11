@@ -4,11 +4,9 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/memberships/testmemberships"
 	"github.com/Saser/strecku/resources/stores"
-	"github.com/Saser/strecku/resources/stores/teststores"
+	"github.com/Saser/strecku/resources/testresources"
 	"github.com/Saser/strecku/resources/users"
-	"github.com/Saser/strecku/resources/users/testusers"
 )
 
 func TestValidate(t *testing.T) {
@@ -18,9 +16,9 @@ func TestValidate(t *testing.T) {
 	}{
 		{
 			membership: &pb.Membership{
-				Name:          testmemberships.Alice_Bar.Name,
+				Name:          testresources.Alice_Bar.Name,
 				User:          "",
-				Store:         teststores.Bar.Name,
+				Store:         testresources.Bar.Name,
 				Administrator: false,
 				Discount:      false,
 			},
@@ -28,8 +26,8 @@ func TestValidate(t *testing.T) {
 		},
 		{
 			membership: &pb.Membership{
-				Name:          testmemberships.Alice_Bar.Name,
-				User:          testusers.Alice.Name,
+				Name:          testresources.Alice_Bar.Name,
+				User:          testresources.Alice.Name,
 				Store:         "",
 				Administrator: false,
 				Discount:      false,

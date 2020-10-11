@@ -1,4 +1,4 @@
-package teststores
+package testresources
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	"github.com/Saser/strecku/resources/stores"
 )
 
-func TestValid(t *testing.T) {
+func TestStoresValid(t *testing.T) {
 	for _, store := range []*pb.Store{
 		Pharmacy,
 		Bar,

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/users/testusers"
+	"github.com/Saser/strecku/resources/testresources"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -17,22 +17,22 @@ func userLess(u1, u2 *pb.User) bool {
 }
 
 func seedAlice(t *testing.T) *Repository {
-	return SeedRepository(t, []*pb.User{testusers.Alice}, []string{testusers.AlicePassword})
+	return SeedRepository(t, []*pb.User{testresources.Alice}, []string{testresources.AlicePassword})
 }
 
 func seedAliceBob(t *testing.T) *Repository {
 	return SeedRepository(
 		t,
-		[]*pb.User{testusers.Alice, testusers.Bob},
-		[]string{testusers.AlicePassword, testusers.BobPassword},
+		[]*pb.User{testresources.Alice, testresources.Bob},
+		[]string{testresources.AlicePassword, testresources.BobPassword},
 	)
 }
 
 func seedAliceBobCarol(t *testing.T) *Repository {
 	return SeedRepository(
 		t,
-		[]*pb.User{testusers.Alice, testusers.Bob, testusers.Carol},
-		[]string{testusers.AlicePassword, testusers.BobPassword, testusers.CarolPassword},
+		[]*pb.User{testresources.Alice, testresources.Bob, testresources.Carol},
+		[]string{testresources.AlicePassword, testresources.BobPassword, testresources.CarolPassword},
 	)
 }
 
@@ -42,8 +42,8 @@ func TestNotFoundError_Error(t *testing.T) {
 		emailAddress string
 		want         string
 	}{
-		{name: testusers.Alice.Name, want: fmt.Sprintf("user not found: %q", testusers.Alice.Name)},
-		{emailAddress: testusers.Alice.EmailAddress, want: fmt.Sprintf("user email not found: %q", testusers.Alice.EmailAddress)},
+		{name: testresources.Alice.Name, want: fmt.Sprintf("user not found: %q", testresources.Alice.Name)},
+		{emailAddress: testresources.Alice.EmailAddress, want: fmt.Sprintf("user email not found: %q", testresources.Alice.EmailAddress)},
 	} {
 		err := &NotFoundError{
 			Name:         test.name,
@@ -62,43 +62,43 @@ func TestNotFoundError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &NotFoundError{Name: testusers.Alice.Name},
-			target: &NotFoundError{Name: testusers.Alice.Name},
+			err:    &NotFoundError{Name: testresources.Alice.Name},
+			target: &NotFoundError{Name: testresources.Alice.Name},
 			want:   true,
 		},
 		{
-			err:    &NotFoundError{Name: testusers.Alice.Name},
-			target: &NotFoundError{Name: testusers.Bob.Name},
+			err:    &NotFoundError{Name: testresources.Alice.Name},
+			target: &NotFoundError{Name: testresources.Bob.Name},
 			want:   false,
 		},
 		{
-			err:    &NotFoundError{Name: testusers.Alice.Name},
-			target: &NotFoundError{EmailAddress: testusers.Alice.EmailAddress},
+			err:    &NotFoundError{Name: testresources.Alice.Name},
+			target: &NotFoundError{EmailAddress: testresources.Alice.EmailAddress},
 			want:   false,
 		},
 		{
-			err:    &NotFoundError{EmailAddress: testusers.Alice.EmailAddress},
-			target: &NotFoundError{Name: testusers.Alice.Name},
+			err:    &NotFoundError{EmailAddress: testresources.Alice.EmailAddress},
+			target: &NotFoundError{Name: testresources.Alice.Name},
 			want:   false,
 		},
 		{
-			err:    &NotFoundError{EmailAddress: testusers.Alice.EmailAddress},
-			target: &NotFoundError{EmailAddress: testusers.Alice.EmailAddress},
+			err:    &NotFoundError{EmailAddress: testresources.Alice.EmailAddress},
+			target: &NotFoundError{EmailAddress: testresources.Alice.EmailAddress},
 			want:   true,
 		},
 		{
-			err:    &NotFoundError{EmailAddress: testusers.Alice.EmailAddress},
-			target: &NotFoundError{EmailAddress: testusers.Bob.EmailAddress},
+			err:    &NotFoundError{EmailAddress: testresources.Alice.EmailAddress},
+			target: &NotFoundError{EmailAddress: testresources.Bob.EmailAddress},
 			want:   false,
 		},
 		{
-			err:    &NotFoundError{Name: testusers.Alice.Name},
-			target: fmt.Errorf("user not found: %q", testusers.Alice.Name),
+			err:    &NotFoundError{Name: testresources.Alice.Name},
+			target: fmt.Errorf("user not found: %q", testresources.Alice.Name),
 			want:   false,
 		},
 		{
-			err:    &NotFoundError{EmailAddress: testusers.Alice.EmailAddress},
-			target: fmt.Errorf("user email not found: %q", testusers.Alice.EmailAddress),
+			err:    &NotFoundError{EmailAddress: testresources.Alice.EmailAddress},
+			target: fmt.Errorf("user email not found: %q", testresources.Alice.EmailAddress),
 			want:   false,
 		},
 	} {
@@ -114,8 +114,8 @@ func TestExistsError_Error(t *testing.T) {
 		emailAddress string
 		want         string
 	}{
-		{name: testusers.Alice.Name, want: fmt.Sprintf("user exists: %q", testusers.Alice.Name)},
-		{emailAddress: testusers.Alice.EmailAddress, want: fmt.Sprintf("user email exists: %q", testusers.Alice.EmailAddress)},
+		{name: testresources.Alice.Name, want: fmt.Sprintf("user exists: %q", testresources.Alice.Name)},
+		{emailAddress: testresources.Alice.EmailAddress, want: fmt.Sprintf("user email exists: %q", testresources.Alice.EmailAddress)},
 	} {
 		err := &ExistsError{
 			Name:         test.name,
@@ -134,43 +134,43 @@ func TestExistsError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &ExistsError{Name: testusers.Alice.Name},
-			target: &ExistsError{Name: testusers.Alice.Name},
+			err:    &ExistsError{Name: testresources.Alice.Name},
+			target: &ExistsError{Name: testresources.Alice.Name},
 			want:   true,
 		},
 		{
-			err:    &ExistsError{Name: testusers.Alice.Name},
-			target: &ExistsError{Name: testusers.Bob.Name},
+			err:    &ExistsError{Name: testresources.Alice.Name},
+			target: &ExistsError{Name: testresources.Bob.Name},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{Name: testusers.Alice.Name},
-			target: &ExistsError{EmailAddress: testusers.Alice.EmailAddress},
+			err:    &ExistsError{Name: testresources.Alice.Name},
+			target: &ExistsError{EmailAddress: testresources.Alice.EmailAddress},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{EmailAddress: testusers.Alice.EmailAddress},
-			target: &ExistsError{Name: testusers.Alice.Name},
+			err:    &ExistsError{EmailAddress: testresources.Alice.EmailAddress},
+			target: &ExistsError{Name: testresources.Alice.Name},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{EmailAddress: testusers.Alice.EmailAddress},
-			target: &ExistsError{EmailAddress: testusers.Alice.EmailAddress},
+			err:    &ExistsError{EmailAddress: testresources.Alice.EmailAddress},
+			target: &ExistsError{EmailAddress: testresources.Alice.EmailAddress},
 			want:   true,
 		},
 		{
-			err:    &ExistsError{EmailAddress: testusers.Alice.EmailAddress},
-			target: &ExistsError{EmailAddress: testusers.Bob.EmailAddress},
+			err:    &ExistsError{EmailAddress: testresources.Alice.EmailAddress},
+			target: &ExistsError{EmailAddress: testresources.Bob.EmailAddress},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{Name: testusers.Alice.Name},
-			target: fmt.Errorf("user exists: %q", testusers.Alice.Name),
+			err:    &ExistsError{Name: testresources.Alice.Name},
+			target: fmt.Errorf("user exists: %q", testresources.Alice.Name),
 			want:   false,
 		},
 		{
-			err:    &ExistsError{EmailAddress: testusers.Alice.EmailAddress},
-			target: fmt.Errorf("user email exists: %q", testusers.Alice.EmailAddress),
+			err:    &ExistsError{EmailAddress: testresources.Alice.EmailAddress},
+			target: fmt.Errorf("user email exists: %q", testresources.Alice.EmailAddress),
 			want:   false,
 		},
 	} {
@@ -181,8 +181,8 @@ func TestExistsError_Is(t *testing.T) {
 }
 
 func TestWrongPasswordError_Error(t *testing.T) {
-	err := &WrongPasswordError{Name: testusers.Alice.Name}
-	if got, want := err.Error(), fmt.Sprintf("wrong password for user %q", testusers.Alice.Name); got != want {
+	err := &WrongPasswordError{Name: testresources.Alice.Name}
+	if got, want := err.Error(), fmt.Sprintf("wrong password for user %q", testresources.Alice.Name); got != want {
 		t.Errorf("err.Error() = %q; want %q", got, want)
 	}
 }
@@ -194,18 +194,18 @@ func TestWrongPasswordError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &WrongPasswordError{Name: testusers.Alice.Name},
-			target: &WrongPasswordError{Name: testusers.Alice.Name},
+			err:    &WrongPasswordError{Name: testresources.Alice.Name},
+			target: &WrongPasswordError{Name: testresources.Alice.Name},
 			want:   true,
 		},
 		{
-			err:    &WrongPasswordError{Name: testusers.Alice.Name},
-			target: &WrongPasswordError{Name: testusers.Bob.Name},
+			err:    &WrongPasswordError{Name: testresources.Alice.Name},
+			target: &WrongPasswordError{Name: testresources.Bob.Name},
 			want:   false,
 		},
 		{
-			err:    &WrongPasswordError{Name: testusers.Alice.Name},
-			target: fmt.Errorf("wrong password for user %q", testusers.Alice.Name),
+			err:    &WrongPasswordError{Name: testresources.Alice.Name},
+			target: fmt.Errorf("wrong password for user %q", testresources.Alice.Name),
 			want:   false,
 		},
 	} {
@@ -226,21 +226,21 @@ func TestRepository_Authenticate(t *testing.T) {
 	}{
 		{
 			desc:     "OK",
-			name:     testusers.Alice.Name,
-			password: testusers.AlicePassword,
+			name:     testresources.Alice.Name,
+			password: testresources.AlicePassword,
 			want:     nil,
 		},
 		{
 			desc:     "NotFound",
-			name:     testusers.Bob.Name,
-			password: testusers.BobPassword,
-			want:     &NotFoundError{Name: testusers.Bob.Name},
+			name:     testresources.Bob.Name,
+			password: testresources.BobPassword,
+			want:     &NotFoundError{Name: testresources.Bob.Name},
 		},
 		{
 			desc:     "WrongPassword",
-			name:     testusers.Alice.Name,
+			name:     testresources.Alice.Name,
 			password: "wrong password",
-			want:     &WrongPasswordError{Name: testusers.Alice.Name},
+			want:     &WrongPasswordError{Name: testresources.Alice.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
@@ -262,8 +262,8 @@ func TestRepository_LookupUser(t *testing.T) {
 	}{
 		{
 			desc:     "OK",
-			name:     testusers.Alice.Name,
-			wantUser: testusers.Alice,
+			name:     testresources.Alice.Name,
+			wantUser: testresources.Alice,
 			wantErr:  nil,
 		},
 		{
@@ -274,9 +274,9 @@ func TestRepository_LookupUser(t *testing.T) {
 		},
 		{
 			desc:     "NotFound",
-			name:     testusers.Bob.Name,
+			name:     testresources.Bob.Name,
 			wantUser: nil,
-			wantErr:  &NotFoundError{Name: testusers.Bob.Name},
+			wantErr:  &NotFoundError{Name: testresources.Bob.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
@@ -302,8 +302,8 @@ func TestRepository_LookupUserByEmail(t *testing.T) {
 	}{
 		{
 			desc:         "OK",
-			emailAddress: testusers.Alice.EmailAddress,
-			wantUser:     testusers.Alice,
+			emailAddress: testresources.Alice.EmailAddress,
+			wantUser:     testresources.Alice,
 			wantErr:      nil,
 		},
 		{
@@ -314,9 +314,9 @@ func TestRepository_LookupUserByEmail(t *testing.T) {
 		},
 		{
 			desc:         "NotFound",
-			emailAddress: testusers.Bob.EmailAddress,
+			emailAddress: testresources.Bob.EmailAddress,
 			wantUser:     nil,
-			wantErr:      &NotFoundError{EmailAddress: testusers.Bob.EmailAddress},
+			wantErr:      &NotFoundError{EmailAddress: testresources.Bob.EmailAddress},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
@@ -334,9 +334,9 @@ func TestRepository_LookupUserByEmail(t *testing.T) {
 func TestRepository_ListUsers(t *testing.T) {
 	ctx := context.Background()
 	allUsers := []*pb.User{
-		testusers.Alice,
-		testusers.Bob,
-		testusers.Carol,
+		testresources.Alice,
+		testresources.Bob,
+		testresources.Carol,
 	}
 	r := seedAliceBobCarol(t)
 	users, err := r.ListUsers(ctx)
@@ -368,15 +368,15 @@ func TestRepository_FilterUsers(t *testing.T) {
 			name:      "OneMatching",
 			predicate: func(user *pb.User) bool { return user.DisplayName == "Alice" },
 			want: []*pb.User{
-				testusers.Alice,
+				testresources.Alice,
 			},
 		},
 		{
 			name:      "SeveralMatching",
 			predicate: func(user *pb.User) bool { return user.DisplayName == "Alice" || user.DisplayName == "Bob" },
 			want: []*pb.User{
-				testusers.Alice,
-				testusers.Bob,
+				testresources.Alice,
+				testresources.Bob,
 			},
 		},
 	} {
@@ -409,27 +409,27 @@ func TestRepository_CreateUser(t *testing.T) {
 	}{
 		{
 			name:     "OK",
-			user:     testusers.Bob,
-			password: testusers.BobPassword,
+			user:     testresources.Bob,
+			password: testresources.BobPassword,
 			want:     nil,
 		},
 		{
 			name:     "EmptyPassword",
-			user:     testusers.Bob,
+			user:     testresources.Bob,
 			password: "",
 			want:     ErrEmptyPassword,
 		},
 		{
 			name:     "DuplicateEmail",
-			user:     &pb.User{Name: testusers.Bob.Name, EmailAddress: testusers.Alice.EmailAddress, DisplayName: testusers.Bob.DisplayName},
-			password: testusers.BobPassword,
-			want:     &ExistsError{EmailAddress: testusers.Alice.EmailAddress},
+			user:     &pb.User{Name: testresources.Bob.Name, EmailAddress: testresources.Alice.EmailAddress, DisplayName: testresources.Bob.DisplayName},
+			password: testresources.BobPassword,
+			want:     &ExistsError{EmailAddress: testresources.Alice.EmailAddress},
 		},
 		{
 			name:     "DuplicateName",
-			user:     &pb.User{Name: testusers.Alice.Name, EmailAddress: testusers.Bob.EmailAddress, DisplayName: testusers.Bob.DisplayName},
-			password: testusers.BobPassword,
-			want:     &ExistsError{Name: testusers.Alice.Name},
+			user:     &pb.User{Name: testresources.Alice.Name, EmailAddress: testresources.Bob.EmailAddress, DisplayName: testresources.Bob.DisplayName},
+			password: testresources.BobPassword,
+			want:     &ExistsError{Name: testresources.Alice.Name},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -481,7 +481,7 @@ func TestRepository_UpdateUser(t *testing.T) {
 	// Test scenarios where the update is successful.
 	t.Run("OK", func(t *testing.T) {
 		r := seedAlice(t)
-		oldAlice := Clone(testusers.Alice)
+		oldAlice := Clone(testresources.Alice)
 		newAlice := Clone(oldAlice)
 		newAlice.EmailAddress = "new-alice@example.com"
 		newAlice.DisplayName = "New Alice"
@@ -491,7 +491,7 @@ func TestRepository_UpdateUser(t *testing.T) {
 		testCases := []testCase{
 			{
 				desc:     "ByName",
-				name:     testusers.Alice.Name,
+				name:     testresources.Alice.Name,
 				email:    "",
 				wantUser: newAlice,
 				wantErr:  nil,
@@ -517,10 +517,10 @@ func TestRepository_UpdateUser(t *testing.T) {
 	// Test scenarios where the update fails due to trying to update to an existing email address.
 	t.Run("ExistingEmailAddress", func(t *testing.T) {
 		r := seedAliceBob(t)
-		oldAlice := Clone(testusers.Alice)
+		oldAlice := Clone(testresources.Alice)
 		newAlice := Clone(oldAlice)
-		newAlice.EmailAddress = testusers.Bob.EmailAddress
-		want := &ExistsError{EmailAddress: testusers.Bob.EmailAddress}
+		newAlice.EmailAddress = testresources.Bob.EmailAddress
+		want := &ExistsError{EmailAddress: testresources.Bob.EmailAddress}
 		if got := r.UpdateUser(ctx, newAlice); !cmp.Equal(got, want, cmpopts.EquateErrors()) {
 			t.Errorf("r.UpdateUser(%v, %v) = %v; want %v", ctx, newAlice, got, want)
 		}
@@ -534,9 +534,9 @@ func TestRepository_UpdateUser(t *testing.T) {
 			},
 			{
 				desc:     "ByName_Bob",
-				name:     testusers.Bob.Name,
+				name:     testresources.Bob.Name,
 				email:    "",
-				wantUser: testusers.Bob,
+				wantUser: testresources.Bob,
 				wantErr:  nil,
 			},
 			{
@@ -550,14 +550,14 @@ func TestRepository_UpdateUser(t *testing.T) {
 				desc:     "ByEmail_NewAlice",
 				name:     "",
 				email:    newAlice.EmailAddress,
-				wantUser: testusers.Bob,
+				wantUser: testresources.Bob,
 				wantErr:  nil,
 			},
 			{
 				desc:     "ByEmail_Bob",
 				name:     "",
-				email:    testusers.Bob.EmailAddress,
-				wantUser: testusers.Bob,
+				email:    testresources.Bob.EmailAddress,
+				wantUser: testresources.Bob,
 				wantErr:  nil,
 			},
 		}
@@ -589,12 +589,12 @@ func TestRepository_UpdateUser(t *testing.T) {
 			},
 			{
 				desc:   "NotFound",
-				modify: func(alice *pb.User) { alice.Name = testusers.Bob.Name },
-				want:   &NotFoundError{Name: testusers.Bob.Name},
+				modify: func(alice *pb.User) { alice.Name = testresources.Bob.Name },
+				want:   &NotFoundError{Name: testresources.Bob.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				updated := Clone(testusers.Alice)
+				updated := Clone(testresources.Alice)
 				test.modify(updated)
 				if got := r.UpdateUser(ctx, updated); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 					t.Errorf("r.UpdateUser(%v, %v) = %v; want %v", ctx, updated, got, test.want)
@@ -610,8 +610,8 @@ func TestRepository_DeleteUser(t *testing.T) {
 	// Test scenarios where the delete succeeded.
 	t.Run("OK", func(t *testing.T) {
 		r := seedAliceBob(t)
-		if err := r.DeleteUser(ctx, testusers.Alice.Name); err != nil {
-			t.Fatalf("r.DeleteUser(%v, %q) = %v; want nil", ctx, testusers.Alice.Name, err)
+		if err := r.DeleteUser(ctx, testresources.Alice.Name); err != nil {
+			t.Fatalf("r.DeleteUser(%v, %q) = %v; want nil", ctx, testresources.Alice.Name, err)
 		}
 		// Test the effects of the delete by looking up users.
 		for _, test := range []struct {
@@ -622,14 +622,14 @@ func TestRepository_DeleteUser(t *testing.T) {
 		}{
 			{
 				desc:     "LookupDeleted",
-				name:     testusers.Alice.Name,
+				name:     testresources.Alice.Name,
 				wantUser: nil,
-				wantErr:  &NotFoundError{Name: testusers.Alice.Name},
+				wantErr:  &NotFoundError{Name: testresources.Alice.Name},
 			},
 			{
 				desc:     "LookupExisting",
-				name:     testusers.Bob.Name,
-				wantUser: testusers.Bob,
+				name:     testresources.Bob.Name,
+				wantUser: testresources.Bob,
 				wantErr:  nil,
 			},
 		} {
@@ -660,8 +660,8 @@ func TestRepository_DeleteUser(t *testing.T) {
 			},
 			{
 				desc: "NotFound",
-				name: testusers.Bob.Name,
-				want: &NotFoundError{Name: testusers.Bob.Name},
+				name: testresources.Bob.Name,
+				want: &NotFoundError{Name: testresources.Bob.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {

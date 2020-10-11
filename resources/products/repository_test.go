@@ -6,9 +6,8 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/products/testproducts"
 	"github.com/Saser/strecku/resources/stores"
-	"github.com/Saser/strecku/resources/stores/teststores"
+	"github.com/Saser/strecku/resources/testresources"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -19,8 +18,8 @@ func productLess(p1, p2 *pb.Product) bool {
 }
 
 func TestNotFoundError_Error(t *testing.T) {
-	err := &NotFoundError{Name: testproducts.Bar_Beer.Name}
-	want := fmt.Sprintf("product not found: %q", testproducts.Bar_Beer.Name)
+	err := &NotFoundError{Name: testresources.Beer.Name}
+	want := fmt.Sprintf("product not found: %q", testresources.Beer.Name)
 	if got := err.Error(); !cmp.Equal(got, want) {
 		t.Errorf("err.Error() = %q; want %q", got, want)
 	}
@@ -33,18 +32,18 @@ func TestNotFoundError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &NotFoundError{Name: testproducts.Bar_Beer.Name},
-			target: &NotFoundError{Name: testproducts.Bar_Beer.Name},
+			err:    &NotFoundError{Name: testresources.Beer.Name},
+			target: &NotFoundError{Name: testresources.Beer.Name},
 			want:   true,
 		},
 		{
-			err:    &NotFoundError{Name: testproducts.Bar_Beer.Name},
-			target: &NotFoundError{Name: testproducts.Bar_Cocktail.Name},
+			err:    &NotFoundError{Name: testresources.Beer.Name},
+			target: &NotFoundError{Name: testresources.Cocktail.Name},
 			want:   false,
 		},
 		{
-			err:    &NotFoundError{Name: testproducts.Bar_Beer.Name},
-			target: fmt.Errorf("product not found: %q", testproducts.Bar_Beer.Name),
+			err:    &NotFoundError{Name: testresources.Beer.Name},
+			target: fmt.Errorf("product not found: %q", testresources.Beer.Name),
 			want:   false,
 		},
 	} {
@@ -55,8 +54,8 @@ func TestNotFoundError_Is(t *testing.T) {
 }
 
 func TestExistsError_Error(t *testing.T) {
-	err := &ExistsError{Name: testproducts.Bar_Beer.Name}
-	want := fmt.Sprintf("product exists: %q", testproducts.Bar_Beer.Name)
+	err := &ExistsError{Name: testresources.Beer.Name}
+	want := fmt.Sprintf("product exists: %q", testresources.Beer.Name)
 	if got := err.Error(); !cmp.Equal(got, want) {
 		t.Errorf("err.Error() = %q; want %q", got, want)
 	}
@@ -69,18 +68,18 @@ func TestExistsError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &ExistsError{Name: testproducts.Bar_Beer.Name},
-			target: &ExistsError{Name: testproducts.Bar_Beer.Name},
+			err:    &ExistsError{Name: testresources.Beer.Name},
+			target: &ExistsError{Name: testresources.Beer.Name},
 			want:   true,
 		},
 		{
-			err:    &ExistsError{Name: testproducts.Bar_Beer.Name},
-			target: &ExistsError{Name: testproducts.Bar_Cocktail.Name},
+			err:    &ExistsError{Name: testresources.Beer.Name},
+			target: &ExistsError{Name: testresources.Cocktail.Name},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{Name: testproducts.Bar_Beer.Name},
-			target: fmt.Errorf("product exists: %q", testproducts.Bar_Beer.Name),
+			err:    &ExistsError{Name: testresources.Beer.Name},
+			target: fmt.Errorf("product exists: %q", testresources.Beer.Name),
 			want:   false,
 		},
 	} {
@@ -92,7 +91,7 @@ func TestExistsError_Is(t *testing.T) {
 
 func TestRepository_LookupProduct(t *testing.T) {
 	ctx := context.Background()
-	r := SeedRepository(t, []*pb.Product{testproducts.Bar_Beer})
+	r := SeedRepository(t, []*pb.Product{testresources.Beer})
 	for _, test := range []struct {
 		desc        string
 		name        string
@@ -101,8 +100,8 @@ func TestRepository_LookupProduct(t *testing.T) {
 	}{
 		{
 			desc:        "OK",
-			name:        testproducts.Bar_Beer.Name,
-			wantProduct: testproducts.Bar_Beer,
+			name:        testresources.Beer.Name,
+			wantProduct: testresources.Beer,
 			wantErr:     nil,
 		},
 		{
@@ -113,9 +112,9 @@ func TestRepository_LookupProduct(t *testing.T) {
 		},
 		{
 			desc:        "NotFound",
-			name:        testproducts.Bar_Cocktail.Name,
+			name:        testresources.Cocktail.Name,
 			wantProduct: nil,
-			wantErr:     &NotFoundError{Name: testproducts.Bar_Cocktail.Name},
+			wantErr:     &NotFoundError{Name: testresources.Cocktail.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
@@ -133,10 +132,10 @@ func TestRepository_LookupProduct(t *testing.T) {
 func TestRepository_ListProducts(t *testing.T) {
 	ctx := context.Background()
 	want := []*pb.Product{
-		testproducts.Bar_Beer,
-		testproducts.Bar_Cocktail,
-		testproducts.Pharmacy_Pills,
-		testproducts.Pharmacy_Lotion,
+		testresources.Beer,
+		testresources.Cocktail,
+		testresources.Pills,
+		testresources.Lotion,
 	}
 	r := SeedRepository(t, want)
 	stores, err := r.ListProducts(ctx)
@@ -154,10 +153,10 @@ func TestRepository_ListProducts(t *testing.T) {
 func TestRepository_FilterProducts(t *testing.T) {
 	ctx := context.Background()
 	r := SeedRepository(t, []*pb.Product{
-		testproducts.Bar_Beer,
-		testproducts.Bar_Cocktail,
-		testproducts.Pharmacy_Pills,
-		testproducts.Pharmacy_Lotion,
+		testresources.Beer,
+		testresources.Cocktail,
+		testresources.Pills,
+		testresources.Lotion,
 	})
 	for _, test := range []struct {
 		name      string
@@ -171,17 +170,17 @@ func TestRepository_FilterProducts(t *testing.T) {
 		},
 		{
 			name:      "OneMatching",
-			predicate: func(product *pb.Product) bool { return product.Name == testproducts.Bar_Beer.Name },
+			predicate: func(product *pb.Product) bool { return product.Name == testresources.Beer.Name },
 			want: []*pb.Product{
-				testproducts.Bar_Beer,
+				testresources.Beer,
 			},
 		},
 		{
 			name:      "MultipleMatching",
-			predicate: func(product *pb.Product) bool { return product.Parent == teststores.Bar.Name },
+			predicate: func(product *pb.Product) bool { return product.Parent == testresources.Bar.Name },
 			want: []*pb.Product{
-				testproducts.Bar_Beer,
-				testproducts.Bar_Cocktail,
+				testresources.Beer,
+				testresources.Cocktail,
 			},
 		},
 	} {
@@ -203,8 +202,8 @@ func TestRepository_FilterProducts(t *testing.T) {
 
 func TestRepository_CreateProduct(t *testing.T) {
 	ctx := context.Background()
-	duplicateName := Clone(testproducts.Bar_Cocktail)
-	duplicateName.Name = testproducts.Bar_Beer.Name
+	duplicateName := Clone(testresources.Cocktail)
+	duplicateName.Name = testresources.Beer.Name
 	for _, test := range []struct {
 		desc    string
 		product *pb.Product
@@ -212,17 +211,17 @@ func TestRepository_CreateProduct(t *testing.T) {
 	}{
 		{
 			desc:    "OneProductOK",
-			product: testproducts.Bar_Cocktail,
+			product: testresources.Cocktail,
 			want:    nil,
 		},
 		{
 			desc:    "DuplicateName",
 			product: duplicateName,
-			want:    &ExistsError{Name: testproducts.Bar_Beer.Name},
+			want:    &ExistsError{Name: testresources.Beer.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := SeedRepository(t, []*pb.Product{testproducts.Bar_Beer})
+			r := SeedRepository(t, []*pb.Product{testresources.Beer})
 			if got := r.CreateProduct(ctx, test.product); !cmp.Equal(got, test.want) {
 				t.Errorf("r.CreateProduct(%v, %v) = %v; want %v", ctx, test.product, got, test.want)
 			}
@@ -234,8 +233,8 @@ func TestRepository_UpdateProduct(t *testing.T) {
 	ctx := context.Background()
 	// Test scenario where the update is successful.
 	t.Run("OK", func(t *testing.T) {
-		r := SeedRepository(t, []*pb.Product{testproducts.Bar_Beer})
-		oldBeer := Clone(testproducts.Bar_Beer)
+		r := SeedRepository(t, []*pb.Product{testresources.Beer})
+		oldBeer := Clone(testresources.Beer)
 		newBeer := Clone(oldBeer)
 		newBeer.DisplayName = "New Beer"
 		newBeer.FullPriceCents = -1500
@@ -254,7 +253,7 @@ func TestRepository_UpdateProduct(t *testing.T) {
 
 	// Test scenario where the update fails.
 	t.Run("Errors", func(t *testing.T) {
-		r := SeedRepository(t, []*pb.Product{testproducts.Bar_Beer})
+		r := SeedRepository(t, []*pb.Product{testresources.Beer})
 		for _, test := range []struct {
 			desc   string
 			modify func(beer *pb.Product)
@@ -292,17 +291,17 @@ func TestRepository_UpdateProduct(t *testing.T) {
 			},
 			{
 				desc:   "UpdateParent",
-				modify: func(beer *pb.Product) { beer.Parent = teststores.Pharmacy.Name },
+				modify: func(beer *pb.Product) { beer.Parent = testresources.Pharmacy.Name },
 				want:   ErrUpdateParent,
 			},
 			{
 				desc:   "NotFound",
-				modify: func(beer *pb.Product) { beer.Name = testproducts.Bar_Cocktail.Name },
-				want:   &NotFoundError{Name: testproducts.Bar_Cocktail.Name},
+				modify: func(beer *pb.Product) { beer.Name = testresources.Cocktail.Name },
+				want:   &NotFoundError{Name: testresources.Cocktail.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				updated := Clone(testproducts.Bar_Beer)
+				updated := Clone(testresources.Beer)
 				test.modify(updated)
 				if got := r.UpdateProduct(ctx, updated); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 					t.Errorf("r.UpdateProduct(%v, %v) = %v; want %v", ctx, updated, got, test.want)
@@ -317,11 +316,11 @@ func TestRepository_DeleteProduct(t *testing.T) {
 
 	t.Run("OK", func(t *testing.T) {
 		r := SeedRepository(t, []*pb.Product{
-			testproducts.Bar_Beer,
-			testproducts.Bar_Cocktail,
+			testresources.Beer,
+			testresources.Cocktail,
 		})
-		if err := r.DeleteProduct(ctx, testproducts.Bar_Beer.Name); err != nil {
-			t.Errorf("r.DeleteProduct(%v, %q) = %v; want nil", ctx, testproducts.Bar_Beer.Name, err)
+		if err := r.DeleteProduct(ctx, testresources.Beer.Name); err != nil {
+			t.Errorf("r.DeleteProduct(%v, %q) = %v; want nil", ctx, testresources.Beer.Name, err)
 		}
 		for _, test := range []struct {
 			desc        string
@@ -331,14 +330,14 @@ func TestRepository_DeleteProduct(t *testing.T) {
 		}{
 			{
 				desc:        "LookupDeleted",
-				name:        testproducts.Bar_Beer.Name,
+				name:        testresources.Beer.Name,
 				wantProduct: nil,
-				wantErr:     &NotFoundError{Name: testproducts.Bar_Beer.Name},
+				wantErr:     &NotFoundError{Name: testresources.Beer.Name},
 			},
 			{
 				desc:        "LookupExisting",
-				name:        testproducts.Bar_Cocktail.Name,
-				wantProduct: testproducts.Bar_Cocktail,
+				name:        testresources.Cocktail.Name,
+				wantProduct: testresources.Cocktail,
 				wantErr:     nil,
 			},
 		} {
@@ -354,7 +353,7 @@ func TestRepository_DeleteProduct(t *testing.T) {
 		}
 	})
 	t.Run("Errors", func(t *testing.T) {
-		r := SeedRepository(t, []*pb.Product{testproducts.Bar_Beer})
+		r := SeedRepository(t, []*pb.Product{testresources.Beer})
 		for _, test := range []struct {
 			desc string
 			name string
@@ -367,8 +366,8 @@ func TestRepository_DeleteProduct(t *testing.T) {
 			},
 			{
 				desc: "NotFound",
-				name: testproducts.Bar_Cocktail.Name,
-				want: &NotFoundError{Name: testproducts.Bar_Cocktail.Name},
+				name: testresources.Cocktail.Name,
+				want: &NotFoundError{Name: testresources.Cocktail.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
