@@ -128,3 +128,14 @@ func (r *Repository) UpdateProduct(ctx context.Context, updated *pb.Product) err
 	r.products[name] = updated
 	return nil
 }
+
+func (r *Repository) DeleteProduct(ctx context.Context, name string) error {
+	if err := ValidateName(name); err != nil {
+		return err
+	}
+	if _, exists := r.products[name]; !exists {
+		return &NotFoundError{Name: name}
+	}
+	delete(r.products, name)
+	return nil
+}

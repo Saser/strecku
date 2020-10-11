@@ -311,3 +311,71 @@ func TestRepository_UpdateProduct(t *testing.T) {
 		}
 	})
 }
+
+func TestRepository_DeleteProduct(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("OK", func(t *testing.T) {
+		r := SeedRepository(t, []*pb.Product{
+			testproducts.Bar_Beer,
+			testproducts.Bar_Cocktail,
+		})
+		if err := r.DeleteProduct(ctx, testproducts.Bar_Beer.Name); err != nil {
+			t.Errorf("r.DeleteProduct(%v, %q) = %v; want nil", ctx, testproducts.Bar_Beer.Name, err)
+		}
+		for _, test := range []struct {
+			desc        string
+			name        string
+			wantProduct *pb.Product
+			wantErr     error
+		}{
+			{
+				desc:        "LookupDeleted",
+				name:        testproducts.Bar_Beer.Name,
+				wantProduct: nil,
+				wantErr:     &NotFoundError{Name: testproducts.Bar_Beer.Name},
+			},
+			{
+				desc:        "LookupExisting",
+				name:        testproducts.Bar_Cocktail.Name,
+				wantProduct: testproducts.Bar_Cocktail,
+				wantErr:     nil,
+			},
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				store, err := r.LookupProduct(ctx, test.name)
+				if diff := cmp.Diff(store, test.wantProduct, protocmp.Transform()); diff != "" {
+					t.Errorf("r.LookupProduct(%v, %q) store != test.wantProduct (-got +want)\n%s", ctx, test.name, diff)
+				}
+				if !cmp.Equal(err, test.wantErr, cmpopts.EquateErrors()) {
+					t.Errorf("r.LookupProduct(%v, %q) err = %v; want %v", ctx, test.name, err, test.wantErr)
+				}
+			})
+		}
+	})
+	t.Run("Errors", func(t *testing.T) {
+		r := SeedRepository(t, []*pb.Product{testproducts.Bar_Beer})
+		for _, test := range []struct {
+			desc string
+			name string
+			want error
+		}{
+			{
+				desc: "EmptyName",
+				name: "",
+				want: ErrNameEmpty,
+			},
+			{
+				desc: "NotFound",
+				name: testproducts.Bar_Cocktail.Name,
+				want: &NotFoundError{Name: testproducts.Bar_Cocktail.Name},
+			},
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				if got := r.DeleteProduct(ctx, test.name); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+					t.Errorf("r.DeleteProduct(%v, %q) = %v; want %v", ctx, test.name, got, test.want)
+				}
+			})
+		}
+	})
+}
