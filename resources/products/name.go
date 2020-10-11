@@ -12,18 +12,14 @@ import (
 const CollectionID = "products"
 
 var (
-	ErrNameEmpty         = errors.New("name is empty")
-	ErrNameInvalidFormat = fmt.Errorf("name must have format %q", prefix("{store}")+"<uuid>")
-)
+	Regexp = names.MustCompile(stores.Regexp.String(), CollectionID, names.UUID)
 
-var Regexp = names.MustCompile(stores.Regexp.String(), CollectionID, names.UUID)
+	ErrNameEmpty         = errors.New("name is empty")
+	ErrNameInvalidFormat = fmt.Errorf("name must have format %q", stores.CollectionID+"/<uuid>/"+CollectionID+"/<uuid>")
+)
 
 func GenerateName(store string) string {
 	return fmt.Sprintf("%s/%s/%s", store, CollectionID, uuid.New().String())
-}
-
-func prefix(store string) string {
-	return fmt.Sprintf("%s/%s/", store, CollectionID)
 }
 
 func ValidateName(name string) error {

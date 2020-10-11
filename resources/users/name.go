@@ -1,19 +1,21 @@
 package users
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Saser/strecku/resources/names"
 	"github.com/google/uuid"
 )
 
-const (
-	CollectionID = "users"
+const CollectionID = "users"
 
-	prefix = CollectionID + "/"
+var (
+	Regexp = names.MustCompile(CollectionID, names.UUID)
+
+	ErrNameEmpty         = errors.New("name is empty")
+	ErrNameInvalidFormat = fmt.Errorf("name must have format %q", CollectionID+"/<uuid>")
 )
-
-var Regexp = names.MustCompile(CollectionID, names.UUID)
 
 func GenerateName() string {
 	return fmt.Sprintf("%s/%s", CollectionID, uuid.New().String())

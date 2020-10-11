@@ -9,6 +9,7 @@ import (
 
 func TestGenerateName(t *testing.T) {
 	got := GenerateName()
+	prefix := CollectionID + "/"
 	if !strings.HasPrefix(got, prefix) {
 		t.Errorf("GenerateName() = %q; want prefix %q", got, prefix)
 	}

@@ -15,11 +15,11 @@ import (
 func TestGenerateName(t *testing.T) {
 	store := stores.GenerateName()
 	got := GenerateName(store)
-	wantPrefix := prefix(store)
-	if !strings.HasPrefix(got, wantPrefix) {
-		t.Errorf("GenerateName() = %q; want prefix %q", got, wantPrefix)
+	prefix := store + "/" + CollectionID + "/"
+	if !strings.HasPrefix(got, prefix) {
+		t.Errorf("GenerateName() = %q; want prefix %q", got, prefix)
 	}
-	id := strings.TrimPrefix(got, wantPrefix)
+	id := strings.TrimPrefix(got, prefix)
 	if _, err := uuid.Parse(id); err != nil {
 		t.Errorf("uuid.Parse(%q) err = %v; want nil", id, err)
 	}
@@ -37,7 +37,7 @@ func TestValidateName(t *testing.T) {
 		{name: "", want: ErrNameEmpty},
 		{name: productID, want: ErrNameInvalidFormat},
 		{name: fmt.Sprintf("%s/%s/%s/%s", users.CollectionID, storeID, CollectionID, productID), want: ErrNameInvalidFormat},
-		{name: prefix(store) + "not a UUID", want: ErrNameInvalidFormat},
+		{name: store + "/" + CollectionID + "/not a UUID", want: ErrNameInvalidFormat},
 	} {
 		if got := ValidateName(test.name); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 			t.Errorf("ValidateName(%q) = %v; want %v", test.name, got, test.want)
