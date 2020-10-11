@@ -7,6 +7,7 @@ import (
 
 	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/products/testproducts"
+	"github.com/Saser/strecku/resources/stores/teststores"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -146,5 +147,55 @@ func TestRepository_ListProducts(t *testing.T) {
 	}
 	if err != nil {
 		t.Errorf("r.ListProducts(%v) err = %v; want nil", ctx, err)
+	}
+}
+
+func TestRepository_FilterProducts(t *testing.T) {
+	ctx := context.Background()
+	r := SeedRepository(t, []*pb.Product{
+		testproducts.Bar_Beer,
+		testproducts.Bar_Cocktail,
+		testproducts.Pharmacy_Pills,
+		testproducts.Pharmacy_Lotion,
+	})
+	for _, test := range []struct {
+		name      string
+		predicate func(*pb.Product) bool
+		want      []*pb.Product
+	}{
+		{
+			name:      "NoneMatching",
+			predicate: func(*pb.Product) bool { return false },
+			want:      nil,
+		},
+		{
+			name:      "OneMatching",
+			predicate: func(product *pb.Product) bool { return product.Name == testproducts.Bar_Beer.Name },
+			want: []*pb.Product{
+				testproducts.Bar_Beer,
+			},
+		},
+		{
+			name:      "MultipleMatching",
+			predicate: func(product *pb.Product) bool { return product.Parent == teststores.Bar.Name },
+			want: []*pb.Product{
+				testproducts.Bar_Beer,
+				testproducts.Bar_Cocktail,
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			stores, err := r.FilterProducts(ctx, test.predicate)
+			if diff := cmp.Diff(
+				stores, test.want, protocmp.Transform(),
+				cmpopts.EquateEmpty(),
+				cmpopts.SortSlices(productLess),
+			); diff != "" {
+				t.Errorf("r.FilterProducts(%v, test.predicate) stores != test.want (-got +want)\n%s", ctx, diff)
+			}
+			if got, want := err, error(nil); !cmp.Equal(got, want) {
+				t.Errorf("r.FilterProducts(%v, test.predicate) err = %v; want %v", ctx, got, want)
+			}
+		})
 	}
 }

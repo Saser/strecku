@@ -80,10 +80,10 @@ func (r *Repository) LookupProduct(ctx context.Context, name string) (*pb.Produc
 }
 
 func (r *Repository) ListProducts(ctx context.Context) ([]*pb.Product, error) {
-	return r.filterProducts(ctx, func(*pb.Product) bool { return true })
+	return r.FilterProducts(ctx, func(*pb.Product) bool { return true })
 }
 
-func (r *Repository) filterProducts(ctx context.Context, predicate func(*pb.Product) bool) ([]*pb.Product, error) {
+func (r *Repository) FilterProducts(ctx context.Context, predicate func(*pb.Product) bool) ([]*pb.Product, error) {
 	var filtered []*pb.Product
 	for _, product := range r.products {
 		if predicate(product) {
