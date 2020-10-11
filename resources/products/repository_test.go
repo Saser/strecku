@@ -1,11 +1,15 @@
 package products
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
+	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/products/testproducts"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"google.golang.org/protobuf/testing/protocmp"
 )
 
 func TestNotFoundError_Error(t *testing.T) {
@@ -77,5 +81,45 @@ func TestExistsError_Is(t *testing.T) {
 		if got := test.err.Is(test.target); got != test.want {
 			t.Errorf("test.err.Is(%v) = %v; want %v", test.target, got, test.want)
 		}
+	}
+}
+
+func TestRepository_LookupProduct(t *testing.T) {
+	ctx := context.Background()
+	r := SeedRepository(t, []*pb.Product{testproducts.Bar_Beer})
+	for _, test := range []struct {
+		desc        string
+		name        string
+		wantProduct *pb.Product
+		wantErr     error
+	}{
+		{
+			desc:        "OK",
+			name:        testproducts.Bar_Beer.Name,
+			wantProduct: testproducts.Bar_Beer,
+			wantErr:     nil,
+		},
+		{
+			desc:        "EmptyName",
+			name:        "",
+			wantProduct: nil,
+			wantErr:     ErrNameEmpty,
+		},
+		{
+			desc:        "NotFound",
+			name:        testproducts.Bar_Cocktail.Name,
+			wantProduct: nil,
+			wantErr:     &NotFoundError{Name: testproducts.Bar_Cocktail.Name},
+		},
+	} {
+		t.Run(test.desc, func(t *testing.T) {
+			store, err := r.LookupProduct(ctx, test.name)
+			if diff := cmp.Diff(store, test.wantProduct, protocmp.Transform()); diff != "" {
+				t.Errorf("r.LookupProduct(%v, %q) product != test.wantProduct (-got +want)\n%s", ctx, test.name, diff)
+			}
+			if got, want := err, test.wantErr; !cmp.Equal(got, want, cmpopts.EquateErrors()) {
+				t.Errorf("r.LookupProduct(%v, %q) err = %v; want %v", ctx, test.name, got, want)
+			}
+		})
 	}
 }
