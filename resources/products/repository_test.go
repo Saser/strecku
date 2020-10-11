@@ -7,6 +7,7 @@ import (
 
 	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/products/testproducts"
+	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/stores/teststores"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -227,4 +228,86 @@ func TestRepository_CreateProduct(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRepository_UpdateProduct(t *testing.T) {
+	ctx := context.Background()
+	// Test scenario where the update is successful.
+	t.Run("OK", func(t *testing.T) {
+		r := SeedRepository(t, []*pb.Product{testproducts.Bar_Beer})
+		oldBeer := Clone(testproducts.Bar_Beer)
+		newBeer := Clone(oldBeer)
+		newBeer.DisplayName = "New Beer"
+		newBeer.FullPriceCents = -1500
+		newBeer.DiscountPriceCents = -1000
+		if err := r.UpdateProduct(ctx, newBeer); err != nil {
+			t.Errorf("r.UpdateProduct(%v, %v) = %v; want nil", ctx, newBeer, err)
+		}
+		store, err := r.LookupProduct(ctx, newBeer.Name)
+		if diff := cmp.Diff(store, newBeer, protocmp.Transform()); diff != "" {
+			t.Errorf("r.LookupProduct(%v, %q) store != newBeer (-got +want)\n%s", ctx, newBeer.Name, diff)
+		}
+		if err != nil {
+			t.Errorf("r.LookupProduct(%v, %q) err = %v; want nil", ctx, newBeer.Name, err)
+		}
+	})
+
+	// Test scenario where the update fails.
+	t.Run("Errors", func(t *testing.T) {
+		r := SeedRepository(t, []*pb.Product{testproducts.Bar_Beer})
+		for _, test := range []struct {
+			desc   string
+			modify func(beer *pb.Product)
+			want   error
+		}{
+			{
+				desc:   "EmptyName",
+				modify: func(beer *pb.Product) { beer.Name = "" },
+				want:   ErrNameEmpty,
+			},
+			{
+				desc:   "EmptyParent",
+				modify: func(beer *pb.Product) { beer.Parent = "" },
+				want:   stores.ErrNameEmpty,
+			},
+			{
+				desc:   "EmptyDisplayName",
+				modify: func(beer *pb.Product) { beer.DisplayName = "" },
+				want:   ErrDisplayNameEmpty,
+			},
+			{
+				desc:   "PositiveFullPrice",
+				modify: func(beer *pb.Product) { beer.FullPriceCents = 1000 },
+				want:   ErrFullPricePositive,
+			},
+			{
+				desc:   "PositiveDiscountPrice",
+				modify: func(beer *pb.Product) { beer.DiscountPriceCents = 1000 },
+				want:   ErrDiscountPricePositive,
+			},
+			{
+				desc:   "DiscountPriceHigherThanFullPrice",
+				modify: func(beer *pb.Product) { beer.DiscountPriceCents = beer.FullPriceCents - 1000 },
+				want:   ErrDiscountPriceHigherThanFullPrice,
+			},
+			{
+				desc:   "UpdateParent",
+				modify: func(beer *pb.Product) { beer.Parent = teststores.Pharmacy.Name },
+				want:   ErrUpdateParent,
+			},
+			{
+				desc:   "NotFound",
+				modify: func(beer *pb.Product) { beer.Name = testproducts.Bar_Cocktail.Name },
+				want:   &NotFoundError{Name: testproducts.Bar_Cocktail.Name},
+			},
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				updated := Clone(testproducts.Bar_Beer)
+				test.modify(updated)
+				if got := r.UpdateProduct(ctx, updated); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+					t.Errorf("r.UpdateProduct(%v, %v) = %v; want %v", ctx, updated, got, test.want)
+				}
+			})
+		}
+	})
 }
