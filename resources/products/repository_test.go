@@ -199,3 +199,32 @@ func TestRepository_FilterProducts(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_CreateProduct(t *testing.T) {
+	ctx := context.Background()
+	duplicateName := Clone(testproducts.Bar_Cocktail)
+	duplicateName.Name = testproducts.Bar_Beer.Name
+	for _, test := range []struct {
+		desc    string
+		product *pb.Product
+		want    error
+	}{
+		{
+			desc:    "OneProductOK",
+			product: testproducts.Bar_Cocktail,
+			want:    nil,
+		},
+		{
+			desc:    "DuplicateName",
+			product: duplicateName,
+			want:    &ExistsError{Name: testproducts.Bar_Beer.Name},
+		},
+	} {
+		t.Run(test.desc, func(t *testing.T) {
+			r := SeedRepository(t, []*pb.Product{testproducts.Bar_Beer})
+			if got := r.CreateProduct(ctx, test.product); !cmp.Equal(got, test.want) {
+				t.Errorf("r.CreateProduct(%v, %v) = %v; want %v", ctx, test.product, got, test.want)
+			}
+		})
+	}
+}

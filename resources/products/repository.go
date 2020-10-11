@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"google.golang.org/protobuf/proto"
 )
 
 type NotFoundError struct {
@@ -38,6 +39,10 @@ func (e *ExistsError) Is(target error) bool {
 		return false
 	}
 	return other.Name == e.Name
+}
+
+func Clone(product *pb.Product) *pb.Product {
+	return proto.Clone(product).(*pb.Product)
 }
 
 type Repository struct {
@@ -91,4 +96,16 @@ func (r *Repository) FilterProducts(ctx context.Context, predicate func(*pb.Prod
 		}
 	}
 	return filtered, nil
+}
+
+func (r *Repository) CreateProduct(ctx context.Context, product *pb.Product) error {
+	if err := Validate(product); err != nil {
+		return err
+	}
+	name := product.Name
+	if _, exists := r.products[name]; exists {
+		return &ExistsError{Name: name}
+	}
+	r.products[name] = product
+	return nil
 }
