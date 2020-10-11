@@ -11,6 +11,8 @@ func TestValid(t *testing.T) {
 	for _, product := range []*pb.Product{
 		Bar_Beer,
 		Bar_Cocktail,
+		Pharmacy_Pills,
+		Pharmacy_Lotion,
 	} {
 		if err := products.Validate(product); err != nil {
 			t.Errorf("products.Validate(%v) = %v; want nil", product, err)

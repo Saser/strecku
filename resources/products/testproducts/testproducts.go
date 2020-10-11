@@ -20,4 +20,18 @@ var (
 		FullPriceCents:     -10000,
 		DiscountPriceCents: -7500,
 	}
+	Pharmacy_Pills = &pb.Product{
+		Name:               teststores.Pharmacy.Name + "/products/156773ff-4424-446b-8d4d-ce5808359386",
+		Parent:             teststores.Pharmacy.Name,
+		DisplayName:        "Pills",
+		FullPriceCents:     -1000,
+		DiscountPriceCents: -1000,
+	}
+	Pharmacy_Lotion = &pb.Product{
+		Name:               teststores.Pharmacy.Name + "/products/03c826e1-156d-4767-a564-3087e5deff05",
+		Parent:             teststores.Pharmacy.Name,
+		DisplayName:        "Lotion",
+		FullPriceCents:     -2000,
+		DiscountPriceCents: -1500,
+	}
 )

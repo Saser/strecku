@@ -12,6 +12,10 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
+func productLess(p1, p2 *pb.Product) bool {
+	return p1.Name < p2.Name
+}
+
 func TestNotFoundError_Error(t *testing.T) {
 	err := &NotFoundError{Name: testproducts.Bar_Beer.Name}
 	want := fmt.Sprintf("product not found: %q", testproducts.Bar_Beer.Name)
@@ -121,5 +125,26 @@ func TestRepository_LookupProduct(t *testing.T) {
 				t.Errorf("r.LookupProduct(%v, %q) err = %v; want %v", ctx, test.name, got, want)
 			}
 		})
+	}
+}
+
+func TestRepository_ListProducts(t *testing.T) {
+	ctx := context.Background()
+	want := []*pb.Product{
+		testproducts.Bar_Beer,
+		testproducts.Bar_Cocktail,
+		testproducts.Pharmacy_Pills,
+		testproducts.Pharmacy_Lotion,
+	}
+	r := SeedRepository(t, want)
+	stores, err := r.ListProducts(ctx)
+	if diff := cmp.Diff(
+		stores, want, protocmp.Transform(),
+		cmpopts.SortSlices(productLess),
+	); diff != "" {
+		t.Errorf("r.ListProducts(%v) stores != want (-got +want)\n%s", ctx, diff)
+	}
+	if err != nil {
+		t.Errorf("r.ListProducts(%v) err = %v; want nil", ctx, err)
 	}
 }
