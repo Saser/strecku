@@ -12,7 +12,10 @@ import (
 const CollectionID = "products"
 
 var (
-	Regexp = names.MustCompile(stores.Regexp.String(), CollectionID, names.UUID)
+	Regexp = names.MustCompile(
+		fmt.Sprintf("(?P<store>%s)", stores.Regexp.String()),
+		CollectionID, names.UUID,
+	)
 
 	ErrNameEmpty         = errors.New("name is empty")
 	ErrNameInvalidFormat = fmt.Errorf("name must have format %q", stores.CollectionID+"/<uuid>/"+CollectionID+"/<uuid>")
@@ -30,4 +33,12 @@ func ValidateName(name string) error {
 		return ErrNameInvalidFormat
 	}
 	return nil
+}
+
+func Parent(name string) (string, error) {
+	if err := ValidateName(name); err != nil {
+		return "", err
+	}
+	matches := Regexp.FindStringSubmatch(name)
+	return matches[Regexp.SubexpIndex("store")], nil
 }

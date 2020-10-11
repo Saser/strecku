@@ -44,3 +44,33 @@ func TestValidateName(t *testing.T) {
 		}
 	}
 }
+
+func TestParent(t *testing.T) {
+	storeID := "6729f7fa-dc5a-41ae-b00d-5cd67d5e1e15"
+	store := fmt.Sprintf("%s/%s", stores.CollectionID, storeID)
+	productID := "90e3eaaa-4d9c-423f-b468-bb7322fb5d4f"
+	for _, test := range []struct {
+		name       string
+		wantParent string
+		wantErr    error
+	}{
+		{
+			name:       store + "/" + CollectionID + "/" + productID,
+			wantParent: store,
+			wantErr:    nil,
+		},
+		{
+			name:       users.CollectionID + "/" + storeID + "/" + CollectionID + "/" + productID,
+			wantParent: "",
+			wantErr:    ErrNameInvalidFormat,
+		},
+	} {
+		parent, err := Parent(test.name)
+		if parent != test.wantParent {
+			t.Errorf("Parent(%q) parent = %q; want %q", test.name, parent, test.wantParent)
+		}
+		if !cmp.Equal(err, test.wantErr, cmpopts.EquateErrors()) {
+			t.Errorf("Parent(%q) err = %v; want %q", test.name, err, test.wantErr)
+		}
+	}
+}
