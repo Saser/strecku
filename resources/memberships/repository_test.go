@@ -20,19 +20,19 @@ func membershipLess(m1, m2 *pb.Membership) bool {
 	return m1.Name < m2.Name
 }
 
-func TestMembershipNotFoundError_Error(t *testing.T) {
+func TestNotFoundError_Error(t *testing.T) {
 	for _, test := range []struct {
-		err  *MembershipNotFoundError
+		err  *NotFoundError
 		want string
 	}{
 		{
-			err: &MembershipNotFoundError{
+			err: &NotFoundError{
 				Name: testmemberships.Alice_Bar.Name,
 			},
 			want: fmt.Sprintf("membership not found: %q", testmemberships.Alice_Bar.Name),
 		},
 		{
-			err: &MembershipNotFoundError{
+			err: &NotFoundError{
 				User:  testusers.Alice.Name,
 				Store: teststores.Bar.Name,
 			},
@@ -45,47 +45,47 @@ func TestMembershipNotFoundError_Error(t *testing.T) {
 	}
 }
 
-func TestMembershipNotFoundError_Is(t *testing.T) {
+func TestNotFoundError_Is(t *testing.T) {
 	for _, test := range []struct {
-		err    *MembershipNotFoundError
+		err    *NotFoundError
 		target error
 		want   bool
 	}{
 		{
-			err: &MembershipNotFoundError{
+			err: &NotFoundError{
 				Name: testmemberships.Alice_Bar.Name,
 			},
-			target: &MembershipNotFoundError{
+			target: &NotFoundError{
 				Name: testmemberships.Alice_Bar.Name,
 			},
 			want: true,
 		},
 		{
-			err: &MembershipNotFoundError{
+			err: &NotFoundError{
 				Name: testmemberships.Alice_Bar.Name,
 			},
-			target: &MembershipNotFoundError{
+			target: &NotFoundError{
 				User:  testusers.Alice.Name,
 				Store: teststores.Bar.Name,
 			},
 			want: false,
 		},
 		{
-			err: &MembershipNotFoundError{
+			err: &NotFoundError{
 				User:  testusers.Alice.Name,
 				Store: teststores.Bar.Name,
 			},
-			target: &MembershipNotFoundError{
+			target: &NotFoundError{
 				Name: testmemberships.Alice_Bar.Name,
 			},
 			want: false,
 		},
 		{
-			err: &MembershipNotFoundError{
+			err: &NotFoundError{
 				User:  testusers.Alice.Name,
 				Store: teststores.Bar.Name,
 			},
-			target: &MembershipNotFoundError{
+			target: &NotFoundError{
 				User:  testusers.Alice.Name,
 				Store: teststores.Bar.Name,
 			},
@@ -98,19 +98,19 @@ func TestMembershipNotFoundError_Is(t *testing.T) {
 	}
 }
 
-func TestMembershipExistsError_Error(t *testing.T) {
+func TestExistsError_Error(t *testing.T) {
 	for _, test := range []struct {
-		err  *MembershipExistsError
+		err  *ExistsError
 		want string
 	}{
 		{
-			err: &MembershipExistsError{
+			err: &ExistsError{
 				Name: testmemberships.Alice_Bar.Name,
 			},
 			want: fmt.Sprintf("membership exists: %q", testmemberships.Alice_Bar.Name),
 		},
 		{
-			err: &MembershipExistsError{
+			err: &ExistsError{
 				User:  testusers.Alice.Name,
 				Store: teststores.Bar.Name,
 			},
@@ -148,7 +148,7 @@ func TestRepository_LookupMembership(t *testing.T) {
 			desc:           "NotFound",
 			name:           testmemberships.Alice_Mall.Name,
 			wantMembership: nil,
-			wantErr:        &MembershipNotFoundError{Name: testmemberships.Alice_Mall.Name},
+			wantErr:        &NotFoundError{Name: testmemberships.Alice_Mall.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
@@ -199,14 +199,14 @@ func TestRepository_LookupMembershipBetween(t *testing.T) {
 			user:           testusers.Bob.Name,
 			store:          teststores.Bar.Name,
 			wantMembership: nil,
-			wantErr:        &MembershipNotFoundError{User: testusers.Bob.Name, Store: teststores.Bar.Name},
+			wantErr:        &NotFoundError{User: testusers.Bob.Name, Store: teststores.Bar.Name},
 		},
 		{
 			desc:           "WrongStore",
 			user:           testusers.Alice.Name,
 			store:          teststores.Mall.Name,
 			wantMembership: nil,
-			wantErr:        &MembershipNotFoundError{User: testusers.Alice.Name, Store: teststores.Mall.Name},
+			wantErr:        &NotFoundError{User: testusers.Alice.Name, Store: teststores.Mall.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
@@ -314,7 +314,7 @@ func TestRepository_CreateMembership(t *testing.T) {
 				Store:         teststores.Mall.Name, // chosen arbitrarily
 				Administrator: false,
 			},
-			want: &MembershipExistsError{Name: testmemberships.Alice_Bar.Name},
+			want: &ExistsError{Name: testmemberships.Alice_Bar.Name},
 		},
 		{
 			desc: "DuplicateUserAndStore",
@@ -324,7 +324,7 @@ func TestRepository_CreateMembership(t *testing.T) {
 				Store:         teststores.Bar.Name,
 				Administrator: false,
 			},
-			want: &MembershipExistsError{
+			want: &ExistsError{
 				User:  testusers.Alice.Name,
 				Store: teststores.Bar.Name,
 			},
@@ -394,7 +394,7 @@ func TestRepository_UpdateMembership(t *testing.T) {
 			{
 				desc:   "NotFound",
 				modify: func(aliceBar *pb.Membership) { aliceBar.Name = testmemberships.Alice_Mall.Name },
-				want:   &MembershipNotFoundError{Name: testmemberships.Alice_Mall.Name},
+				want:   &NotFoundError{Name: testmemberships.Alice_Mall.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
@@ -428,7 +428,7 @@ func TestRepository_DeleteMembership(t *testing.T) {
 		}
 		// Then, verify that looking it up by name fails.
 		wantMembership := (*pb.Membership)(nil)
-		wantErr := &MembershipNotFoundError{Name: testmemberships.Alice_Bar.Name}
+		wantErr := &NotFoundError{Name: testmemberships.Alice_Bar.Name}
 		membership, err := r.LookupMembership(ctx, testmemberships.Alice_Bar.Name)
 		if diff := cmp.Diff(membership, wantMembership, protocmp.Transform()); diff != "" {
 			t.Errorf("r.LookupMembership(%v, %q) membership != wantMembership (-got +want)\n%s", ctx, testmemberships.Alice_Bar.Name, diff)
@@ -438,7 +438,7 @@ func TestRepository_DeleteMembership(t *testing.T) {
 		}
 		// Finally, verify that looking it up by user and store fails also.
 		wantMembership = (*pb.Membership)(nil)
-		wantErr = &MembershipNotFoundError{
+		wantErr = &NotFoundError{
 			User:  testusers.Alice.Name,
 			Store: teststores.Bar.Name,
 		}
@@ -465,7 +465,7 @@ func TestRepository_DeleteMembership(t *testing.T) {
 			{
 				desc: "NotFound",
 				name: testmemberships.Alice_Mall.Name,
-				want: &MembershipNotFoundError{Name: testmemberships.Alice_Mall.Name},
+				want: &NotFoundError{Name: testmemberships.Alice_Mall.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {

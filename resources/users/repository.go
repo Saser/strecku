@@ -18,12 +18,12 @@ type Repository struct {
 
 var ErrEmptyPassword = errors.New("empty password")
 
-type UserNotFoundError struct {
+type NotFoundError struct {
 	Name         string
 	EmailAddress string
 }
 
-func (e *UserNotFoundError) Error() string {
+func (e *NotFoundError) Error() string {
 	var (
 		msg   string
 		query string
@@ -39,20 +39,20 @@ func (e *UserNotFoundError) Error() string {
 	return fmt.Sprintf("%s: %q", msg, query)
 }
 
-func (e *UserNotFoundError) Is(target error) bool {
-	other, ok := target.(*UserNotFoundError)
+func (e *NotFoundError) Is(target error) bool {
+	other, ok := target.(*NotFoundError)
 	if !ok {
 		return false
 	}
 	return e.Name == other.Name && e.EmailAddress == other.EmailAddress
 }
 
-type UserExistsError struct {
+type ExistsError struct {
 	Name         string
 	EmailAddress string
 }
 
-func (e *UserExistsError) Error() string {
+func (e *ExistsError) Error() string {
 	var (
 		msg   string
 		query string
@@ -68,8 +68,8 @@ func (e *UserExistsError) Error() string {
 	return fmt.Sprintf("%s: %q", msg, query)
 }
 
-func (e *UserExistsError) Is(target error) bool {
-	other, ok := target.(*UserExistsError)
+func (e *ExistsError) Is(target error) bool {
+	other, ok := target.(*ExistsError)
 	if !ok {
 		return false
 	}
@@ -134,7 +134,7 @@ func Clone(user *pb.User) *pb.User {
 func (r *Repository) Authenticate(_ context.Context, name string, password string) error {
 	storedPassword, ok := r.passwords[name]
 	if !ok {
-		return &UserNotFoundError{Name: name}
+		return &NotFoundError{Name: name}
 	}
 	if password != storedPassword {
 		return &WrongPasswordError{Name: name}
@@ -148,7 +148,7 @@ func (r *Repository) LookupUser(_ context.Context, name string) (*pb.User, error
 	}
 	user, ok := r.users[name]
 	if !ok {
-		return nil, &UserNotFoundError{Name: name}
+		return nil, &NotFoundError{Name: name}
 	}
 	return Clone(user), nil
 }
@@ -156,7 +156,7 @@ func (r *Repository) LookupUser(_ context.Context, name string) (*pb.User, error
 func (r *Repository) LookupUserByEmail(ctx context.Context, emailAddress string) (*pb.User, error) {
 	name, ok := r.names[emailAddress]
 	if !ok {
-		return nil, &UserNotFoundError{EmailAddress: emailAddress}
+		return nil, &NotFoundError{EmailAddress: emailAddress}
 	}
 	return r.LookupUser(ctx, name)
 }
@@ -179,10 +179,10 @@ func (r *Repository) CreateUser(_ context.Context, user *pb.User, password strin
 	name := user.Name
 	emailAddress := user.EmailAddress
 	if _, exists := r.users[name]; exists {
-		return &UserExistsError{Name: user.Name}
+		return &ExistsError{Name: user.Name}
 	}
 	if _, exists := r.names[emailAddress]; exists {
-		return &UserExistsError{EmailAddress: user.EmailAddress}
+		return &ExistsError{EmailAddress: user.EmailAddress}
 	}
 	if password == "" {
 		return ErrEmptyPassword
@@ -199,10 +199,10 @@ func (r *Repository) UpdateUser(_ context.Context, updated *pb.User) error {
 	}
 	old, exists := r.users[updated.Name]
 	if !exists {
-		return &UserNotFoundError{Name: updated.Name}
+		return &NotFoundError{Name: updated.Name}
 	}
 	if name, exists := r.names[updated.EmailAddress]; exists && name != updated.Name {
-		return &UserExistsError{EmailAddress: updated.EmailAddress}
+		return &ExistsError{EmailAddress: updated.EmailAddress}
 	}
 	delete(r.names, old.EmailAddress)
 	r.names[updated.EmailAddress] = updated.Name
@@ -216,7 +216,7 @@ func (r *Repository) DeleteUser(_ context.Context, name string) error {
 	}
 	user, ok := r.users[name]
 	if !ok {
-		return &UserNotFoundError{Name: name}
+		return &NotFoundError{Name: name}
 	}
 	delete(r.names, user.EmailAddress)
 	delete(r.users, name)

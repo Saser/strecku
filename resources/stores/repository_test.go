@@ -39,32 +39,32 @@ func seedBarMallPharmacy(t *testing.T) *Repository {
 		})
 }
 
-func TestStoreNotFoundError_Error(t *testing.T) {
-	err := &StoreNotFoundError{Name: teststores.Bar.Name}
+func TestNotFoundError_Error(t *testing.T) {
+	err := &NotFoundError{Name: teststores.Bar.Name}
 	want := fmt.Sprintf("store not found: %q", teststores.Bar.Name)
 	if got := err.Error(); !cmp.Equal(got, want) {
 		t.Errorf("err.Error() = %q; want %q", got, want)
 	}
 }
 
-func TestStoreNotFoundError_Is(t *testing.T) {
+func TestNotFoundError_Is(t *testing.T) {
 	for _, test := range []struct {
-		err    *StoreNotFoundError
+		err    *NotFoundError
 		target error
 		want   bool
 	}{
 		{
-			err:    &StoreNotFoundError{Name: teststores.Bar.Name},
-			target: &StoreNotFoundError{Name: teststores.Bar.Name},
+			err:    &NotFoundError{Name: teststores.Bar.Name},
+			target: &NotFoundError{Name: teststores.Bar.Name},
 			want:   true,
 		},
 		{
-			err:    &StoreNotFoundError{Name: teststores.Bar.Name},
-			target: &StoreNotFoundError{Name: teststores.Pharmacy.Name},
+			err:    &NotFoundError{Name: teststores.Bar.Name},
+			target: &NotFoundError{Name: teststores.Pharmacy.Name},
 			want:   false,
 		},
 		{
-			err:    &StoreNotFoundError{Name: teststores.Bar.Name},
+			err:    &NotFoundError{Name: teststores.Bar.Name},
 			target: fmt.Errorf("store not found: %q", teststores.Bar.Name),
 			want:   false,
 		},
@@ -75,32 +75,32 @@ func TestStoreNotFoundError_Is(t *testing.T) {
 	}
 }
 
-func TestStoreExistsError_Error(t *testing.T) {
-	err := &StoreExistsError{Name: teststores.Bar.Name}
+func TestExistsError_Error(t *testing.T) {
+	err := &ExistsError{Name: teststores.Bar.Name}
 	want := fmt.Sprintf("store exists: %q", teststores.Bar.Name)
 	if got := err.Error(); !cmp.Equal(got, want) {
 		t.Errorf("err.Error() = %q; want %q", got, want)
 	}
 }
 
-func TestStoreExistsError_Is(t *testing.T) {
+func TestExistsError_Is(t *testing.T) {
 	for _, test := range []struct {
-		err    *StoreExistsError
+		err    *ExistsError
 		target error
 		want   bool
 	}{
 		{
-			err:    &StoreExistsError{Name: teststores.Bar.Name},
-			target: &StoreExistsError{Name: teststores.Bar.Name},
+			err:    &ExistsError{Name: teststores.Bar.Name},
+			target: &ExistsError{Name: teststores.Bar.Name},
 			want:   true,
 		},
 		{
-			err:    &StoreExistsError{Name: teststores.Bar.Name},
-			target: &StoreExistsError{Name: teststores.Pharmacy.Name},
+			err:    &ExistsError{Name: teststores.Bar.Name},
+			target: &ExistsError{Name: teststores.Pharmacy.Name},
 			want:   false,
 		},
 		{
-			err:    &StoreExistsError{Name: teststores.Bar.Name},
+			err:    &ExistsError{Name: teststores.Bar.Name},
 			target: fmt.Errorf("store exists: %q", teststores.Bar.Name),
 			want:   false,
 		},
@@ -136,7 +136,7 @@ func TestRepository_LookupStore(t *testing.T) {
 			desc:      "NotFound",
 			name:      teststores.Pharmacy.Name,
 			wantStore: nil,
-			wantErr:   &StoreNotFoundError{Name: teststores.Pharmacy.Name},
+			wantErr:   &NotFoundError{Name: teststores.Pharmacy.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
@@ -238,7 +238,7 @@ func TestRepository_CreateStore(t *testing.T) {
 		{
 			name:  "DuplicateName",
 			store: &pb.Store{Name: teststores.Bar.Name, DisplayName: teststores.Mall.DisplayName},
-			want:  &StoreExistsError{Name: teststores.Bar.Name},
+			want:  &ExistsError{Name: teststores.Bar.Name},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -291,7 +291,7 @@ func TestRepository_UpdateStore(t *testing.T) {
 			{
 				desc:   "NotFound",
 				modify: func(bar *pb.Store) { bar.Name = teststores.Mall.Name },
-				want:   &StoreNotFoundError{Name: teststores.Mall.Name},
+				want:   &NotFoundError{Name: teststores.Mall.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
@@ -323,7 +323,7 @@ func TestRepository_DeleteStore(t *testing.T) {
 				desc:      "LookupDeleted",
 				name:      teststores.Bar.Name,
 				wantStore: nil,
-				wantErr:   &StoreNotFoundError{Name: teststores.Bar.Name},
+				wantErr:   &NotFoundError{Name: teststores.Bar.Name},
 			},
 			{
 				desc:      "LookupExisting",
@@ -358,7 +358,7 @@ func TestRepository_DeleteStore(t *testing.T) {
 			{
 				desc: "NotFound",
 				name: teststores.Mall.Name,
-				want: &StoreNotFoundError{Name: teststores.Mall.Name},
+				want: &NotFoundError{Name: teststores.Mall.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {

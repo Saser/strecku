@@ -13,32 +13,32 @@ type Repository struct {
 	stores map[string]*pb.Store // name -> store
 }
 
-type StoreNotFoundError struct {
+type NotFoundError struct {
 	Name string
 }
 
-func (e *StoreNotFoundError) Error() string {
+func (e *NotFoundError) Error() string {
 	return fmt.Sprintf("store not found: %q", e.Name)
 }
 
-func (e *StoreNotFoundError) Is(target error) bool {
-	other, ok := target.(*StoreNotFoundError)
+func (e *NotFoundError) Is(target error) bool {
+	other, ok := target.(*NotFoundError)
 	if !ok {
 		return false
 	}
 	return e.Name == other.Name
 }
 
-type StoreExistsError struct {
+type ExistsError struct {
 	Name string
 }
 
-func (e *StoreExistsError) Error() string {
+func (e *ExistsError) Error() string {
 	return fmt.Sprintf("store exists: %q", e.Name)
 }
 
-func (e *StoreExistsError) Is(target error) bool {
-	other, ok := target.(*StoreExistsError)
+func (e *ExistsError) Is(target error) bool {
+	other, ok := target.(*ExistsError)
 	if !ok {
 		return false
 	}
@@ -80,7 +80,7 @@ func (r *Repository) LookupStore(_ context.Context, name string) (*pb.Store, err
 	}
 	store, ok := r.stores[name]
 	if !ok {
-		return nil, &StoreNotFoundError{Name: name}
+		return nil, &NotFoundError{Name: name}
 	}
 	return store, nil
 }
@@ -101,7 +101,7 @@ func (r *Repository) FilterStores(_ context.Context, predicate func(*pb.Store) b
 
 func (r *Repository) CreateStore(_ context.Context, store *pb.Store) error {
 	if _, exists := r.stores[store.Name]; exists {
-		return &StoreExistsError{Name: store.Name}
+		return &ExistsError{Name: store.Name}
 	}
 	r.stores[store.Name] = store
 	return nil
@@ -112,7 +112,7 @@ func (r *Repository) UpdateStore(_ context.Context, updated *pb.Store) error {
 		return err
 	}
 	if _, exists := r.stores[updated.Name]; !exists {
-		return &StoreNotFoundError{Name: updated.Name}
+		return &NotFoundError{Name: updated.Name}
 	}
 	r.stores[updated.Name] = updated
 	return nil
@@ -123,7 +123,7 @@ func (r *Repository) DeleteStore(_ context.Context, name string) error {
 		return err
 	}
 	if _, exists := r.stores[name]; !exists {
-		return &StoreNotFoundError{Name: name}
+		return &NotFoundError{Name: name}
 	}
 	delete(r.stores, name)
 	return nil

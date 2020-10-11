@@ -2,32 +2,32 @@ package products
 
 import "fmt"
 
-type ProductNotFoundError struct {
+type NotFoundError struct {
 	Name string
 }
 
-func (e *ProductNotFoundError) Error() string {
+func (e *NotFoundError) Error() string {
 	return fmt.Sprintf("product not found: %q", e.Name)
 }
 
-func (e *ProductNotFoundError) Is(target error) bool {
-	other, ok := target.(*ProductNotFoundError)
+func (e *NotFoundError) Is(target error) bool {
+	other, ok := target.(*NotFoundError)
 	if !ok {
 		return false
 	}
 	return other.Name == e.Name
 }
 
-type ProductExistsError struct {
+type ExistsError struct {
 	Name string
 }
 
-func (e *ProductExistsError) Error() string {
+func (e *ExistsError) Error() string {
 	return fmt.Sprintf("product exists: %q", e.Name)
 }
 
-func (e *ProductExistsError) Is(target error) bool {
-	other, ok := target.(*ProductExistsError)
+func (e *ExistsError) Is(target error) bool {
+	other, ok := target.(*ExistsError)
 	if !ok {
 		return false
 	}

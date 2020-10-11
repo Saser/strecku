@@ -17,12 +17,12 @@ var (
 	ErrUpdateStore = errors.New("store cannot be updated")
 )
 
-type MembershipNotFoundError struct {
+type NotFoundError struct {
 	Name        string
 	User, Store string
 }
 
-func (e *MembershipNotFoundError) Error() string {
+func (e *NotFoundError) Error() string {
 	var query string
 	switch {
 	case e.Name != "":
@@ -33,20 +33,20 @@ func (e *MembershipNotFoundError) Error() string {
 	return fmt.Sprintf("membership not found: %s", query)
 }
 
-func (e *MembershipNotFoundError) Is(target error) bool {
-	other, ok := target.(*MembershipNotFoundError)
+func (e *NotFoundError) Is(target error) bool {
+	other, ok := target.(*NotFoundError)
 	if !ok {
 		return false
 	}
 	return e.Name == other.Name && e.User == other.User && e.Store == other.Store
 }
 
-type MembershipExistsError struct {
+type ExistsError struct {
 	Name        string
 	User, Store string
 }
 
-func (e *MembershipExistsError) Error() string {
+func (e *ExistsError) Error() string {
 	var query string
 	switch {
 	case e.Name != "":
@@ -57,8 +57,8 @@ func (e *MembershipExistsError) Error() string {
 	return fmt.Sprintf("membership exists: %s", query)
 }
 
-func (e *MembershipExistsError) Is(target error) bool {
-	other, ok := target.(*MembershipExistsError)
+func (e *ExistsError) Is(target error) bool {
+	other, ok := target.(*ExistsError)
 	if !ok {
 		return false
 	}
@@ -119,7 +119,7 @@ func (r *Repository) LookupMembership(_ context.Context, name string) (*pb.Membe
 	}
 	membership, ok := r.memberships[name]
 	if !ok {
-		return nil, &MembershipNotFoundError{Name: name}
+		return nil, &NotFoundError{Name: name}
 	}
 	return membership, nil
 }
@@ -133,7 +133,7 @@ func (r *Repository) LookupMembershipBetween(ctx context.Context, user string, s
 	}
 	name, ok := r.names[composite{user: user, store: store}]
 	if !ok {
-		return nil, &MembershipNotFoundError{User: user, Store: store}
+		return nil, &NotFoundError{User: user, Store: store}
 	}
 	return r.LookupMembership(ctx, name)
 }
@@ -155,11 +155,11 @@ func (r *Repository) FilterMemberships(_ context.Context, predicate func(*pb.Mem
 func (r *Repository) CreateMembership(_ context.Context, membership *pb.Membership) error {
 	name := membership.Name
 	if _, exists := r.memberships[name]; exists {
-		return &MembershipExistsError{Name: name}
+		return &ExistsError{Name: name}
 	}
 	key := composite{user: membership.User, store: membership.Store}
 	if _, exists := r.names[key]; exists {
-		return &MembershipExistsError{
+		return &ExistsError{
 			User:  membership.User,
 			Store: membership.Store,
 		}
@@ -172,7 +172,7 @@ func (r *Repository) CreateMembership(_ context.Context, membership *pb.Membersh
 func (r *Repository) UpdateMembership(_ context.Context, updated *pb.Membership) error {
 	membership, ok := r.memberships[updated.Name]
 	if !ok {
-		return &MembershipNotFoundError{Name: updated.Name}
+		return &NotFoundError{Name: updated.Name}
 	}
 	if updated.User != membership.User {
 		return ErrUpdateUser
@@ -190,7 +190,7 @@ func (r *Repository) DeleteMembership(_ context.Context, name string) error {
 	}
 	membership, ok := r.memberships[name]
 	if !ok {
-		return &MembershipNotFoundError{Name: name}
+		return &NotFoundError{Name: name}
 	}
 	delete(r.memberships, name)
 	delete(r.names, composite{user: membership.User, store: membership.Store})

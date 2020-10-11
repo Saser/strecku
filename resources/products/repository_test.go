@@ -8,32 +8,32 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestProductNotFoundError_Error(t *testing.T) {
-	err := &ProductNotFoundError{Name: testproducts.Bar_Beer.Name}
+func TestNotFoundError_Error(t *testing.T) {
+	err := &NotFoundError{Name: testproducts.Bar_Beer.Name}
 	want := fmt.Sprintf("product not found: %q", testproducts.Bar_Beer.Name)
 	if got := err.Error(); !cmp.Equal(got, want) {
 		t.Errorf("err.Error() = %q; want %q", got, want)
 	}
 }
 
-func TestProductNotFoundError_Is(t *testing.T) {
+func TestNotFoundError_Is(t *testing.T) {
 	for _, test := range []struct {
-		err    *ProductNotFoundError
+		err    *NotFoundError
 		target error
 		want   bool
 	}{
 		{
-			err:    &ProductNotFoundError{Name: testproducts.Bar_Beer.Name},
-			target: &ProductNotFoundError{Name: testproducts.Bar_Beer.Name},
+			err:    &NotFoundError{Name: testproducts.Bar_Beer.Name},
+			target: &NotFoundError{Name: testproducts.Bar_Beer.Name},
 			want:   true,
 		},
 		{
-			err:    &ProductNotFoundError{Name: testproducts.Bar_Beer.Name},
-			target: &ProductNotFoundError{Name: testproducts.Bar_Cocktail.Name},
+			err:    &NotFoundError{Name: testproducts.Bar_Beer.Name},
+			target: &NotFoundError{Name: testproducts.Bar_Cocktail.Name},
 			want:   false,
 		},
 		{
-			err:    &ProductNotFoundError{Name: testproducts.Bar_Beer.Name},
+			err:    &NotFoundError{Name: testproducts.Bar_Beer.Name},
 			target: fmt.Errorf("product not found: %q", testproducts.Bar_Beer.Name),
 			want:   false,
 		},
@@ -44,32 +44,32 @@ func TestProductNotFoundError_Is(t *testing.T) {
 	}
 }
 
-func TestProductExistsError_Error(t *testing.T) {
-	err := &ProductExistsError{Name: testproducts.Bar_Beer.Name}
+func TestExistsError_Error(t *testing.T) {
+	err := &ExistsError{Name: testproducts.Bar_Beer.Name}
 	want := fmt.Sprintf("product exists: %q", testproducts.Bar_Beer.Name)
 	if got := err.Error(); !cmp.Equal(got, want) {
 		t.Errorf("err.Error() = %q; want %q", got, want)
 	}
 }
 
-func TestProductExistsError_Is(t *testing.T) {
+func TestExistsError_Is(t *testing.T) {
 	for _, test := range []struct {
-		err    *ProductExistsError
+		err    *ExistsError
 		target error
 		want   bool
 	}{
 		{
-			err:    &ProductExistsError{Name: testproducts.Bar_Beer.Name},
-			target: &ProductExistsError{Name: testproducts.Bar_Beer.Name},
+			err:    &ExistsError{Name: testproducts.Bar_Beer.Name},
+			target: &ExistsError{Name: testproducts.Bar_Beer.Name},
 			want:   true,
 		},
 		{
-			err:    &ProductExistsError{Name: testproducts.Bar_Beer.Name},
-			target: &ProductExistsError{Name: testproducts.Bar_Cocktail.Name},
+			err:    &ExistsError{Name: testproducts.Bar_Beer.Name},
+			target: &ExistsError{Name: testproducts.Bar_Cocktail.Name},
 			want:   false,
 		},
 		{
-			err:    &ProductExistsError{Name: testproducts.Bar_Beer.Name},
+			err:    &ExistsError{Name: testproducts.Bar_Beer.Name},
 			target: fmt.Errorf("product exists: %q", testproducts.Bar_Beer.Name),
 			want:   false,
 		},
