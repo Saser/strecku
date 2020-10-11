@@ -123,6 +123,74 @@ func TestExistsError_Error(t *testing.T) {
 	}
 }
 
+func TestExistsError_Is(t *testing.T) {
+	for _, test := range []struct {
+		err    *ExistsError
+		target error
+		want   bool
+	}{
+		{
+			err:    &ExistsError{Name: testmemberships.Alice_Bar.Name},
+			target: &ExistsError{Name: testmemberships.Alice_Bar.Name},
+			want:   true,
+		},
+		{
+			err:    &ExistsError{Name: testmemberships.Alice_Bar.Name},
+			target: &ExistsError{Name: testmemberships.Alice_Mall.Name},
+			want:   false,
+		},
+		{
+			err:    &ExistsError{Name: testmemberships.Alice_Bar.Name},
+			target: &ExistsError{User: testusers.Alice.Name, Store: teststores.Bar.Name},
+			want:   false,
+		},
+		{
+			err:    &ExistsError{User: testusers.Alice.Name, Store: teststores.Bar.Name},
+			target: &ExistsError{Name: testmemberships.Alice_Bar.Name},
+			want:   false,
+		},
+		{
+			err:    &ExistsError{User: testusers.Alice.Name, Store: teststores.Bar.Name},
+			target: &ExistsError{User: testusers.Alice.Name, Store: teststores.Bar.Name},
+			want:   true,
+		},
+		{
+			err:    &ExistsError{User: testusers.Alice.Name, Store: teststores.Bar.Name},
+			target: &ExistsError{User: testusers.Alice.Name, Store: teststores.Mall.Name},
+			want:   false,
+		},
+		{
+			err:    &ExistsError{User: testusers.Alice.Name, Store: teststores.Bar.Name},
+			target: &ExistsError{User: testusers.Bob.Name, Store: teststores.Bar.Name},
+			want:   false,
+		},
+		{
+			err:    &ExistsError{User: testusers.Alice.Name, Store: teststores.Mall.Name},
+			target: &ExistsError{User: testusers.Alice.Name, Store: teststores.Bar.Name},
+			want:   false,
+		},
+		{
+			err:    &ExistsError{User: testusers.Bob.Name, Store: teststores.Bar.Name},
+			target: &ExistsError{User: testusers.Alice.Name, Store: teststores.Bar.Name},
+			want:   false,
+		},
+		{
+			err:    &ExistsError{Name: testmemberships.Alice_Bar.Name},
+			target: fmt.Errorf("membership exists: %q", testmemberships.Alice_Bar.Name),
+			want:   false,
+		},
+		{
+			err:    &ExistsError{User: testusers.Alice.Name, Store: teststores.Bar.Name},
+			target: fmt.Errorf("membership exists: between %q and %q", testusers.Alice.Name, teststores.Bar.Name),
+			want:   false,
+		},
+	} {
+		if got := test.err.Is(test.target); got != test.want {
+			t.Errorf("test.err.Is(%v) = %v; want %v", test.target, got, test.want)
+		}
+	}
+}
+
 func TestRepository_LookupMembership(t *testing.T) {
 	ctx := context.Background()
 	r := SeedRepository(t, []*pb.Membership{testmemberships.Alice_Bar})
