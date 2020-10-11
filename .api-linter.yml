@@ -9,5 +9,6 @@
     - "core::0131::request-name-reference"
     - "core::0133::method-signature"
     - "core::0133::request-resource-behavior"
+    - "core::0203::optional"
     - "core::0203::output-only"
     - "core::0203::required"

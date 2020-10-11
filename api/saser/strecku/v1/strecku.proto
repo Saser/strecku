@@ -110,6 +110,58 @@ message Product {
   int64 discount_price_cents = 5;
 }
 
+// Purchase represents a transaction where a user increases their debt towards a
+// store. Several things can be bought in a single purchase; see the inline
+// message Line for more details.
+message Purchase {
+  // name is the resource name of the purchase.
+  // Format: purchases/{purchase}
+  // Required.
+  string name = 1;
+
+  // user is the resource name of the user making the purchase.
+  // Format: users/{user}
+  // Required.
+  string user = 2;
+
+  // store is the resource name of the store in which the purchase is made.
+  // Format: stores/{store}
+  // Required.
+  string store = 3;
+
+  // Line represents a single "order line" in the purchase. Each line contains
+  // information about what is bought, how many of it, and what price each unit
+  // has.
+  message Line {
+    // description contains a human-readable description of what is being
+    // bought. Typically, this is the name of a product at the time of purchase.
+    // Required.
+    string description = 1;
+
+    // quantity is the number of units that is being purchased. It must be
+    // positive.
+    // Required.
+    int32 quantity = 2;
+
+    // price_cents contains the price in cents of each unit. It must be
+    // non-positive.
+    // Required.
+    int64 price_cents = 3;
+
+    // product contains the resource name of the product that this line
+    // represents, if any. The store owning the product must be the same as the
+    // store in which this purchase is made.
+    // Format: stores/{store}/products/{store}
+    // Optional.
+    string product = 4;
+  }
+
+  // lines contains the lines of this purchase. There must be at least one line
+  // in each purchase.
+  // Required.
+  repeated Line lines = 4;
+}
+
 // GetUserRequest is the request message for GetUser.
 message GetUserRequest {
   // name is the resource name of the user to get.
