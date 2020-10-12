@@ -348,3 +348,70 @@ func TestRepository_UpdatePurchase(t *testing.T) {
 		}
 	})
 }
+
+func TestRepository_DeletePurchase(t *testing.T) {
+	ctx := context.Background()
+	t.Run("OK", func(t *testing.T) {
+		r := SeedRepository(t, []*pb.Purchase{
+			testresources.Alice_Beer1,
+			testresources.Alice_Cocktail1,
+		})
+		if err := r.DeletePurchase(ctx, testresources.Alice_Beer1.Name); err != nil {
+			t.Errorf("r.DeletePurchase(%v, %q) = %v; want nil", ctx, testresources.Alice_Beer1.Name, err)
+		}
+		for _, test := range []struct {
+			desc         string
+			name         string
+			wantPurchase *pb.Purchase
+			wantErr      error
+		}{
+			{
+				desc:         "LookupDeleted",
+				name:         testresources.Alice_Beer1.Name,
+				wantPurchase: nil,
+				wantErr:      &NotFoundError{Name: testresources.Alice_Beer1.Name},
+			},
+			{
+				desc:         "LookupExisting",
+				name:         testresources.Alice_Cocktail1.Name,
+				wantPurchase: testresources.Alice_Cocktail1,
+				wantErr:      nil,
+			},
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				store, err := r.LookupPurchase(ctx, test.name)
+				if diff := cmp.Diff(store, test.wantPurchase, protocmp.Transform()); diff != "" {
+					t.Errorf("r.LookupPurchase(%v, %q) store != test.wantPurchase (-got +want)\n%s", ctx, test.name, diff)
+				}
+				if !cmp.Equal(err, test.wantErr, cmpopts.EquateErrors()) {
+					t.Errorf("r.LookupPurchase(%v, %q) err = %v; want %v", ctx, test.name, err, test.wantErr)
+				}
+			})
+		}
+	})
+	t.Run("Errors", func(t *testing.T) {
+		r := SeedRepository(t, []*pb.Purchase{testresources.Alice_Beer1})
+		for _, test := range []struct {
+			desc string
+			name string
+			want error
+		}{
+			{
+				desc: "EmptyName",
+				name: "",
+				want: ErrNameEmpty,
+			},
+			{
+				desc: "NotFound",
+				name: testresources.Alice_Cocktail1.Name,
+				want: &NotFoundError{Name: testresources.Alice_Cocktail1.Name},
+			},
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				if got := r.DeletePurchase(ctx, test.name); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+					t.Errorf("r.DeletePurchase(%v, %q) = %v; want %v", ctx, test.name, got, test.want)
+				}
+			})
+		}
+	})
+}

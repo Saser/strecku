@@ -129,3 +129,14 @@ func (r *Repository) UpdatePurchase(ctx context.Context, updated *pb.Purchase) e
 	r.purchases[name] = updated
 	return nil
 }
+
+func (r *Repository) DeletePurchase(ctx context.Context, name string) error {
+	if err := ValidateName(name); err != nil {
+		return err
+	}
+	if _, exists := r.purchases[name]; !exists {
+		return &NotFoundError{Name: name}
+	}
+	delete(r.purchases, name)
+	return nil
+}
