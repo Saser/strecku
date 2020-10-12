@@ -48,6 +48,16 @@ type StreckUClient interface {
 	UpdateMembership(ctx context.Context, in *UpdateMembershipRequest, opts ...grpc.CallOption) (*Membership, error)
 	// DeleteMembership deletes a membership.
 	DeleteMembership(ctx context.Context, in *DeleteMembershipRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	// GetProduct gets a single product.
+	GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*Product, error)
+	// ListProducts lists products.
+	ListProducts(ctx context.Context, in *ListProductsRequest, opts ...grpc.CallOption) (*ListProductsResponse, error)
+	// CreateProduct creates a new product.
+	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*Product, error)
+	// UpdateProduct updates a single product.
+	UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*Product, error)
+	// DeleteProduct deletes a product.
+	DeleteProduct(ctx context.Context, in *DeleteProductRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type streckUClient struct {
@@ -193,6 +203,51 @@ func (c *streckUClient) DeleteMembership(ctx context.Context, in *DeleteMembersh
 	return out, nil
 }
 
+func (c *streckUClient) GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*Product, error) {
+	out := new(Product)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/GetProduct", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) ListProducts(ctx context.Context, in *ListProductsRequest, opts ...grpc.CallOption) (*ListProductsResponse, error) {
+	out := new(ListProductsResponse)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/ListProducts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*Product, error) {
+	out := new(Product)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/CreateProduct", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*Product, error) {
+	out := new(Product)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/UpdateProduct", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) DeleteProduct(ctx context.Context, in *DeleteProductRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/DeleteProduct", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StreckUServer is the server API for StreckU service.
 // All implementations must embed UnimplementedStreckUServer
 // for forward compatibility
@@ -227,6 +282,16 @@ type StreckUServer interface {
 	UpdateMembership(context.Context, *UpdateMembershipRequest) (*Membership, error)
 	// DeleteMembership deletes a membership.
 	DeleteMembership(context.Context, *DeleteMembershipRequest) (*empty.Empty, error)
+	// GetProduct gets a single product.
+	GetProduct(context.Context, *GetProductRequest) (*Product, error)
+	// ListProducts lists products.
+	ListProducts(context.Context, *ListProductsRequest) (*ListProductsResponse, error)
+	// CreateProduct creates a new product.
+	CreateProduct(context.Context, *CreateProductRequest) (*Product, error)
+	// UpdateProduct updates a single product.
+	UpdateProduct(context.Context, *UpdateProductRequest) (*Product, error)
+	// DeleteProduct deletes a product.
+	DeleteProduct(context.Context, *DeleteProductRequest) (*empty.Empty, error)
 	mustEmbedUnimplementedStreckUServer()
 }
 
@@ -278,6 +343,21 @@ func (UnimplementedStreckUServer) UpdateMembership(context.Context, *UpdateMembe
 }
 func (UnimplementedStreckUServer) DeleteMembership(context.Context, *DeleteMembershipRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteMembership not implemented")
+}
+func (UnimplementedStreckUServer) GetProduct(context.Context, *GetProductRequest) (*Product, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProduct not implemented")
+}
+func (UnimplementedStreckUServer) ListProducts(context.Context, *ListProductsRequest) (*ListProductsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListProducts not implemented")
+}
+func (UnimplementedStreckUServer) CreateProduct(context.Context, *CreateProductRequest) (*Product, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateProduct not implemented")
+}
+func (UnimplementedStreckUServer) UpdateProduct(context.Context, *UpdateProductRequest) (*Product, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateProduct not implemented")
+}
+func (UnimplementedStreckUServer) DeleteProduct(context.Context, *DeleteProductRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteProduct not implemented")
 }
 func (UnimplementedStreckUServer) mustEmbedUnimplementedStreckUServer() {}
 
@@ -562,6 +642,96 @@ func _StreckU_DeleteMembership_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StreckU_GetProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).GetProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/GetProduct",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).GetProduct(ctx, req.(*GetProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_ListProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListProductsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).ListProducts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/ListProducts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).ListProducts(ctx, req.(*ListProductsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_CreateProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).CreateProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/CreateProduct",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).CreateProduct(ctx, req.(*CreateProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_UpdateProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).UpdateProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/UpdateProduct",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).UpdateProduct(ctx, req.(*UpdateProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_DeleteProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).DeleteProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/DeleteProduct",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).DeleteProduct(ctx, req.(*DeleteProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _StreckU_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "saser.strecku.v1.StreckU",
 	HandlerType: (*StreckUServer)(nil),
@@ -625,6 +795,26 @@ var _StreckU_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteMembership",
 			Handler:    _StreckU_DeleteMembership_Handler,
+		},
+		{
+			MethodName: "GetProduct",
+			Handler:    _StreckU_GetProduct_Handler,
+		},
+		{
+			MethodName: "ListProducts",
+			Handler:    _StreckU_ListProducts_Handler,
+		},
+		{
+			MethodName: "CreateProduct",
+			Handler:    _StreckU_CreateProduct_Handler,
+		},
+		{
+			MethodName: "UpdateProduct",
+			Handler:    _StreckU_UpdateProduct_Handler,
+		},
+		{
+			MethodName: "DeleteProduct",
+			Handler:    _StreckU_DeleteProduct_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -56,6 +56,21 @@ service StreckU {
 
   // DeleteMembership deletes a membership.
   rpc DeleteMembership(DeleteMembershipRequest) returns (google.protobuf.Empty);
+
+  // GetProduct gets a single product.
+  rpc GetProduct(GetProductRequest) returns (Product);
+
+  // ListProducts lists products.
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+
+  // CreateProduct creates a new product.
+  rpc CreateProduct(CreateProductRequest) returns (Product);
+
+  // UpdateProduct updates a single product.
+  rpc UpdateProduct(UpdateProductRequest) returns (Product);
+
+  // DeleteProduct deletes a product.
+  rpc DeleteProduct(DeleteProductRequest) returns (google.protobuf.Empty);
 }
 
 // User represents a user in the system.
@@ -402,4 +417,79 @@ message DeleteMembershipRequest {
   // Format: memberships/{membership}
   // Required.
   string name = 1;
+}
+
+// GetProductRequest is the request message for GetProduct.
+message GetProductRequest {
+  // name is the resource name of the product to get.
+  // Format: stores/{store}/products/{product}
+  // Required.
+  string name = 1;
+}
+
+// ListProductsRequest is the request message for ListProducts.
+message ListProductsRequest {
+  // parent is the resource name of the store for which to list products.
+  // Format: stores/{store}
+  // Required.
+  string parent = 1;
+  
+  // page_size is the maximum number of products to return.
+  // If unspecified, the server will choose a suitable number.
+  int32 page_size = 2;
+
+  // page_token contains an opaque string used to get the next page of
+  // results. It is usually provided by the previous call to ListProducts.
+  // If unspecified, the first page will be returned.
+  string page_token = 3;
+}
+
+// ListProductsResponse is the response message for ListProducts.
+message ListProductsResponse {
+  // products contains the page of products.
+  repeated Product products = 1;
+
+  // next_page_token contains an opaque string used to get the next page of
+  // results. Provide this in a subsequent call to ListProducts.
+  // If this field is empty, there are no more pages.
+  string next_page_token = 2;
+}
+
+// CreateProductRequest is the request message for CreateProduct.
+message CreateProductRequest {
+  // parent is the resource name of the store where the product should be
+  // created.
+  // Format: stores/{store}
+  // Required.
+  string parent = 1;
+
+  // product is the product to be created.
+  // Required.
+  Product product = 2;
+}
+
+// UpdateProductRequest is the request message for UpdateProduct.
+message UpdateProductRequest {
+  // product is the updated product. The `name` field will be used to identify which
+  // product to updated.
+  // Required.
+  Product product = 1;
+
+  // update_mask contains the field mask specifying which fields to update. An
+  // empty field mask will cause the entire resource to be updated.
+  // Optional.
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+// DeleteProductRequest is the request message for DeleteProduct.
+message DeleteProductRequest {
+  // name specifies the resource name of the product to delete.
+  // Format: products/{product}
+  // Required.
+  string name = 1;
+
+  // force should be set to true if any associated resources (purchases, etc)
+  // should also be deleted. If associated resources exist, and force is false,
+  // the request will fail.
+  bool force = 2;
 }
