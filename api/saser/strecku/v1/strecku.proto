@@ -71,6 +71,21 @@ service StreckU {
 
   // DeleteProduct deletes a product.
   rpc DeleteProduct(DeleteProductRequest) returns (google.protobuf.Empty);
+
+  // GetPurchase gets a single purchase.
+  rpc GetPurchase(GetPurchaseRequest) returns (Purchase);
+
+  // ListPurchases lists purchases.
+  rpc ListPurchases(ListPurchasesRequest) returns (ListPurchasesResponse);
+
+  // CreatePurchase creates a new purchase.
+  rpc CreatePurchase(CreatePurchaseRequest) returns (Purchase);
+
+  // UpdatePurchase updates a single purchase.
+  rpc UpdatePurchase(UpdatePurchaseRequest) returns (Purchase);
+
+  // DeletePurchase deletes a purchase.
+  rpc DeletePurchase(DeletePurchaseRequest) returns (google.protobuf.Empty);
 }
 
 // User represents a user in the system.
@@ -492,4 +507,69 @@ message DeleteProductRequest {
   // should also be deleted. If associated resources exist, and force is false,
   // the request will fail.
   bool force = 2;
+}
+
+// GetPurchaseRequest is the request message for GetPurchase.
+message GetPurchaseRequest {
+  // name is the resource name of the purchase to get.
+  // Format: purchases/{purchase}
+  // Required.
+  string name = 1;
+}
+
+// ListPurchasesRequest is the request message for ListPurchases.
+//
+// (-- api-linter: core::0132::request-parent-required=disabled
+//     aip.dev/not-precedent: Purchases are top-level resources. --)
+message ListPurchasesRequest {
+  // page_size is the maximum number of purchases to return.
+  // If unspecified, the server will choose a suitable number.
+  int32 page_size = 1;
+
+  // page_token contains an opaque string used to get the next page of
+  // results. It is usually provided by the previous call to ListPurchases.
+  // If unspecified, the first page will be returned.
+  string page_token = 2;
+}
+
+// ListPurchasesResponse is the response message for ListPurchases.
+message ListPurchasesResponse {
+  // purchases contains the page of purchases.
+  repeated Purchase purchases = 1;
+
+  // next_page_token contains an opaque string used to get the next page of
+  // results. Provide this in a subsequent call to ListPurchases.
+  // If this field is empty, there are no more pages.
+  string next_page_token = 2;
+}
+
+// CreatePurchaseRequest is the request message for CreatePurchase.
+//
+// (-- api-linter: core::0133::request-parent-required=disabled
+//     aip.dev/not-precedent: Purchases are top-level resources. --)
+message CreatePurchaseRequest {
+  // purchase is the purchase to be created.
+  // Required.
+  Purchase purchase = 1;
+}
+
+// UpdatePurchaseRequest is the request message for UpdatePurchase.
+message UpdatePurchaseRequest {
+  // purchase is the updated purchase. The `name` field will be used to identify
+  // which purchase to updated.
+  // Required.
+  Purchase purchase = 1;
+
+  // update_mask contains the field mask specifying which fields to update. An
+  // empty field mask will cause the entire resource to be updated.
+  // Optional.
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+// DeletePurchaseRequest is the request message for DeletePurchase.
+message DeletePurchaseRequest {
+  // name specifies the resource name of the purchase to delete.
+  // Format: purchases/{purchase}
+  // Required.
+  string name = 1;
 }

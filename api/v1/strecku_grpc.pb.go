@@ -58,6 +58,16 @@ type StreckUClient interface {
 	UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*Product, error)
 	// DeleteProduct deletes a product.
 	DeleteProduct(ctx context.Context, in *DeleteProductRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	// GetPurchase gets a single purchase.
+	GetPurchase(ctx context.Context, in *GetPurchaseRequest, opts ...grpc.CallOption) (*Purchase, error)
+	// ListPurchases lists purchases.
+	ListPurchases(ctx context.Context, in *ListPurchasesRequest, opts ...grpc.CallOption) (*ListPurchasesResponse, error)
+	// CreatePurchase creates a new purchase.
+	CreatePurchase(ctx context.Context, in *CreatePurchaseRequest, opts ...grpc.CallOption) (*Purchase, error)
+	// UpdatePurchase updates a single purchase.
+	UpdatePurchase(ctx context.Context, in *UpdatePurchaseRequest, opts ...grpc.CallOption) (*Purchase, error)
+	// DeletePurchase deletes a purchase.
+	DeletePurchase(ctx context.Context, in *DeletePurchaseRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type streckUClient struct {
@@ -248,6 +258,51 @@ func (c *streckUClient) DeleteProduct(ctx context.Context, in *DeleteProductRequ
 	return out, nil
 }
 
+func (c *streckUClient) GetPurchase(ctx context.Context, in *GetPurchaseRequest, opts ...grpc.CallOption) (*Purchase, error) {
+	out := new(Purchase)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/GetPurchase", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) ListPurchases(ctx context.Context, in *ListPurchasesRequest, opts ...grpc.CallOption) (*ListPurchasesResponse, error) {
+	out := new(ListPurchasesResponse)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/ListPurchases", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) CreatePurchase(ctx context.Context, in *CreatePurchaseRequest, opts ...grpc.CallOption) (*Purchase, error) {
+	out := new(Purchase)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/CreatePurchase", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) UpdatePurchase(ctx context.Context, in *UpdatePurchaseRequest, opts ...grpc.CallOption) (*Purchase, error) {
+	out := new(Purchase)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/UpdatePurchase", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) DeletePurchase(ctx context.Context, in *DeletePurchaseRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/DeletePurchase", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StreckUServer is the server API for StreckU service.
 // All implementations must embed UnimplementedStreckUServer
 // for forward compatibility
@@ -292,6 +347,16 @@ type StreckUServer interface {
 	UpdateProduct(context.Context, *UpdateProductRequest) (*Product, error)
 	// DeleteProduct deletes a product.
 	DeleteProduct(context.Context, *DeleteProductRequest) (*empty.Empty, error)
+	// GetPurchase gets a single purchase.
+	GetPurchase(context.Context, *GetPurchaseRequest) (*Purchase, error)
+	// ListPurchases lists purchases.
+	ListPurchases(context.Context, *ListPurchasesRequest) (*ListPurchasesResponse, error)
+	// CreatePurchase creates a new purchase.
+	CreatePurchase(context.Context, *CreatePurchaseRequest) (*Purchase, error)
+	// UpdatePurchase updates a single purchase.
+	UpdatePurchase(context.Context, *UpdatePurchaseRequest) (*Purchase, error)
+	// DeletePurchase deletes a purchase.
+	DeletePurchase(context.Context, *DeletePurchaseRequest) (*empty.Empty, error)
 	mustEmbedUnimplementedStreckUServer()
 }
 
@@ -358,6 +423,21 @@ func (UnimplementedStreckUServer) UpdateProduct(context.Context, *UpdateProductR
 }
 func (UnimplementedStreckUServer) DeleteProduct(context.Context, *DeleteProductRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteProduct not implemented")
+}
+func (UnimplementedStreckUServer) GetPurchase(context.Context, *GetPurchaseRequest) (*Purchase, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPurchase not implemented")
+}
+func (UnimplementedStreckUServer) ListPurchases(context.Context, *ListPurchasesRequest) (*ListPurchasesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPurchases not implemented")
+}
+func (UnimplementedStreckUServer) CreatePurchase(context.Context, *CreatePurchaseRequest) (*Purchase, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePurchase not implemented")
+}
+func (UnimplementedStreckUServer) UpdatePurchase(context.Context, *UpdatePurchaseRequest) (*Purchase, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePurchase not implemented")
+}
+func (UnimplementedStreckUServer) DeletePurchase(context.Context, *DeletePurchaseRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePurchase not implemented")
 }
 func (UnimplementedStreckUServer) mustEmbedUnimplementedStreckUServer() {}
 
@@ -732,6 +812,96 @@ func _StreckU_DeleteProduct_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StreckU_GetPurchase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPurchaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).GetPurchase(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/GetPurchase",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).GetPurchase(ctx, req.(*GetPurchaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_ListPurchases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPurchasesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).ListPurchases(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/ListPurchases",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).ListPurchases(ctx, req.(*ListPurchasesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_CreatePurchase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePurchaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).CreatePurchase(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/CreatePurchase",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).CreatePurchase(ctx, req.(*CreatePurchaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_UpdatePurchase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePurchaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).UpdatePurchase(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/UpdatePurchase",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).UpdatePurchase(ctx, req.(*UpdatePurchaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_DeletePurchase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePurchaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).DeletePurchase(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/DeletePurchase",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).DeletePurchase(ctx, req.(*DeletePurchaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _StreckU_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "saser.strecku.v1.StreckU",
 	HandlerType: (*StreckUServer)(nil),
@@ -815,6 +985,26 @@ var _StreckU_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteProduct",
 			Handler:    _StreckU_DeleteProduct_Handler,
+		},
+		{
+			MethodName: "GetPurchase",
+			Handler:    _StreckU_GetPurchase_Handler,
+		},
+		{
+			MethodName: "ListPurchases",
+			Handler:    _StreckU_ListPurchases_Handler,
+		},
+		{
+			MethodName: "CreatePurchase",
+			Handler:    _StreckU_CreatePurchase_Handler,
+		},
+		{
+			MethodName: "UpdatePurchase",
+			Handler:    _StreckU_UpdatePurchase_Handler,
+		},
+		{
+			MethodName: "DeletePurchase",
+			Handler:    _StreckU_DeletePurchase_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
