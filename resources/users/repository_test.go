@@ -417,7 +417,7 @@ func TestRepository_CreateUser(t *testing.T) {
 			name:     "EmptyPassword",
 			user:     testresources.Bob,
 			password: "",
-			want:     ErrEmptyPassword,
+			want:     ErrPasswordEmpty,
 		},
 		{
 			name:     "DuplicateEmail",

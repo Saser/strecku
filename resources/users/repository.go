@@ -16,7 +16,7 @@ type Repository struct {
 	names     map[string]string   // email address -> name
 }
 
-var ErrEmptyPassword = errors.New("empty password")
+var ErrPasswordEmpty = errors.New("empty password")
 
 type NotFoundError struct {
 	Name         string
@@ -185,7 +185,7 @@ func (r *Repository) CreateUser(_ context.Context, user *pb.User, password strin
 		return &ExistsError{EmailAddress: user.EmailAddress}
 	}
 	if password == "" {
-		return ErrEmptyPassword
+		return ErrPasswordEmpty
 	}
 	r.users[name] = user
 	r.passwords[name] = password

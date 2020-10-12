@@ -14,7 +14,7 @@ func TestValidatePassword(t *testing.T) {
 	}{
 		{
 			password: "",
-			want:     ErrEmptyPassword,
+			want:     ErrPasswordEmpty,
 		},
 	} {
 		if got := ValidatePassword(test.password); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
