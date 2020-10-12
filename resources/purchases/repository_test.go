@@ -245,3 +245,106 @@ func TestRepository_CreatePurchase(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_UpdatePurchase(t *testing.T) {
+	ctx := context.Background()
+	// Test scenario(s) where the update is successful.
+	t.Run("OK", func(t *testing.T) {
+		for _, test := range []struct {
+			desc   string
+			modify func(purchase *pb.Purchase)
+		}{
+			{
+				desc: "UpdateLine",
+				modify: func(purchase *pb.Purchase) {
+					line := purchase.Lines[0]
+					line.Description = "Cider"
+					line.Quantity = 2
+					line.PriceCents = -1500
+					line.Product = ""
+				},
+			},
+			{
+				desc: "AppendLine",
+				modify: func(purchase *pb.Purchase) {
+					purchase.Lines = append(purchase.Lines, &pb.Purchase_Line{
+						Description: testresources.Cocktail.DisplayName,
+						Quantity:    1,
+						PriceCents:  testresources.Cocktail.FullPriceCents,
+						Product:     testresources.Cocktail.Name,
+					})
+				},
+			},
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				r := SeedRepository(t, []*pb.Purchase{testresources.Alice_Beer1})
+				oldPurchase := Clone(testresources.Alice_Beer1)
+				newPurchase := Clone(oldPurchase)
+				test.modify(newPurchase)
+				if err := r.UpdatePurchase(ctx, newPurchase); err != nil {
+					t.Errorf("r.UpdatePurchase(%v, %v) = %v; want nil", ctx, newPurchase, err)
+				}
+				purchase, err := r.LookupPurchase(ctx, newPurchase.Name)
+				if diff := cmp.Diff(
+					purchase, newPurchase, protocmp.Transform(),
+					protocmp.FilterField(new(pb.Purchase), "lines", protocmp.SortRepeated(purchaseLineLess)),
+				); diff != "" {
+					t.Errorf("r.LookupPurchase(%v, %q) purchase != newPurchase (-got +want)\n%s", ctx, newPurchase.Name, diff)
+				}
+				if err != nil {
+					t.Errorf("r.LookupPurchase(%v, %q) err = %v; want nil", ctx, newPurchase.Name, err)
+				}
+			})
+		}
+	})
+	// Test scenario(s) where the update failed.
+	t.Run("Errors", func(t *testing.T) {
+		r := SeedRepository(t, []*pb.Purchase{testresources.Alice_Beer1})
+		for _, test := range []struct {
+			desc   string
+			modify func(purchase *pb.Purchase)
+			want   error
+		}{
+			{
+				desc:   "UpdateUser",
+				modify: func(purchase *pb.Purchase) { purchase.User = testresources.Bob.Name },
+				want:   ErrUpdateUser,
+			},
+			{
+				desc: "UpdateStore",
+				modify: func(purchase *pb.Purchase) {
+					purchase.Store = testresources.Mall.Name
+					// The store is updated, so the product must be modified to be either unset or a
+					// product that belongs to the new store (otherwise it is not a valid purchase).
+					// Unsetting seems simplest.
+					purchase.Lines[0].Product = ""
+				},
+				want: ErrUpdateStore,
+			},
+			{
+				desc:   "NotFound",
+				modify: func(purchase *pb.Purchase) { purchase.Name = testresources.Alice_Cocktail1.Name },
+				want:   &NotFoundError{Name: testresources.Alice_Cocktail1.Name},
+			},
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				oldPurchase := Clone(testresources.Alice_Beer1)
+				newPurchase := Clone(oldPurchase)
+				test.modify(newPurchase)
+				if got := r.UpdatePurchase(ctx, newPurchase); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+					t.Errorf("r.UpdatePurchase(%v, %v) = %v; want %v", ctx, newPurchase, got, test.want)
+				}
+				purchase, err := r.LookupPurchase(ctx, oldPurchase.Name)
+				if diff := cmp.Diff(
+					purchase, oldPurchase, protocmp.Transform(),
+					protocmp.FilterField(new(pb.Purchase), "lines", protocmp.SortRepeated(purchaseLineLess)),
+				); diff != "" {
+					t.Errorf("r.LookupPurchase(%v, %q) purchase != oldPurchase (-got +want)\n%s", ctx, oldPurchase.Name, diff)
+				}
+				if err != nil {
+					t.Errorf("r.LookupPurchase(%v, %q) err = %v; want nil", ctx, oldPurchase.Name, err)
+				}
+			})
+		}
+	})
+}

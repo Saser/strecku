@@ -2,10 +2,16 @@ package purchases
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
+)
+
+var (
+	ErrUpdateUser  = errors.New("user cannot be updated")
+	ErrUpdateStore = errors.New("store cannot be updated")
 )
 
 type NotFoundError struct {
@@ -102,5 +108,24 @@ func (r *Repository) CreatePurchase(ctx context.Context, purchase *pb.Purchase) 
 		return &ExistsError{Name: name}
 	}
 	r.purchases[name] = purchase
+	return nil
+}
+
+func (r *Repository) UpdatePurchase(ctx context.Context, updated *pb.Purchase) error {
+	if err := Validate(updated); err != nil {
+		return err
+	}
+	name := updated.Name
+	purchase, ok := r.purchases[name]
+	if !ok {
+		return &NotFoundError{Name: name}
+	}
+	if updated.User != purchase.User {
+		return ErrUpdateUser
+	}
+	if updated.Store != purchase.Store {
+		return ErrUpdateStore
+	}
+	r.purchases[name] = updated
 	return nil
 }
