@@ -12,6 +12,10 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
+func userLess(u1, u2 *pb.User) bool {
+	return u1.Name < u2.Name
+}
+
 func TestService_GetUser(t *testing.T) {
 	ctx := context.Background()
 	c := serveAndDial(ctx, t, seed(t))
@@ -50,6 +54,55 @@ func TestService_GetUser(t *testing.T) {
 			user, err := c.GetUser(ctx, test.req)
 			if diff := cmp.Diff(user, test.wantUser, protocmp.Transform()); diff != "" {
 				t.Errorf("c.GetUser(%v, %v) user = != test.wantUser (-got +want)\n%s", ctx, test.req, diff)
+			}
+			if got := status.Code(err); got != test.wantCode {
+				t.Errorf("status.Code(%v) = %v; want %v", err, got, test.wantCode)
+			}
+		})
+	}
+}
+
+func TestService_ListUsers(t *testing.T) {
+	ctx := context.Background()
+	c := serveAndDial(ctx, t, seed(t))
+	for _, test := range []struct {
+		desc     string
+		req      *pb.ListUsersRequest
+		wantResp *pb.ListUsersResponse
+		wantCode codes.Code
+	}{
+		{
+			desc:     "OK",
+			req:      &pb.ListUsersRequest{PageSize: 0, PageToken: ""},
+			wantResp: &pb.ListUsersResponse{Users: []*pb.User{testresources.Alice, testresources.Bob}},
+			wantCode: codes.OK,
+		},
+		{
+			desc:     "NegativePageSize",
+			req:      &pb.ListUsersRequest{PageSize: -1, PageToken: ""},
+			wantResp: nil,
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			desc:     "PaginationUnimplemented_PositivePageSize",
+			req:      &pb.ListUsersRequest{PageSize: 1, PageToken: ""},
+			wantResp: nil,
+			wantCode: codes.Unimplemented,
+		},
+		{
+			desc:     "PaginationUnimplemented_NonEmptyPageToken",
+			req:      &pb.ListUsersRequest{PageSize: 0, PageToken: "token"},
+			wantResp: nil,
+			wantCode: codes.Unimplemented,
+		},
+	} {
+		t.Run(test.desc, func(t *testing.T) {
+			resp, err := c.ListUsers(ctx, test.req)
+			if diff := cmp.Diff(
+				resp, test.wantResp, protocmp.Transform(),
+				protocmp.FilterField(new(pb.ListUsersResponse), "users", protocmp.SortRepeated(userLess)),
+			); diff != "" {
+				t.Errorf("c.ListUsers(%v, %v) resp != test.wantResp (-got +want)\n%s", ctx, test.req, diff)
 			}
 			if got := status.Code(err); got != test.wantCode {
 				t.Errorf("status.Code(%v) = %v; want %v", err, got, test.wantCode)

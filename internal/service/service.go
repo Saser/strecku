@@ -43,3 +43,20 @@ func (s *Service) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.User
 	}
 	return user, nil
 }
+
+func (s *Service) ListUsers(ctx context.Context, req *pb.ListUsersRequest) (*pb.ListUsersResponse, error) {
+	if req.PageSize < 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "negative page size: %d", req.PageSize)
+	}
+	if req.PageSize > 0 || req.PageToken != "" {
+		return nil, status.Error(codes.Unimplemented, "pagination is not implemented")
+	}
+	allUsers, err := s.userRepo.ListUsers(ctx)
+	if err != nil {
+		return nil, internalError
+	}
+	return &pb.ListUsersResponse{
+		Users:         allUsers,
+		NextPageToken: "",
+	}, nil
+}
