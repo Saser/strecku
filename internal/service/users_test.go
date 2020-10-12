@@ -6,6 +6,7 @@ import (
 
 	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/testresources"
+	"github.com/Saser/strecku/resources/users"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -103,6 +104,53 @@ func TestService_ListUsers(t *testing.T) {
 				protocmp.FilterField(new(pb.ListUsersResponse), "users", protocmp.SortRepeated(userLess)),
 			); diff != "" {
 				t.Errorf("c.ListUsers(%v, %v) resp != test.wantResp (-got +want)\n%s", ctx, test.req, diff)
+			}
+			if got := status.Code(err); got != test.wantCode {
+				t.Errorf("status.Code(%v) = %v; want %v", err, got, test.wantCode)
+			}
+		})
+	}
+}
+
+func TestService_CreateUser(t *testing.T) {
+	ctx := context.Background()
+	for _, test := range []struct {
+		desc     string
+		req      *pb.CreateUserRequest
+		wantUser *pb.User
+		wantCode codes.Code
+	}{
+		{
+			desc: "OK",
+			req: &pb.CreateUserRequest{
+				User:     testresources.Carol,
+				Password: testresources.CarolPassword,
+			},
+			wantUser: testresources.Carol,
+			wantCode: codes.OK,
+		},
+		{
+			desc: "DuplicateEmailAddress",
+			req: &pb.CreateUserRequest{
+				User: func() *pb.User {
+					carol := users.Clone(testresources.Carol)
+					carol.EmailAddress = testresources.Alice.EmailAddress
+					return carol
+				}(),
+				Password: testresources.CarolPassword,
+			},
+			wantUser: nil,
+			wantCode: codes.AlreadyExists,
+		},
+	} {
+		t.Run(test.desc, func(t *testing.T) {
+			c := serveAndDial(ctx, t, seed(t))
+			user, err := c.CreateUser(ctx, test.req)
+			if diff := cmp.Diff(
+				user, test.wantUser, protocmp.Transform(),
+				protocmp.IgnoreFields(new(pb.User), "name"),
+			); diff != "" {
+				t.Errorf("c.CreateUser(%v, %v) user != test.wantUser (-got +want)\n%s", ctx, test.req, diff)
 			}
 			if got := status.Code(err); got != test.wantCode {
 				t.Errorf("status.Code(%v) = %v; want %v", err, got, test.wantCode)

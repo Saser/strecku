@@ -60,3 +60,21 @@ func (s *Service) ListUsers(ctx context.Context, req *pb.ListUsersRequest) (*pb.
 		NextPageToken: "",
 	}, nil
 }
+
+func (s *Service) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.User, error) {
+	user := req.User
+	user.Name = users.GenerateName()
+	if err := users.Validate(user); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user: %v", err)
+	}
+	if err := users.ValidatePassword(req.Password); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid password: %v", err)
+	}
+	if err := s.userRepo.CreateUser(ctx, user, req.Password); err != nil {
+		if exists := new(users.ExistsError); errors.As(err, &exists) {
+			return nil, status.Error(codes.AlreadyExists, exists.Error())
+		}
+		return nil, internalError
+	}
+	return user, nil
+}
