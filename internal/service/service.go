@@ -78,3 +78,36 @@ func (s *Service) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*p
 	}
 	return user, nil
 }
+
+func (s *Service) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.User, error) {
+	src := req.User
+	dst, err := s.GetUser(ctx, &pb.GetUserRequest{Name: src.Name})
+	if err != nil {
+		return nil, err
+	}
+	mask := req.UpdateMask
+	if mask == nil {
+		dst = src
+	} else {
+		if !mask.IsValid(dst) {
+			return nil, status.Error(codes.InvalidArgument, "invalid update mask")
+		}
+		for _, path := range mask.Paths {
+			switch path {
+			case "email_address":
+				dst.EmailAddress = src.EmailAddress
+			case "display_name":
+				dst.DisplayName = src.DisplayName
+			default:
+				return nil, status.Errorf(codes.Internal, "update not implemented for path %q", path)
+			}
+		}
+	}
+	if err := s.userRepo.UpdateUser(ctx, dst); err != nil {
+		if exists := new(users.ExistsError); errors.As(err, &exists) {
+			return nil, status.Error(codes.AlreadyExists, exists.Error())
+		}
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user: %v", err)
+	}
+	return dst, nil
+}
