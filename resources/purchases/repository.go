@@ -92,3 +92,15 @@ func (r *Repository) FilterPurchases(ctx context.Context, predicate func(*pb.Pur
 	}
 	return filtered, nil
 }
+
+func (r *Repository) CreatePurchase(ctx context.Context, purchase *pb.Purchase) error {
+	if err := Validate(purchase); err != nil {
+		return err
+	}
+	name := purchase.Name
+	if _, exists := r.purchases[name]; exists {
+		return &ExistsError{Name: name}
+	}
+	r.purchases[name] = purchase
+	return nil
+}

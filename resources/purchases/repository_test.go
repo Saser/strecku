@@ -203,3 +203,45 @@ func TestRepository_FilterPurchases(t *testing.T) {
 		})
 	}
 }
+
+func TestRepository_CreatePurchase(t *testing.T) {
+	ctx := context.Background()
+	for _, test := range []struct {
+		desc     string
+		purchase *pb.Purchase
+		want     error
+	}{
+		{
+			desc:     "OK",
+			purchase: testresources.Alice_Cocktail1,
+			want:     nil,
+		},
+		{
+			desc: "DuplicateName",
+			purchase: func() *pb.Purchase {
+				purchase := Clone(testresources.Alice_Cocktail1)
+				purchase.Name = testresources.Alice_Beer1.Name
+				return purchase
+			}(),
+			want: &ExistsError{Name: testresources.Alice_Beer1.Name},
+		},
+		{
+			desc: "InvalidPurchase",
+			purchase: func() *pb.Purchase {
+				// Create a purchase with no lines.
+				// This type of invalidity was chosen arbitrarily.
+				purchase := Clone(testresources.Alice_Cocktail1)
+				purchase.Lines = nil
+				return purchase
+			}(),
+			want: ErrLinesEmpty,
+		},
+	} {
+		t.Run(test.desc, func(t *testing.T) {
+			r := SeedRepository(t, []*pb.Purchase{testresources.Alice_Beer1})
+			if got := r.CreatePurchase(ctx, test.purchase); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+				t.Errorf("r.CreatePurchase(%v, %v) = %v; want %v", ctx, test.purchase, got, test.want)
+			}
+		})
+	}
+}
