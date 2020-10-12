@@ -38,6 +38,16 @@ type StreckUClient interface {
 	UpdateStore(ctx context.Context, in *UpdateStoreRequest, opts ...grpc.CallOption) (*Store, error)
 	// DeleteStore deletes a store.
 	DeleteStore(ctx context.Context, in *DeleteStoreRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	// GetMembership gets a single membership.
+	GetMembership(ctx context.Context, in *GetMembershipRequest, opts ...grpc.CallOption) (*Membership, error)
+	// ListMemberships lists memberships.
+	ListMemberships(ctx context.Context, in *ListMembershipsRequest, opts ...grpc.CallOption) (*ListMembershipsResponse, error)
+	// CreateMembership creates a new membership.
+	CreateMembership(ctx context.Context, in *CreateMembershipRequest, opts ...grpc.CallOption) (*Membership, error)
+	// UpdateMembership updates a single membership.
+	UpdateMembership(ctx context.Context, in *UpdateMembershipRequest, opts ...grpc.CallOption) (*Membership, error)
+	// DeleteMembership deletes a membership.
+	DeleteMembership(ctx context.Context, in *DeleteMembershipRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type streckUClient struct {
@@ -138,6 +148,51 @@ func (c *streckUClient) DeleteStore(ctx context.Context, in *DeleteStoreRequest,
 	return out, nil
 }
 
+func (c *streckUClient) GetMembership(ctx context.Context, in *GetMembershipRequest, opts ...grpc.CallOption) (*Membership, error) {
+	out := new(Membership)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/GetMembership", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) ListMemberships(ctx context.Context, in *ListMembershipsRequest, opts ...grpc.CallOption) (*ListMembershipsResponse, error) {
+	out := new(ListMembershipsResponse)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/ListMemberships", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) CreateMembership(ctx context.Context, in *CreateMembershipRequest, opts ...grpc.CallOption) (*Membership, error) {
+	out := new(Membership)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/CreateMembership", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) UpdateMembership(ctx context.Context, in *UpdateMembershipRequest, opts ...grpc.CallOption) (*Membership, error) {
+	out := new(Membership)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/UpdateMembership", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) DeleteMembership(ctx context.Context, in *DeleteMembershipRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/DeleteMembership", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StreckUServer is the server API for StreckU service.
 // All implementations must embed UnimplementedStreckUServer
 // for forward compatibility
@@ -162,6 +217,16 @@ type StreckUServer interface {
 	UpdateStore(context.Context, *UpdateStoreRequest) (*Store, error)
 	// DeleteStore deletes a store.
 	DeleteStore(context.Context, *DeleteStoreRequest) (*empty.Empty, error)
+	// GetMembership gets a single membership.
+	GetMembership(context.Context, *GetMembershipRequest) (*Membership, error)
+	// ListMemberships lists memberships.
+	ListMemberships(context.Context, *ListMembershipsRequest) (*ListMembershipsResponse, error)
+	// CreateMembership creates a new membership.
+	CreateMembership(context.Context, *CreateMembershipRequest) (*Membership, error)
+	// UpdateMembership updates a single membership.
+	UpdateMembership(context.Context, *UpdateMembershipRequest) (*Membership, error)
+	// DeleteMembership deletes a membership.
+	DeleteMembership(context.Context, *DeleteMembershipRequest) (*empty.Empty, error)
 	mustEmbedUnimplementedStreckUServer()
 }
 
@@ -198,6 +263,21 @@ func (UnimplementedStreckUServer) UpdateStore(context.Context, *UpdateStoreReque
 }
 func (UnimplementedStreckUServer) DeleteStore(context.Context, *DeleteStoreRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteStore not implemented")
+}
+func (UnimplementedStreckUServer) GetMembership(context.Context, *GetMembershipRequest) (*Membership, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMembership not implemented")
+}
+func (UnimplementedStreckUServer) ListMemberships(context.Context, *ListMembershipsRequest) (*ListMembershipsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListMemberships not implemented")
+}
+func (UnimplementedStreckUServer) CreateMembership(context.Context, *CreateMembershipRequest) (*Membership, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateMembership not implemented")
+}
+func (UnimplementedStreckUServer) UpdateMembership(context.Context, *UpdateMembershipRequest) (*Membership, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateMembership not implemented")
+}
+func (UnimplementedStreckUServer) DeleteMembership(context.Context, *DeleteMembershipRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteMembership not implemented")
 }
 func (UnimplementedStreckUServer) mustEmbedUnimplementedStreckUServer() {}
 
@@ -392,6 +472,96 @@ func _StreckU_DeleteStore_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StreckU_GetMembership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMembershipRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).GetMembership(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/GetMembership",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).GetMembership(ctx, req.(*GetMembershipRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_ListMemberships_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMembershipsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).ListMemberships(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/ListMemberships",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).ListMemberships(ctx, req.(*ListMembershipsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_CreateMembership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateMembershipRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).CreateMembership(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/CreateMembership",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).CreateMembership(ctx, req.(*CreateMembershipRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_UpdateMembership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateMembershipRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).UpdateMembership(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/UpdateMembership",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).UpdateMembership(ctx, req.(*UpdateMembershipRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_DeleteMembership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteMembershipRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).DeleteMembership(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/DeleteMembership",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).DeleteMembership(ctx, req.(*DeleteMembershipRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _StreckU_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "saser.strecku.v1.StreckU",
 	HandlerType: (*StreckUServer)(nil),
@@ -435,6 +605,26 @@ var _StreckU_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteStore",
 			Handler:    _StreckU_DeleteStore_Handler,
+		},
+		{
+			MethodName: "GetMembership",
+			Handler:    _StreckU_GetMembership_Handler,
+		},
+		{
+			MethodName: "ListMemberships",
+			Handler:    _StreckU_ListMemberships_Handler,
+		},
+		{
+			MethodName: "CreateMembership",
+			Handler:    _StreckU_CreateMembership_Handler,
+		},
+		{
+			MethodName: "UpdateMembership",
+			Handler:    _StreckU_UpdateMembership_Handler,
+		},
+		{
+			MethodName: "DeleteMembership",
+			Handler:    _StreckU_DeleteMembership_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -41,6 +41,21 @@ service StreckU {
 
   // DeleteStore deletes a store.
   rpc DeleteStore(DeleteStoreRequest) returns (google.protobuf.Empty);
+
+  // GetMembership gets a single membership.
+  rpc GetMembership(GetMembershipRequest) returns (Membership);
+
+  // ListMemberships lists memberships.
+  rpc ListMemberships(ListMembershipsRequest) returns (ListMembershipsResponse);
+
+  // CreateMembership creates a new membership.
+  rpc CreateMembership(CreateMembershipRequest) returns (Membership);
+
+  // UpdateMembership updates a single membership.
+  rpc UpdateMembership(UpdateMembershipRequest) returns (Membership);
+
+  // DeleteMembership deletes a membership.
+  rpc DeleteMembership(DeleteMembershipRequest) returns (google.protobuf.Empty);
 }
 
 // User represents a user in the system.
@@ -322,4 +337,69 @@ message DeleteStoreRequest {
   // purchases, etc) should also be deleted. If associated resources exist, and
   // force is false, the request will fail.
   bool force = 2;
+}
+
+// GetMembershipRequest is the request message for GetMembership.
+message GetMembershipRequest {
+  // name is the resource name of the membership to get.
+  // Format: memberships/{membership}
+  // Required.
+  string name = 1;
+}
+
+// ListMembershipsRequest is the request message for ListMemberships.
+//
+// (-- api-linter: core::0132::request-parent-required=disabled
+//     aip.dev/not-precedent: Memberships are top-level resources. --)
+message ListMembershipsRequest {
+  // page_size is the maximum number of memberships to return.
+  // If unspecified, the server will choose a suitable number.
+  int32 page_size = 1;
+
+  // page_token contains an opaque string used to get the next page of
+  // results. It is usually provided by the previous call to ListMemberships.
+  // If unspecified, the first page will be returned.
+  string page_token = 2;
+}
+
+// ListMembershipsResponse is the response message for ListMemberships.
+message ListMembershipsResponse {
+  // memberships contains the page of memberships.
+  repeated Membership memberships = 1;
+
+  // next_page_token contains an opaque string used to get the next page of
+  // results. Provide this in a subsequent call to ListMemberships.
+  // If this field is empty, there are no more pages.
+  string next_page_token = 2;
+}
+
+// CreateMembershipRequest is the request message for CreateMembership.
+//
+// (-- api-linter: core::0133::request-parent-required=disabled
+//     aip.dev/not-precedent: Memberships are top-level resources. --)
+message CreateMembershipRequest {
+  // membership is the membership to be created.
+  // Required.
+  Membership membership = 1;
+}
+
+// UpdateMembershipRequest is the request message for UpdateMembership.
+message UpdateMembershipRequest {
+  // membership is the updated membership. The `name` field will be used to identify which
+  // membership to updated.
+  // Required.
+  Membership membership = 1;
+
+  // update_mask contains the field mask specifying which fields to update. An
+  // empty field mask will cause the entire resource to be updated.
+  // Optional.
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+// DeleteMembershipRequest is the request message for DeleteMembership.
+message DeleteMembershipRequest {
+  // name specifies the resource name of the membership to delete.
+  // Format: memberships/{membership}
+  // Required.
+  string name = 1;
 }
