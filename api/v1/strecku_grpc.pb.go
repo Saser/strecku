@@ -4,6 +4,7 @@ package pb
 
 import (
 	context "context"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -23,12 +24,20 @@ type StreckUClient interface {
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
 	// CreateUser creates a new user.
 	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*User, error)
+	// UpdateUser updates a single user.
+	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error)
+	// DeleteUser deletes a user.
+	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// GetStore gets a single store.
 	GetStore(ctx context.Context, in *GetStoreRequest, opts ...grpc.CallOption) (*Store, error)
 	// ListStores lists stores.
 	ListStores(ctx context.Context, in *ListStoresRequest, opts ...grpc.CallOption) (*ListStoresResponse, error)
 	// CreateStore creates a new store.
 	CreateStore(ctx context.Context, in *CreateStoreRequest, opts ...grpc.CallOption) (*Store, error)
+	// UpdateStore updates a single store.
+	UpdateStore(ctx context.Context, in *UpdateStoreRequest, opts ...grpc.CallOption) (*Store, error)
+	// DeleteStore deletes a store.
+	DeleteStore(ctx context.Context, in *DeleteStoreRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type streckUClient struct {
@@ -66,6 +75,24 @@ func (c *streckUClient) CreateUser(ctx context.Context, in *CreateUserRequest, o
 	return out, nil
 }
 
+func (c *streckUClient) UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/UpdateUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/DeleteUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *streckUClient) GetStore(ctx context.Context, in *GetStoreRequest, opts ...grpc.CallOption) (*Store, error) {
 	out := new(Store)
 	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/GetStore", in, out, opts...)
@@ -93,6 +120,24 @@ func (c *streckUClient) CreateStore(ctx context.Context, in *CreateStoreRequest,
 	return out, nil
 }
 
+func (c *streckUClient) UpdateStore(ctx context.Context, in *UpdateStoreRequest, opts ...grpc.CallOption) (*Store, error) {
+	out := new(Store)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/UpdateStore", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) DeleteStore(ctx context.Context, in *DeleteStoreRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/DeleteStore", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StreckUServer is the server API for StreckU service.
 // All implementations must embed UnimplementedStreckUServer
 // for forward compatibility
@@ -103,12 +148,20 @@ type StreckUServer interface {
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
 	// CreateUser creates a new user.
 	CreateUser(context.Context, *CreateUserRequest) (*User, error)
+	// UpdateUser updates a single user.
+	UpdateUser(context.Context, *UpdateUserRequest) (*User, error)
+	// DeleteUser deletes a user.
+	DeleteUser(context.Context, *DeleteUserRequest) (*empty.Empty, error)
 	// GetStore gets a single store.
 	GetStore(context.Context, *GetStoreRequest) (*Store, error)
 	// ListStores lists stores.
 	ListStores(context.Context, *ListStoresRequest) (*ListStoresResponse, error)
 	// CreateStore creates a new store.
 	CreateStore(context.Context, *CreateStoreRequest) (*Store, error)
+	// UpdateStore updates a single store.
+	UpdateStore(context.Context, *UpdateStoreRequest) (*Store, error)
+	// DeleteStore deletes a store.
+	DeleteStore(context.Context, *DeleteStoreRequest) (*empty.Empty, error)
 	mustEmbedUnimplementedStreckUServer()
 }
 
@@ -125,6 +178,12 @@ func (UnimplementedStreckUServer) ListUsers(context.Context, *ListUsersRequest) 
 func (UnimplementedStreckUServer) CreateUser(context.Context, *CreateUserRequest) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
+func (UnimplementedStreckUServer) UpdateUser(context.Context, *UpdateUserRequest) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
+}
+func (UnimplementedStreckUServer) DeleteUser(context.Context, *DeleteUserRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
+}
 func (UnimplementedStreckUServer) GetStore(context.Context, *GetStoreRequest) (*Store, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStore not implemented")
 }
@@ -133,6 +192,12 @@ func (UnimplementedStreckUServer) ListStores(context.Context, *ListStoresRequest
 }
 func (UnimplementedStreckUServer) CreateStore(context.Context, *CreateStoreRequest) (*Store, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateStore not implemented")
+}
+func (UnimplementedStreckUServer) UpdateStore(context.Context, *UpdateStoreRequest) (*Store, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateStore not implemented")
+}
+func (UnimplementedStreckUServer) DeleteStore(context.Context, *DeleteStoreRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteStore not implemented")
 }
 func (UnimplementedStreckUServer) mustEmbedUnimplementedStreckUServer() {}
 
@@ -201,6 +266,42 @@ func _StreckU_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StreckU_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).UpdateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/UpdateUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).UpdateUser(ctx, req.(*UpdateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/DeleteUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).DeleteUser(ctx, req.(*DeleteUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _StreckU_GetStore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetStoreRequest)
 	if err := dec(in); err != nil {
@@ -255,6 +356,42 @@ func _StreckU_CreateStore_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StreckU_UpdateStore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateStoreRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).UpdateStore(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/UpdateStore",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).UpdateStore(ctx, req.(*UpdateStoreRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_DeleteStore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteStoreRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).DeleteStore(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/DeleteStore",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).DeleteStore(ctx, req.(*DeleteStoreRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _StreckU_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "saser.strecku.v1.StreckU",
 	HandlerType: (*StreckUServer)(nil),
@@ -272,6 +409,14 @@ var _StreckU_serviceDesc = grpc.ServiceDesc{
 			Handler:    _StreckU_CreateUser_Handler,
 		},
 		{
+			MethodName: "UpdateUser",
+			Handler:    _StreckU_UpdateUser_Handler,
+		},
+		{
+			MethodName: "DeleteUser",
+			Handler:    _StreckU_DeleteUser_Handler,
+		},
+		{
 			MethodName: "GetStore",
 			Handler:    _StreckU_GetStore_Handler,
 		},
@@ -282,6 +427,14 @@ var _StreckU_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateStore",
 			Handler:    _StreckU_CreateStore_Handler,
+		},
+		{
+			MethodName: "UpdateStore",
+			Handler:    _StreckU_UpdateStore_Handler,
+		},
+		{
+			MethodName: "DeleteStore",
+			Handler:    _StreckU_DeleteStore_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

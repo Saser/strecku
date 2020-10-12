@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package saser.strecku.v1;
 
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+
 option go_package = "github.com/Saser/strecku/api/v1;pb";
 option java_package = "se.saser.strecku.v1";
 option java_multiple_files = true;
@@ -18,6 +21,12 @@ service StreckU {
   // CreateUser creates a new user.
   rpc CreateUser(CreateUserRequest) returns (User);
 
+  // UpdateUser updates a single user.
+  rpc UpdateUser(UpdateUserRequest) returns (User);
+
+  // DeleteUser deletes a user.
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+
   // GetStore gets a single store.
   rpc GetStore(GetStoreRequest) returns (Store);
 
@@ -26,6 +35,12 @@ service StreckU {
 
   // CreateStore creates a new store.
   rpc CreateStore(CreateStoreRequest) returns (Store);
+
+  // UpdateStore updates a single store.
+  rpc UpdateStore(UpdateStoreRequest) returns (Store);
+
+  // DeleteStore deletes a store.
+  rpc DeleteStore(DeleteStoreRequest) returns (google.protobuf.Empty);
 }
 
 // User represents a user in the system.
@@ -213,6 +228,32 @@ message CreateUserRequest {
   string password = 2;
 }
 
+// UpdateUserRequest is the request message for UpdateUser.
+message UpdateUserRequest {
+  // user is the updated user. The `name` field will be used to identify which
+  // user to updated.
+  // Required.
+  User user = 1;
+
+  // update_mask contains the field mask specifying which fields to update. An
+  // empty field mask will cause the entire resource to be updated.
+  // Optional.
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+// DeleteUserRequest is the request message for DeleteUser.
+message DeleteUserRequest {
+  // name specifies the resource name of the user to delete.
+  // Format: users/{user}
+  // Required.
+  string name = 1;
+
+  // force should be set to true if any associated resources (memberships,
+  // purchases, etc) should also be deleted. If associated resources exist, and
+  // force is false, the request will fail.
+  bool force = 2;
+}
+
 // GetStoreRequest is the request message for GetStore.
 message GetStoreRequest {
   // name is the resource name of the store to get.
@@ -255,4 +296,30 @@ message CreateStoreRequest {
   // store is the store to be created.
   // Required.
   Store store = 1;
+}
+
+// UpdateStoreRequest is the request message for UpdateStore.
+message UpdateStoreRequest {
+  // store is the updated store. The `name` field will be used to identify which
+  // store to updated.
+  // Required.
+  Store store = 1;
+
+  // update_mask contains the field mask specifying which fields to update. An
+  // empty field mask will cause the entire resource to be updated.
+  // Optional.
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+// DeleteStoreRequest is the request message for DeleteStore.
+message DeleteStoreRequest {
+  // name specifies the resource name of the store to delete.
+  // Format: stores/{store}
+  // Required.
+  string name = 1;
+
+  // force should be set to true if any associated resources (memberships,
+  // purchases, etc) should also be deleted. If associated resources exist, and
+  // force is false, the request will fail.
+  bool force = 2;
 }
