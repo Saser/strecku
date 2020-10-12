@@ -7,6 +7,8 @@ import (
 	"time"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/resources/testresources"
+	"github.com/Saser/strecku/resources/users"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 )
@@ -15,7 +17,18 @@ const bufSize = 1024 * 1024
 
 func seed(t *testing.T) *Service {
 	t.Helper()
-	return New()
+	userRepo := users.SeedRepository(
+		t,
+		[]*pb.User{
+			testresources.Alice,
+			testresources.Bob,
+		},
+		[]string{
+			testresources.AlicePassword,
+			testresources.BobPassword,
+		},
+	)
+	return New(userRepo)
 }
 
 func serveAndDial(ctx context.Context, t *testing.T, svc *Service) pb.StreckUClient {
