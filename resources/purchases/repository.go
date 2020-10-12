@@ -1,6 +1,12 @@
 package purchases
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	pb "github.com/Saser/strecku/api/v1"
+)
 
 type NotFoundError struct {
 	Name string
@@ -32,4 +38,43 @@ func (e *ExistsError) Is(target error) bool {
 		return false
 	}
 	return other.Name == e.Name
+}
+
+type Repository struct {
+	purchases map[string]*pb.Purchase // name -> purchase
+}
+
+func NewRepository() *Repository {
+	return newRepository(make(map[string]*pb.Purchase))
+}
+
+func SeedRepository(t *testing.T, purchases []*pb.Purchase) *Repository {
+	mPurchases := make(map[string]*pb.Purchase)
+	for _, purchase := range purchases {
+		if err := Validate(purchase); err != nil {
+			t.Errorf("Validate(%v) = %v; want nil", purchase, err)
+		}
+		mPurchases[purchase.Name] = purchase
+	}
+	if t.Failed() {
+		t.FailNow()
+	}
+	return newRepository(mPurchases)
+}
+
+func newRepository(purchases map[string]*pb.Purchase) *Repository {
+	return &Repository{
+		purchases: purchases,
+	}
+}
+
+func (r *Repository) LookupPurchase(ctx context.Context, name string) (*pb.Purchase, error) {
+	if err := ValidateName(name); err != nil {
+		return nil, err
+	}
+	purchase, ok := r.purchases[name]
+	if !ok {
+		return nil, &NotFoundError{Name: name}
+	}
+	return purchase, nil
 }
