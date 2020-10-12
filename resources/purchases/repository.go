@@ -78,3 +78,17 @@ func (r *Repository) LookupPurchase(ctx context.Context, name string) (*pb.Purch
 	}
 	return purchase, nil
 }
+
+func (r *Repository) ListPurchases(ctx context.Context) ([]*pb.Purchase, error) {
+	return r.FilterPurchases(ctx, func(*pb.Purchase) bool { return true })
+}
+
+func (r *Repository) FilterPurchases(ctx context.Context, predicate func(*pb.Purchase) bool) ([]*pb.Purchase, error) {
+	var filtered []*pb.Purchase
+	for _, purchase := range r.purchases {
+		if predicate(purchase) {
+			filtered = append(filtered, purchase)
+		}
+	}
+	return filtered, nil
+}

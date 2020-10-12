@@ -12,6 +12,14 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
+func purchaseLess(p1, p2 *pb.Purchase) bool {
+	return p1.Name < p2.Name
+}
+
+func purchaseLineLess(l1, l2 *pb.Purchase_Line) bool {
+	return l1.Description < l2.Description
+}
+
 func TestNotFoundError_Error(t *testing.T) {
 	err := &NotFoundError{Name: testresources.Alice_Beer1.Name}
 	want := fmt.Sprintf("purchase not found: %q", testresources.Alice_Beer1.Name)
@@ -119,6 +127,78 @@ func TestRepository_LookupPurchase(t *testing.T) {
 			}
 			if !cmp.Equal(err, test.wantErr, cmpopts.EquateErrors()) {
 				t.Errorf("r.LookupPurchase(%v, %q) err = %v; want %v", ctx, test.name, err, test.wantErr)
+			}
+		})
+	}
+}
+
+func TestRepository_ListPurchases(t *testing.T) {
+	ctx := context.Background()
+	allPurchases := []*pb.Purchase{
+		testresources.Alice_Beer1,
+		testresources.Alice_Cocktail1,
+		testresources.Alice_Beer2_Cocktail2,
+	}
+	r := SeedRepository(t, allPurchases)
+	purchases, err := r.ListPurchases(ctx)
+	if diff := cmp.Diff(
+		purchases, allPurchases, protocmp.Transform(),
+		cmpopts.EquateEmpty(),
+		cmpopts.SortSlices(purchaseLess),
+		protocmp.FilterField(new(pb.Purchase), "lines", protocmp.SortRepeated(purchaseLineLess)),
+	); diff != "" {
+		t.Errorf("r.ListPurchases(%v) purchases != allPurchases (-got +want)\n%s", ctx, diff)
+	}
+	if err != nil {
+		t.Errorf("r.ListPurchases(%v) err = %v; want nil", ctx, err)
+	}
+}
+
+func TestRepository_FilterPurchases(t *testing.T) {
+	ctx := context.Background()
+	r := SeedRepository(t, []*pb.Purchase{
+		testresources.Alice_Beer1,
+		testresources.Alice_Cocktail1,
+		testresources.Alice_Beer2_Cocktail2,
+	})
+	for _, test := range []struct {
+		desc      string
+		predicate func(*pb.Purchase) bool
+		want      []*pb.Purchase
+	}{
+		{
+			desc:      "NoneMatching",
+			predicate: func(*pb.Purchase) bool { return false },
+			want:      nil,
+		},
+		{
+			desc:      "OneMatching",
+			predicate: func(purchase *pb.Purchase) bool { return purchase.Name == testresources.Alice_Beer1.Name },
+			want: []*pb.Purchase{
+				testresources.Alice_Beer1,
+			},
+		},
+		{
+			desc:      "MultipleMatching",
+			predicate: func(purchase *pb.Purchase) bool { return len(purchase.Lines) == 1 },
+			want: []*pb.Purchase{
+				testresources.Alice_Beer1,
+				testresources.Alice_Cocktail1,
+			},
+		},
+	} {
+		t.Run(test.desc, func(t *testing.T) {
+			filtered, err := r.FilterPurchases(ctx, test.predicate)
+			if diff := cmp.Diff(
+				filtered, test.want, protocmp.Transform(),
+				cmpopts.EquateEmpty(),
+				cmpopts.SortSlices(purchaseLess),
+				protocmp.FilterField(new(pb.Purchase), "lines", protocmp.SortRepeated(purchaseLineLess)),
+			); diff != "" {
+				t.Errorf("r.FilterPurchases(%v, test.predicate) filtered != test.want (-got +want)\n%s", ctx, diff)
+			}
+			if err != nil {
+				t.Errorf("r.FilterPurchases(%v, test.predicate) err = %v; want nil", ctx, err)
 			}
 		})
 	}

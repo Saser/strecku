@@ -29,4 +29,23 @@ var (
 			},
 		},
 	}
+	Alice_Beer2_Cocktail2 = &pb.Purchase{
+		Name:  "purchases/ecfb87bd-9ba4-40e4-a62c-75a14227b037",
+		User:  Alice.Name,
+		Store: Bar.Name,
+		Lines: []*pb.Purchase_Line{
+			{
+				Description: Beer.DisplayName,
+				Quantity:    2,
+				PriceCents:  Beer.FullPriceCents,
+				Product:     Beer.Name,
+			},
+			{
+				Description: Cocktail.DisplayName,
+				Quantity:    2,
+				PriceCents:  Cocktail.FullPriceCents,
+				Product:     Cocktail.Name,
+			},
+		},
+	}
 )
