@@ -82,7 +82,7 @@ func (r *Repository) LookupStore(_ context.Context, name string) (*pb.Store, err
 	if !ok {
 		return nil, &NotFoundError{Name: name}
 	}
-	return store, nil
+	return Clone(store), nil
 }
 
 func (r *Repository) ListStores(ctx context.Context) ([]*pb.Store, error) {
@@ -93,7 +93,7 @@ func (r *Repository) FilterStores(_ context.Context, predicate func(*pb.Store) b
 	var filtered []*pb.Store
 	for _, store := range r.stores {
 		if predicate(store) {
-			filtered = append(filtered, store)
+			filtered = append(filtered, Clone(store))
 		}
 	}
 	return filtered, nil
