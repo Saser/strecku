@@ -338,3 +338,52 @@ func TestService_UpdateUser(t *testing.T) {
 		}
 	})
 }
+
+func TestService_DeleteUser(t *testing.T) {
+	ctx := context.Background()
+	// Test scenario(s) where the delete is successful.
+	t.Run("OK", func(t *testing.T) {
+		c := serveAndDial(ctx, t, seed(t))
+		{
+			req := &pb.DeleteUserRequest{Name: testresources.Alice.Name}
+			_, err := c.DeleteUser(ctx, req)
+			if got, want := status.Code(err), codes.OK; got != want {
+				t.Errorf("status.Code(%v) = %v; want %v", err, got, want)
+			}
+		}
+		{
+			req := &pb.GetUserRequest{Name: testresources.Alice.Name}
+			_, err := c.GetUser(ctx, req)
+			if got, want := status.Code(err), codes.NotFound; got != want {
+				t.Errorf("status.Code(%v) = %v; want %v", err, got, want)
+			}
+		}
+	})
+	// Test scenario(s) where the delete fails.
+	t.Run("Errors", func(t *testing.T) {
+		c := serveAndDial(ctx, t, seed(t))
+		for _, test := range []struct {
+			desc string
+			req  *pb.DeleteUserRequest
+			want codes.Code
+		}{
+			{
+				desc: "EmptyName",
+				req:  &pb.DeleteUserRequest{Name: ""},
+				want: codes.InvalidArgument,
+			},
+			{
+				desc: "NotFound",
+				req:  &pb.DeleteUserRequest{Name: testresources.Carol.Name},
+				want: codes.NotFound,
+			},
+		} {
+			t.Run(test.desc, func(t *testing.T) {
+				_, err := c.DeleteUser(ctx, test.req)
+				if got := status.Code(err); got != test.want {
+					t.Errorf("status.Code(%v) = %v; want %v", err, got, test.want)
+				}
+			})
+		}
+	})
+}

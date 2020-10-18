@@ -8,6 +8,7 @@ import (
 	"github.com/Saser/strecku/resources/users"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var internalError = status.Error(codes.Internal, "internal error")
@@ -110,4 +111,22 @@ func (s *Service) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*p
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user: %v", err)
 	}
 	return dst, nil
+}
+
+func (s *Service) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*emptypb.Empty, error) {
+	if err := users.ValidateName(req.Name); err != nil {
+		switch err {
+		case users.ErrNameEmpty, users.ErrNameInvalidFormat:
+			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		default:
+			return nil, internalError
+		}
+	}
+	if err := s.userRepo.DeleteUser(ctx, req.Name); err != nil {
+		if notFound := new(users.NotFoundError); errors.As(err, &notFound) {
+			return nil, status.Error(codes.NotFound, notFound.Error())
+		}
+		return nil, internalError
+	}
+	return new(emptypb.Empty), nil
 }
