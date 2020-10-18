@@ -2,15 +2,12 @@ package products
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
 	"google.golang.org/protobuf/proto"
 )
-
-var ErrUpdateParent = errors.New("parent cannot be updated")
 
 type NotFoundError struct {
 	Name string
@@ -118,12 +115,8 @@ func (r *Repository) UpdateProduct(ctx context.Context, updated *pb.Product) err
 		return err
 	}
 	name := updated.Name
-	product, ok := r.products[name]
-	if !ok {
+	if _, ok := r.products[name]; !ok {
 		return &NotFoundError{Name: name}
-	}
-	if updated.Parent != product.Parent {
-		return ErrUpdateParent
 	}
 	r.products[name] = updated
 	return nil

@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/testresources"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -176,8 +175,10 @@ func TestRepository_FilterProducts(t *testing.T) {
 			},
 		},
 		{
-			name:      "MultipleMatching",
-			predicate: func(product *pb.Product) bool { return product.Parent == testresources.Bar.Name },
+			name: "MultipleMatching",
+			predicate: func(product *pb.Product) bool {
+				return product.Name == testresources.Beer.Name || product.Name == testresources.Cocktail.Name
+			},
 			want: []*pb.Product{
 				testresources.Beer,
 				testresources.Cocktail,
@@ -265,11 +266,6 @@ func TestRepository_UpdateProduct(t *testing.T) {
 				want:   ErrNameInvalidFormat,
 			},
 			{
-				desc:   "EmptyParent",
-				modify: func(beer *pb.Product) { beer.Parent = "" },
-				want:   stores.ErrNameInvalidFormat,
-			},
-			{
 				desc:   "EmptyDisplayName",
 				modify: func(beer *pb.Product) { beer.DisplayName = "" },
 				want:   ErrDisplayNameEmpty,
@@ -288,11 +284,6 @@ func TestRepository_UpdateProduct(t *testing.T) {
 				desc:   "DiscountPriceHigherThanFullPrice",
 				modify: func(beer *pb.Product) { beer.DiscountPriceCents = beer.FullPriceCents - 1000 },
 				want:   ErrDiscountPriceHigherThanFullPrice,
-			},
-			{
-				desc:   "UpdateParent",
-				modify: func(beer *pb.Product) { beer.Parent = testresources.Pharmacy.Name },
-				want:   ErrUpdateParent,
 			},
 			{
 				desc:   "NotFound",

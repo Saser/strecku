@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/stores"
 )
 
 var (
@@ -16,9 +15,6 @@ var (
 
 func Validate(product *pb.Product) error {
 	if err := ValidateName(product.Name); err != nil {
-		return err
-	}
-	if err := stores.ValidateName(product.Parent); err != nil {
 		return err
 	}
 	if product.DisplayName == "" {

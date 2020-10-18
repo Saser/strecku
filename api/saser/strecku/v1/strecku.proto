@@ -148,26 +148,21 @@ message Product {
   // Output only.
   string name = 1;
 
-  // parent is the resource name of the store owning this product.
-  // Format: stores/{store}
-  // Output only.
-  string parent = 2;
-
   // display_name contains the name of this product as it would be displayed to
   // a human.
   // Required.
-  string display_name = 3;
+  string display_name = 2;
 
   // full_price_cents contains the price of this product in cents before
   // applying a discount. It must be a non-positive amount.
   // Required.
-  int64 full_price_cents = 4;
+  int64 full_price_cents = 3;
 
   // discounted_price_cents contains the price of this product in cents after
   // applying a discount, if any. It must be a non-positive amount. It must be
   // of equal or smaller magnitude compared to full_price_cents.
   // Required.
-  int64 discount_price_cents = 5;
+  int64 discount_price_cents = 4;
 }
 
 // Purchase represents a transaction where a user increases their debt towards a
