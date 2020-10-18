@@ -14,6 +14,9 @@ type Mapper struct {
 
 	purchaseIDs   map[string]primitive.ObjectID
 	purchaseNames map[primitive.ObjectID]string
+
+	paymentIDs   map[string]primitive.ObjectID
+	paymentNames map[primitive.ObjectID]string
 }
 
 type StoreProduct struct {
@@ -33,6 +36,9 @@ func New() *Mapper {
 
 		purchaseIDs:   make(map[string]primitive.ObjectID),
 		purchaseNames: make(map[primitive.ObjectID]string),
+
+		paymentIDs:   make(map[string]primitive.ObjectID),
+		paymentNames: make(map[primitive.ObjectID]string),
 	}
 }
 
@@ -93,5 +99,20 @@ func (m *Mapper) PurchaseID(purchaseName string) (primitive.ObjectID, bool) {
 
 func (m *Mapper) PurchaseName(purchaseID primitive.ObjectID) (string, bool) {
 	name, ok := m.purchaseNames[purchaseID]
+	return name, ok
+}
+
+func (m *Mapper) Payment(id primitive.ObjectID, name string) {
+	m.paymentIDs[name] = id
+	m.paymentNames[id] = name
+}
+
+func (m *Mapper) PaymentID(paymentName string) (primitive.ObjectID, bool) {
+	id, ok := m.paymentIDs[paymentName]
+	return id, ok
+}
+
+func (m *Mapper) PaymentName(paymentID primitive.ObjectID) (string, bool) {
+	name, ok := m.paymentNames[paymentID]
 	return name, ok
 }

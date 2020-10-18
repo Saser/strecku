@@ -11,6 +11,7 @@ import (
 	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/cmd/importer/mapper"
 	"github.com/Saser/strecku/cmd/importer/streckudb"
+	"github.com/Saser/strecku/resources/payments"
 	"github.com/Saser/strecku/resources/products"
 	"github.com/Saser/strecku/resources/purchases"
 	"github.com/Saser/strecku/resources/stores"
@@ -80,7 +81,11 @@ func imain() int {
 			log.Printf("store not found in mapper: %v", purchase.Store)
 			return 1
 		}
-		m.Purchase(purchase.ID, purchases.GenerateName(storeName))
+		if purchase.Price >= 0 {
+			m.Purchase(purchase.ID, purchases.GenerateName(storeName))
+		} else {
+			m.Payment(purchase.ID, payments.GenerateName(storeName))
+		}
 	}
 	// We have to gather combinations of stores and products. There are two
 	// kinds of products we care about:
@@ -263,8 +268,7 @@ func imain() int {
 			return 1
 		}
 		if purchase.Price < 0 {
-			// Negative price, which is a payment, which the API does not
-			// currently support.
+			// Negative price, which is a payment, which the API has a separate resource for.
 			continue
 		}
 		line := new(pb.Purchase_Line)
@@ -295,6 +299,7 @@ func imain() int {
 		purchaseName, ok := m.PurchaseName(purchase.ID)
 		if !ok {
 			log.Printf("purchase not found in mapper: %v", purchase.ID)
+			log.Printf("%+v", purchase)
 			return 1
 		}
 		userName, ok := m.UserName(purchase.User)
@@ -314,6 +319,44 @@ func imain() int {
 		apiPurchases = append(apiPurchases, apiPurchase)
 	}
 	log.Print("converted all purchases to API resources.")
+	log.Print("converting all payments to API resources...")
+	var apiPayments []*pb.Payment
+	for _, payment := range allPurchases {
+		if payment.Amount != nil && *payment.Amount != 1 {
+			log.Printf("payment with existing amount not equal to 1: %+v", payment)
+			return 1
+		}
+		if payment.Price >= 0 {
+			// Non-negative price, which is a purchase, which the API has a separate resource for.
+			continue
+		}
+		paymentName, ok := m.PaymentName(payment.ID)
+		if !ok {
+			log.Printf("payment not found in mapper: %v", payment.ID)
+			return 1
+		}
+		userName, ok := m.UserName(payment.User)
+		if !ok {
+			log.Printf("user not found in mapper: %v", payment.User)
+			return 1
+		}
+		description := ""
+		if payment.Note != nil {
+			description = *payment.Note
+		}
+		apiPayment := &pb.Payment{
+			Name:        paymentName,
+			User:        userName,
+			Description: description,
+			AmountCents: priceCents(payment.Price),
+		}
+		if err := payments.Validate(apiPayment); err != nil {
+			log.Print(err)
+			return 1
+		}
+		apiPayments = append(apiPayments, apiPayment)
+	}
+	log.Print("converted all payments to API resources.")
 
 	userRepo := users.NewRepository()
 	for _, user := range apiUsers {
@@ -338,12 +381,15 @@ func imain() int {
 		}
 	}
 	purchaseRepo := purchases.NewRepository()
-	for i, purchase := range apiPurchases {
-		if purchase == nil {
-			log.Printf("purchase %v = nil", i)
+	for _, purchase := range apiPurchases {
+		if err := purchaseRepo.CreatePurchase(ctx, purchase); err != nil {
+			log.Print(err)
 			return 1
 		}
-		if err := purchaseRepo.CreatePurchase(ctx, purchase); err != nil {
+	}
+	paymentRepo := payments.NewRepository()
+	for _, payment := range apiPayments {
+		if err := paymentRepo.CreatePayment(ctx, payment); err != nil {
 			log.Print(err)
 			return 1
 		}
