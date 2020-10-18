@@ -107,11 +107,14 @@ func (s *Service) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*p
 			}
 		}
 	}
+	if err := users.Validate(dst); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user: %v", err)
+	}
 	if err := s.userRepo.UpdateUser(ctx, dst); err != nil {
 		if exists := new(users.ExistsError); errors.As(err, &exists) {
 			return nil, status.Error(codes.AlreadyExists, exists.Error())
 		}
-		return nil, status.Errorf(codes.InvalidArgument, "invalid user: %v", err)
+		return nil, internalError
 	}
 	return dst, nil
 }
@@ -208,11 +211,11 @@ func (s *Service) UpdateStore(ctx context.Context, req *pb.UpdateStoreRequest) (
 			}
 		}
 	}
-	if err := s.storeRepo.UpdateStore(ctx, dst); err != nil {
-		if exists := new(stores.ExistsError); errors.As(err, &exists) {
-			return nil, status.Error(codes.AlreadyExists, exists.Error())
-		}
+	if err := stores.Validate(dst); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid store: %v", err)
+	}
+	if err := s.storeRepo.UpdateStore(ctx, dst); err != nil {
+		return nil, internalError
 	}
 	return dst, nil
 }
