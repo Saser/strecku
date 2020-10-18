@@ -23,7 +23,7 @@ func TestValidate(t *testing.T) {
 				FullPriceCents:     testresources.Beer.FullPriceCents,
 				DiscountPriceCents: testresources.Beer.DiscountPriceCents,
 			},
-			want: stores.ErrNameEmpty,
+			want: stores.ErrNameInvalidFormat,
 		},
 		{
 			product: &pb.Product{

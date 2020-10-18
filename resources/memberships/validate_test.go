@@ -22,7 +22,7 @@ func TestValidate(t *testing.T) {
 				Administrator: false,
 				Discount:      false,
 			},
-			want: users.ErrNameEmpty,
+			want: users.ErrNameInvalidFormat,
 		},
 		{
 			membership: &pb.Membership{
@@ -32,7 +32,7 @@ func TestValidate(t *testing.T) {
 				Administrator: false,
 				Discount:      false,
 			},
-			want: stores.ErrNameEmpty,
+			want: stores.ErrNameInvalidFormat,
 		},
 	} {
 		if got := Validate(test.membership); got != test.want {

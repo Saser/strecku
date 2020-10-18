@@ -216,7 +216,7 @@ func TestRepository_LookupMembership(t *testing.T) {
 			desc:           "EmptyName",
 			name:           "",
 			wantMembership: nil,
-			wantErr:        ErrNameEmpty,
+			wantErr:        ErrNameInvalidFormat,
 		},
 		{
 			desc:           "NotFound",
@@ -259,14 +259,14 @@ func TestRepository_LookupMembershipBetween(t *testing.T) {
 			user:           "",
 			store:          testresources.Bar.Name,
 			wantMembership: nil,
-			wantErr:        users.ErrNameEmpty,
+			wantErr:        users.ErrNameInvalidFormat,
 		},
 		{
 			desc:           "EmptyStore",
 			user:           testresources.Alice.Name,
 			store:          "",
 			wantMembership: nil,
-			wantErr:        stores.ErrNameEmpty,
+			wantErr:        stores.ErrNameInvalidFormat,
 		},
 		{
 			desc:           "WrongUser",
@@ -534,7 +534,7 @@ func TestRepository_DeleteMembership(t *testing.T) {
 			{
 				desc: "EmptyName",
 				name: "",
-				want: ErrNameEmpty,
+				want: ErrNameInvalidFormat,
 			},
 			{
 				desc: "NotFound",

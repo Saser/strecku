@@ -17,11 +17,11 @@ func TestValidate(t *testing.T) {
 	}{
 		{
 			modify: func(valid *pb.Purchase) { valid.User = "" },
-			want:   users.ErrNameEmpty,
+			want:   users.ErrNameInvalidFormat,
 		},
 		{
 			modify: func(valid *pb.Purchase) { valid.Store = "" },
-			want:   stores.ErrNameEmpty,
+			want:   stores.ErrNameInvalidFormat,
 		},
 		{
 			modify: func(valid *pb.Purchase) { valid.Lines = nil },

@@ -130,7 +130,7 @@ func TestRepository_LookupStore(t *testing.T) {
 			desc:      "EmptyName",
 			name:      "",
 			wantStore: nil,
-			wantErr:   ErrNameEmpty,
+			wantErr:   ErrNameInvalidFormat,
 		},
 		{
 			desc:      "NotFound",
@@ -281,7 +281,7 @@ func TestRepository_UpdateStore(t *testing.T) {
 			{
 				desc:   "EmptyName",
 				modify: func(bar *pb.Store) { bar.Name = "" },
-				want:   ErrNameEmpty,
+				want:   ErrNameInvalidFormat,
 			},
 			{
 				desc:   "EmptyDisplayName",
@@ -353,7 +353,7 @@ func TestRepository_DeleteStore(t *testing.T) {
 			{
 				desc: "EmptyName",
 				name: "",
-				want: ErrNameEmpty,
+				want: ErrNameInvalidFormat,
 			},
 			{
 				desc: "NotFound",

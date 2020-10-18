@@ -22,15 +22,16 @@ func TestGenerateName(t *testing.T) {
 }
 
 func TestValidateName(t *testing.T) {
+	id := "6f2d193c-1460-491d-8157-7dd9535526c6"
 	for _, test := range []struct {
 		name string
 		want error
 	}{
-		{name: "memberships/6f2d193c-1460-491d-8157-7dd9535526c6", want: nil},
-		{name: "", want: ErrNameEmpty},
-		{name: "invalidprefix/6f2d193c-1460-491d-8157-7dd9535526c6", want: ErrNameInvalidFormat},
+		{name: "memberships/" + id, want: nil},
+		{name: "", want: ErrNameInvalidFormat},
+		{name: "invalidprefix/" + id, want: ErrNameInvalidFormat},
 		{name: "memberships/not a UUID", want: ErrNameInvalidFormat},
-		{name: "6f2d193c-1460-491d-8157-7dd9535526c6", want: ErrNameInvalidFormat},
+		{name: id, want: ErrNameInvalidFormat},
 	} {
 		if got := ValidateName(test.name); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 			t.Errorf("ValidateName(%q) = %v; want %v", test.name, got, test.want)

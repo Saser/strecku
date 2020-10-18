@@ -1,7 +1,6 @@
 package stores
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/Saser/strecku/resources/names"
@@ -13,7 +12,6 @@ const CollectionID = "stores"
 var (
 	Regexp = names.MustCompile(CollectionID, names.UUID)
 
-	ErrNameEmpty         = errors.New("name is empty")
 	ErrNameInvalidFormat = fmt.Errorf("name must have format %q", CollectionID+"/<uuid>")
 )
 
@@ -22,9 +20,6 @@ func GenerateName() string {
 }
 
 func ValidateName(name string) error {
-	if name == "" {
-		return ErrNameEmpty
-	}
 	if !Regexp.MatchString(name) {
 		return ErrNameInvalidFormat
 	}

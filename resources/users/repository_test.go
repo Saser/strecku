@@ -270,7 +270,7 @@ func TestRepository_LookupUser(t *testing.T) {
 			desc:     "EmptyName",
 			name:     "",
 			wantUser: nil,
-			wantErr:  ErrNameEmpty,
+			wantErr:  ErrNameInvalidFormat,
 		},
 		{
 			desc:     "NotFound",
@@ -575,7 +575,7 @@ func TestRepository_UpdateUser(t *testing.T) {
 			{
 				desc:   "EmptyName",
 				modify: func(alice *pb.User) { alice.Name = "" },
-				want:   ErrNameEmpty,
+				want:   ErrNameInvalidFormat,
 			},
 			{
 				desc:   "EmptyEmailAddress",
@@ -656,7 +656,7 @@ func TestRepository_DeleteUser(t *testing.T) {
 			{
 				desc: "EmptyName",
 				name: "",
-				want: ErrNameEmpty,
+				want: ErrNameInvalidFormat,
 			},
 			{
 				desc: "NotFound",

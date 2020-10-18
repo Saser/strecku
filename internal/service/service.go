@@ -32,7 +32,7 @@ func (s *Service) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.User
 	name := req.Name
 	if err := users.ValidateName(name); err != nil {
 		switch err {
-		case users.ErrNameEmpty, users.ErrNameInvalidFormat:
+		case users.ErrNameInvalidFormat:
 			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
 		default:
 			return nil, internalError
@@ -119,7 +119,7 @@ func (s *Service) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*p
 func (s *Service) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*emptypb.Empty, error) {
 	if err := users.ValidateName(req.Name); err != nil {
 		switch err {
-		case users.ErrNameEmpty, users.ErrNameInvalidFormat:
+		case users.ErrNameInvalidFormat:
 			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
 		default:
 			return nil, internalError
@@ -138,7 +138,7 @@ func (s *Service) GetStore(ctx context.Context, req *pb.GetStoreRequest) (*pb.St
 	name := req.Name
 	if err := stores.ValidateName(name); err != nil {
 		switch err {
-		case stores.ErrNameEmpty, stores.ErrNameInvalidFormat:
+		case stores.ErrNameInvalidFormat:
 			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
 		default:
 			return nil, internalError
@@ -220,7 +220,7 @@ func (s *Service) UpdateStore(ctx context.Context, req *pb.UpdateStoreRequest) (
 func (s *Service) DeleteStore(ctx context.Context, req *pb.DeleteStoreRequest) (*emptypb.Empty, error) {
 	if err := stores.ValidateName(req.Name); err != nil {
 		switch err {
-		case stores.ErrNameEmpty, stores.ErrNameInvalidFormat:
+		case stores.ErrNameInvalidFormat:
 			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
 		default:
 			return nil, internalError

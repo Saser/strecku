@@ -108,7 +108,7 @@ func TestRepository_LookupProduct(t *testing.T) {
 			desc:        "EmptyName",
 			name:        "",
 			wantProduct: nil,
-			wantErr:     ErrNameEmpty,
+			wantErr:     ErrNameInvalidFormat,
 		},
 		{
 			desc:        "NotFound",
@@ -262,12 +262,12 @@ func TestRepository_UpdateProduct(t *testing.T) {
 			{
 				desc:   "EmptyName",
 				modify: func(beer *pb.Product) { beer.Name = "" },
-				want:   ErrNameEmpty,
+				want:   ErrNameInvalidFormat,
 			},
 			{
 				desc:   "EmptyParent",
 				modify: func(beer *pb.Product) { beer.Parent = "" },
-				want:   stores.ErrNameEmpty,
+				want:   stores.ErrNameInvalidFormat,
 			},
 			{
 				desc:   "EmptyDisplayName",
@@ -362,7 +362,7 @@ func TestRepository_DeleteProduct(t *testing.T) {
 			{
 				desc: "EmptyName",
 				name: "",
-				want: ErrNameEmpty,
+				want: ErrNameInvalidFormat,
 			},
 			{
 				desc: "NotFound",

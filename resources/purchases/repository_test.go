@@ -111,7 +111,7 @@ func TestRepository_LookupPurchase(t *testing.T) {
 			desc:         "EmptyName",
 			name:         "",
 			wantPurchase: nil,
-			wantErr:      ErrNameEmpty,
+			wantErr:      ErrNameInvalidFormat,
 		},
 		{
 			desc:         "NotFound",
@@ -399,7 +399,7 @@ func TestRepository_DeletePurchase(t *testing.T) {
 			{
 				desc: "EmptyName",
 				name: "",
-				want: ErrNameEmpty,
+				want: ErrNameInvalidFormat,
 			},
 			{
 				desc: "NotFound",

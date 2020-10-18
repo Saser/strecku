@@ -34,7 +34,7 @@ func TestValidateName(t *testing.T) {
 		want error
 	}{
 		{name: fmt.Sprintf("%s/%s/%s", store, CollectionID, productID), want: nil},
-		{name: "", want: ErrNameEmpty},
+		{name: "", want: ErrNameInvalidFormat},
 		{name: productID, want: ErrNameInvalidFormat},
 		{name: fmt.Sprintf("%s/%s/%s/%s", users.CollectionID, storeID, CollectionID, productID), want: ErrNameInvalidFormat},
 		{name: store + "/" + CollectionID + "/not a UUID", want: ErrNameInvalidFormat},
