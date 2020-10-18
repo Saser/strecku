@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/purchases"
+	"github.com/Saser/strecku/resources/stores/purchases"
 )
 
 func TestPurchasesValid(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/products"
+	"github.com/Saser/strecku/resources/stores/products"
 	"github.com/Saser/strecku/resources/users"
 	"google.golang.org/protobuf/proto"
 )

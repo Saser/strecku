@@ -11,10 +11,10 @@ import (
 	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/cmd/importer/mapper"
 	"github.com/Saser/strecku/cmd/importer/streckudb"
-	"github.com/Saser/strecku/resources/payments"
-	"github.com/Saser/strecku/resources/products"
-	"github.com/Saser/strecku/resources/purchases"
 	"github.com/Saser/strecku/resources/stores"
+	"github.com/Saser/strecku/resources/stores/payments"
+	"github.com/Saser/strecku/resources/stores/products"
+	"github.com/Saser/strecku/resources/stores/purchases"
 	"github.com/Saser/strecku/resources/users"
 )
 
