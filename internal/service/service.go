@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/users"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,12 +17,14 @@ var internalError = status.Error(codes.Internal, "internal error")
 type Service struct {
 	pb.UnimplementedStreckUServer
 
-	userRepo *users.Repository
+	userRepo  *users.Repository
+	storeRepo *stores.Repository
 }
 
-func New(userRepo *users.Repository) *Service {
+func New(userRepo *users.Repository, storeRepo *stores.Repository) *Service {
 	return &Service{
-		userRepo: userRepo,
+		userRepo:  userRepo,
+		storeRepo: storeRepo,
 	}
 }
 
@@ -124,6 +127,107 @@ func (s *Service) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*e
 	}
 	if err := s.userRepo.DeleteUser(ctx, req.Name); err != nil {
 		if notFound := new(users.NotFoundError); errors.As(err, &notFound) {
+			return nil, status.Error(codes.NotFound, notFound.Error())
+		}
+		return nil, internalError
+	}
+	return new(emptypb.Empty), nil
+}
+
+func (s *Service) GetStore(ctx context.Context, req *pb.GetStoreRequest) (*pb.Store, error) {
+	name := req.Name
+	if err := stores.ValidateName(name); err != nil {
+		switch err {
+		case stores.ErrNameEmpty, stores.ErrNameInvalidFormat:
+			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		default:
+			return nil, internalError
+		}
+	}
+	store, err := s.storeRepo.LookupStore(ctx, name)
+	if err != nil {
+		if notFound := new(stores.NotFoundError); errors.As(err, &notFound) {
+			return nil, status.Error(codes.NotFound, notFound.Error())
+		}
+		return nil, internalError
+	}
+	return store, nil
+}
+
+func (s *Service) ListStores(ctx context.Context, req *pb.ListStoresRequest) (*pb.ListStoresResponse, error) {
+	if req.PageSize < 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "negative page size: %d", req.PageSize)
+	}
+	if req.PageSize > 0 || req.PageToken != "" {
+		return nil, status.Error(codes.Unimplemented, "pagination is not implemented")
+	}
+	allStores, err := s.storeRepo.ListStores(ctx)
+	if err != nil {
+		return nil, internalError
+	}
+	return &pb.ListStoresResponse{
+		Stores:        allStores,
+		NextPageToken: "",
+	}, nil
+}
+
+func (s *Service) CreateStore(ctx context.Context, req *pb.CreateStoreRequest) (*pb.Store, error) {
+	store := req.Store
+	store.Name = stores.GenerateName()
+	if err := stores.Validate(store); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid store: %v", err)
+	}
+	if err := s.storeRepo.CreateStore(ctx, store); err != nil {
+		if exists := new(stores.ExistsError); errors.As(err, &exists) {
+			return nil, status.Error(codes.AlreadyExists, exists.Error())
+		}
+		return nil, internalError
+	}
+	return store, nil
+}
+
+func (s *Service) UpdateStore(ctx context.Context, req *pb.UpdateStoreRequest) (*pb.Store, error) {
+	src := req.Store
+	dst, err := s.GetStore(ctx, &pb.GetStoreRequest{Name: src.Name})
+	if err != nil {
+		return nil, err
+	}
+	mask := req.UpdateMask
+	if mask == nil {
+		dst = src
+	} else {
+		if !mask.IsValid(dst) {
+			return nil, status.Error(codes.InvalidArgument, "invalid update mask")
+		}
+		for _, path := range mask.Paths {
+			switch path {
+			case "display_name":
+				dst.DisplayName = src.DisplayName
+			default:
+				return nil, status.Errorf(codes.Internal, "update not implemented for path %q", path)
+			}
+		}
+	}
+	if err := s.storeRepo.UpdateStore(ctx, dst); err != nil {
+		if exists := new(stores.ExistsError); errors.As(err, &exists) {
+			return nil, status.Error(codes.AlreadyExists, exists.Error())
+		}
+		return nil, status.Errorf(codes.InvalidArgument, "invalid store: %v", err)
+	}
+	return dst, nil
+}
+
+func (s *Service) DeleteStore(ctx context.Context, req *pb.DeleteStoreRequest) (*emptypb.Empty, error) {
+	if err := stores.ValidateName(req.Name); err != nil {
+		switch err {
+		case stores.ErrNameEmpty, stores.ErrNameInvalidFormat:
+			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		default:
+			return nil, internalError
+		}
+	}
+	if err := s.storeRepo.DeleteStore(ctx, req.Name); err != nil {
+		if notFound := new(stores.NotFoundError); errors.As(err, &notFound) {
 			return nil, status.Error(codes.NotFound, notFound.Error())
 		}
 		return nil, internalError
