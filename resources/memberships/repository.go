@@ -18,8 +18,8 @@ var (
 )
 
 type NotFoundError struct {
-	Name        string
-	User, Store string
+	Name         string
+	Parent, User string
 }
 
 func (e *NotFoundError) Error() string {
@@ -27,8 +27,8 @@ func (e *NotFoundError) Error() string {
 	switch {
 	case e.Name != "":
 		query = fmt.Sprintf("%q", e.Name)
-	case e.User != "" && e.Store != "":
-		query = fmt.Sprintf("between %q and %q", e.User, e.Store)
+	case e.Parent != "" && e.User != "":
+		query = fmt.Sprintf("in %q for %q", e.Parent, e.User)
 	}
 	return fmt.Sprintf("membership not found: %s", query)
 }
@@ -38,12 +38,12 @@ func (e *NotFoundError) Is(target error) bool {
 	if !ok {
 		return false
 	}
-	return e.Name == other.Name && e.User == other.User && e.Store == other.Store
+	return e.Name == other.Name && e.Parent == other.Parent && e.User == other.User
 }
 
 type ExistsError struct {
-	Name        string
-	User, Store string
+	Name         string
+	Parent, User string
 }
 
 func (e *ExistsError) Error() string {
@@ -51,8 +51,8 @@ func (e *ExistsError) Error() string {
 	switch {
 	case e.Name != "":
 		query = fmt.Sprintf("%q", e.Name)
-	case e.User != "" && e.Store != "":
-		query = fmt.Sprintf("between %q and %q", e.User, e.Store)
+	case e.Parent != "" && e.User != "":
+		query = fmt.Sprintf("in %q for %q", e.Parent, e.User)
 	}
 	return fmt.Sprintf("membership exists: %s", query)
 }
@@ -62,7 +62,7 @@ func (e *ExistsError) Is(target error) bool {
 	if !ok {
 		return false
 	}
-	return e.Name == other.Name && e.User == other.User && e.Store == other.Store
+	return e.Name == other.Name && e.Parent == other.Parent && e.User == other.User
 }
 
 func Clone(membership *pb.Membership) *pb.Membership {
@@ -70,13 +70,13 @@ func Clone(membership *pb.Membership) *pb.Membership {
 }
 
 type composite struct {
-	user  string
-	store string
+	parent string
+	user   string
 }
 
 type Repository struct {
 	memberships map[string]*pb.Membership // name -> membership
-	names       map[composite]string      // (user name, store name) -> membership name
+	names       map[composite]string      // (parent name, user name) -> membership name
 }
 
 func NewRepository() *Repository {
@@ -94,11 +94,9 @@ func SeedRepository(t *testing.T, memberships []*pb.Membership) *Repository {
 		if err := users.ValidateName(membership.User); err != nil {
 			t.Errorf("users.ValidateName(%q) err = %v; want nil", membership.User, err)
 		}
-		if err := stores.ValidateName(membership.Store); err != nil {
-			t.Errorf("stores.ValidateName(%q) err = %v; want nil", membership.Store, err)
-		}
 		mMemberships[membership.Name] = membership
-		names[composite{user: membership.User, store: membership.Store}] = membership.Name
+		parent, _ := Parent(membership.Name)
+		names[composite{parent: parent, user: membership.User}] = membership.Name
 	}
 	if t.Failed() {
 		t.FailNow()
@@ -124,16 +122,16 @@ func (r *Repository) LookupMembership(_ context.Context, name string) (*pb.Membe
 	return membership, nil
 }
 
-func (r *Repository) LookupMembershipBetween(ctx context.Context, user string, store string) (*pb.Membership, error) {
+func (r *Repository) LookupMembershipIn(ctx context.Context, parent string, user string) (*pb.Membership, error) {
+	if err := stores.ValidateName(parent); err != nil {
+		return nil, err
+	}
 	if err := users.ValidateName(user); err != nil {
 		return nil, err
 	}
-	if err := stores.ValidateName(store); err != nil {
-		return nil, err
-	}
-	name, ok := r.names[composite{user: user, store: store}]
+	name, ok := r.names[composite{parent: parent, user: user}]
 	if !ok {
-		return nil, &NotFoundError{User: user, Store: store}
+		return nil, &NotFoundError{Parent: parent, User: user}
 	}
 	return r.LookupMembership(ctx, name)
 }
@@ -157,11 +155,12 @@ func (r *Repository) CreateMembership(_ context.Context, membership *pb.Membersh
 	if _, exists := r.memberships[name]; exists {
 		return &ExistsError{Name: name}
 	}
-	key := composite{user: membership.User, store: membership.Store}
+	parent, _ := Parent(membership.Name)
+	key := composite{parent: parent, user: membership.User}
 	if _, exists := r.names[key]; exists {
 		return &ExistsError{
-			User:  membership.User,
-			Store: membership.Store,
+			Parent: parent,
+			User:   membership.User,
 		}
 	}
 	r.memberships[name] = membership
@@ -177,9 +176,6 @@ func (r *Repository) UpdateMembership(_ context.Context, updated *pb.Membership)
 	if updated.User != membership.User {
 		return ErrUpdateUser
 	}
-	if updated.Store != membership.Store {
-		return ErrUpdateStore
-	}
 	r.memberships[updated.Name] = updated
 	return nil
 }
@@ -192,7 +188,8 @@ func (r *Repository) DeleteMembership(_ context.Context, name string) error {
 	if !ok {
 		return &NotFoundError{Name: name}
 	}
+	parent, _ := Parent(name)
 	delete(r.memberships, name)
-	delete(r.names, composite{user: membership.User, store: membership.Store})
+	delete(r.names, composite{parent: parent, user: membership.User})
 	return nil
 }

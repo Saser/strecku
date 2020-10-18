@@ -9,10 +9,10 @@ import (
 
 func TestMembershipsValid(t *testing.T) {
 	for _, membership := range []*pb.Membership{
-		Alice_Bar,
-		Alice_Mall,
-		Bob_Bar,
-		Bob_Mall,
+		Bar_Alice,
+		Mall_Alice,
+		Bar_Bob,
+		Mall_Bob,
 	} {
 		if err := memberships.Validate(membership); err != nil {
 			t.Errorf("memberships.Validate(%v) = %v; want nil", membership, err)

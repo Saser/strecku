@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/testresources"
 	"github.com/Saser/strecku/resources/users"
 )
@@ -16,23 +15,12 @@ func TestValidate(t *testing.T) {
 	}{
 		{
 			membership: &pb.Membership{
-				Name:          testresources.Alice_Bar.Name,
+				Name:          testresources.Bar_Alice.Name,
 				User:          "",
-				Store:         testresources.Bar.Name,
 				Administrator: false,
 				Discount:      false,
 			},
 			want: users.ErrNameInvalidFormat,
-		},
-		{
-			membership: &pb.Membership{
-				Name:          testresources.Alice_Bar.Name,
-				User:          testresources.Alice.Name,
-				Store:         "",
-				Administrator: false,
-				Discount:      false,
-			},
-			want: stores.ErrNameInvalidFormat,
 		},
 	} {
 		if got := Validate(test.membership); got != test.want {

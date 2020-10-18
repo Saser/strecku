@@ -121,7 +121,7 @@ message Store {
 // and stores, meaning that a user is a member of a store.
 message Membership {
   // name is the resource name of the membership.
-  // Format: memberships/{membership}
+  // Format: stores/{store}/memberships/{membership}
   // Output only.
   string name = 1;
 
@@ -129,15 +129,11 @@ message Membership {
   // Format: users/{user}
   string user = 2;
 
-  // store is the resource name of the store.
-  // Format: stores/{store}
-  string store = 3;
-
   // administrator is true if the user is an administrator of the store.
-  bool administrator = 4;
+  bool administrator = 3;
 
   // discount is true if the user has a discount in the store.
-  bool discount = 5;
+  bool discount = 4;
 }
 
 // Product represents a product available for purchase in a store.
@@ -367,24 +363,26 @@ message DeleteStoreRequest {
 // GetMembershipRequest is the request message for GetMembership.
 message GetMembershipRequest {
   // name is the resource name of the membership to get.
-  // Format: memberships/{membership}
+  // Format: stores/{store}/memberships/{membership}
   // Required.
   string name = 1;
 }
 
 // ListMembershipsRequest is the request message for ListMemberships.
-//
-// (-- api-linter: core::0132::request-parent-required=disabled
-//     aip.dev/not-precedent: Memberships are top-level resources. --)
 message ListMembershipsRequest {
+  // parent is the resource name of the store for which to list memberships.
+  // Format: stores/{store}
+  // Required.
+  string parent = 1;
+
   // page_size is the maximum number of memberships to return.
   // If unspecified, the server will choose a suitable number.
-  int32 page_size = 1;
+  int32 page_size = 2;
 
   // page_token contains an opaque string used to get the next page of
   // results. It is usually provided by the previous call to ListMemberships.
   // If unspecified, the first page will be returned.
-  string page_token = 2;
+  string page_token = 3;
 }
 
 // ListMembershipsResponse is the response message for ListMemberships.
@@ -399,13 +397,16 @@ message ListMembershipsResponse {
 }
 
 // CreateMembershipRequest is the request message for CreateMembership.
-//
-// (-- api-linter: core::0133::request-parent-required=disabled
-//     aip.dev/not-precedent: Memberships are top-level resources. --)
 message CreateMembershipRequest {
+  // parent is the resource name of the store where the membership should be
+  // created.
+  // Format: stores/{store}
+  // Required.
+  string parent = 1;
+
   // membership is the membership to be created.
   // Required.
-  Membership membership = 1;
+  Membership membership = 2;
 }
 
 // UpdateMembershipRequest is the request message for UpdateMembership.
@@ -424,7 +425,7 @@ message UpdateMembershipRequest {
 // DeleteMembershipRequest is the request message for DeleteMembership.
 message DeleteMembershipRequest {
   // name specifies the resource name of the membership to delete.
-  // Format: memberships/{membership}
+  // Format: stores/{store}/memberships/{membership}
   // Required.
   string name = 1;
 }

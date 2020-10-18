@@ -25,16 +25,16 @@ func TestNotFoundError_Error(t *testing.T) {
 	}{
 		{
 			err: &NotFoundError{
-				Name: testresources.Alice_Bar.Name,
+				Name: testresources.Bar_Alice.Name,
 			},
-			want: fmt.Sprintf("membership not found: %q", testresources.Alice_Bar.Name),
+			want: fmt.Sprintf("membership not found: %q", testresources.Bar_Alice.Name),
 		},
 		{
 			err: &NotFoundError{
-				User:  testresources.Alice.Name,
-				Store: testresources.Bar.Name,
+				User:   testresources.Alice.Name,
+				Parent: testresources.Bar.Name,
 			},
-			want: fmt.Sprintf("membership not found: between %q and %q", testresources.Alice.Name, testresources.Bar.Name),
+			want: fmt.Sprintf("membership not found: in %q for %q", testresources.Bar.Name, testresources.Alice.Name),
 		},
 	} {
 		if got := test.err.Error(); got != test.want {
@@ -51,48 +51,48 @@ func TestNotFoundError_Is(t *testing.T) {
 	}{
 		{
 			err: &NotFoundError{
-				Name: testresources.Alice_Bar.Name,
+				Name: testresources.Bar_Alice.Name,
 			},
 			target: &NotFoundError{
-				Name: testresources.Alice_Bar.Name,
+				Name: testresources.Bar_Alice.Name,
 			},
 			want: true,
 		},
 		{
 			err: &NotFoundError{
-				Name: testresources.Alice_Bar.Name,
+				Name: testresources.Bar_Alice.Name,
 			},
 			target: &NotFoundError{
-				User:  testresources.Alice.Name,
-				Store: testresources.Bar.Name,
+				User:   testresources.Alice.Name,
+				Parent: testresources.Bar.Name,
 			},
 			want: false,
 		},
 		{
 			err: &NotFoundError{
-				User:  testresources.Alice.Name,
-				Store: testresources.Bar.Name,
+				User:   testresources.Alice.Name,
+				Parent: testresources.Bar.Name,
 			},
 			target: &NotFoundError{
-				Name: testresources.Alice_Bar.Name,
+				Name: testresources.Bar_Alice.Name,
 			},
 			want: false,
 		},
 		{
 			err: &NotFoundError{
-				User:  testresources.Alice.Name,
-				Store: testresources.Bar.Name,
+				User:   testresources.Alice.Name,
+				Parent: testresources.Bar.Name,
 			},
 			target: &NotFoundError{
-				User:  testresources.Alice.Name,
-				Store: testresources.Bar.Name,
+				User:   testresources.Alice.Name,
+				Parent: testresources.Bar.Name,
 			},
 			want: true,
 		},
 		{
 			err: &NotFoundError{
-				User:  testresources.Alice.Name,
-				Store: testresources.Bar.Name,
+				User:   testresources.Alice.Name,
+				Parent: testresources.Bar.Name,
 			},
 			target: fmt.Errorf("membership not found: between %q and %q", testresources.Alice.Name, testresources.Bar.Name),
 			want:   false,
@@ -111,16 +111,16 @@ func TestExistsError_Error(t *testing.T) {
 	}{
 		{
 			err: &ExistsError{
-				Name: testresources.Alice_Bar.Name,
+				Name: testresources.Bar_Alice.Name,
 			},
-			want: fmt.Sprintf("membership exists: %q", testresources.Alice_Bar.Name),
+			want: fmt.Sprintf("membership exists: %q", testresources.Bar_Alice.Name),
 		},
 		{
 			err: &ExistsError{
-				User:  testresources.Alice.Name,
-				Store: testresources.Bar.Name,
+				User:   testresources.Alice.Name,
+				Parent: testresources.Bar.Name,
 			},
-			want: fmt.Sprintf("membership exists: between %q and %q", testresources.Alice.Name, testresources.Bar.Name),
+			want: fmt.Sprintf("membership exists: in %q for %q", testresources.Bar.Name, testresources.Alice.Name),
 		},
 	} {
 		if got := test.err.Error(); got != test.want {
@@ -136,57 +136,57 @@ func TestExistsError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &ExistsError{Name: testresources.Alice_Bar.Name},
-			target: &ExistsError{Name: testresources.Alice_Bar.Name},
+			err:    &ExistsError{Name: testresources.Bar_Alice.Name},
+			target: &ExistsError{Name: testresources.Bar_Alice.Name},
 			want:   true,
 		},
 		{
-			err:    &ExistsError{Name: testresources.Alice_Bar.Name},
-			target: &ExistsError{Name: testresources.Alice_Mall.Name},
+			err:    &ExistsError{Name: testresources.Bar_Alice.Name},
+			target: &ExistsError{Name: testresources.Mall_Alice.Name},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{Name: testresources.Alice_Bar.Name},
-			target: &ExistsError{User: testresources.Alice.Name, Store: testresources.Bar.Name},
+			err:    &ExistsError{Name: testresources.Bar_Alice.Name},
+			target: &ExistsError{User: testresources.Alice.Name, Parent: testresources.Bar.Name},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{User: testresources.Alice.Name, Store: testresources.Bar.Name},
-			target: &ExistsError{Name: testresources.Alice_Bar.Name},
+			err:    &ExistsError{User: testresources.Alice.Name, Parent: testresources.Bar.Name},
+			target: &ExistsError{Name: testresources.Bar_Alice.Name},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{User: testresources.Alice.Name, Store: testresources.Bar.Name},
-			target: &ExistsError{User: testresources.Alice.Name, Store: testresources.Bar.Name},
+			err:    &ExistsError{User: testresources.Alice.Name, Parent: testresources.Bar.Name},
+			target: &ExistsError{User: testresources.Alice.Name, Parent: testresources.Bar.Name},
 			want:   true,
 		},
 		{
-			err:    &ExistsError{User: testresources.Alice.Name, Store: testresources.Bar.Name},
-			target: &ExistsError{User: testresources.Alice.Name, Store: testresources.Mall.Name},
+			err:    &ExistsError{User: testresources.Alice.Name, Parent: testresources.Bar.Name},
+			target: &ExistsError{User: testresources.Alice.Name, Parent: testresources.Mall.Name},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{User: testresources.Alice.Name, Store: testresources.Bar.Name},
-			target: &ExistsError{User: testresources.Bob.Name, Store: testresources.Bar.Name},
+			err:    &ExistsError{User: testresources.Alice.Name, Parent: testresources.Bar.Name},
+			target: &ExistsError{User: testresources.Bob.Name, Parent: testresources.Bar.Name},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{User: testresources.Alice.Name, Store: testresources.Mall.Name},
-			target: &ExistsError{User: testresources.Alice.Name, Store: testresources.Bar.Name},
+			err:    &ExistsError{User: testresources.Alice.Name, Parent: testresources.Mall.Name},
+			target: &ExistsError{User: testresources.Alice.Name, Parent: testresources.Bar.Name},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{User: testresources.Bob.Name, Store: testresources.Bar.Name},
-			target: &ExistsError{User: testresources.Alice.Name, Store: testresources.Bar.Name},
+			err:    &ExistsError{User: testresources.Bob.Name, Parent: testresources.Bar.Name},
+			target: &ExistsError{User: testresources.Alice.Name, Parent: testresources.Bar.Name},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{Name: testresources.Alice_Bar.Name},
-			target: fmt.Errorf("membership exists: %q", testresources.Alice_Bar.Name),
+			err:    &ExistsError{Name: testresources.Bar_Alice.Name},
+			target: fmt.Errorf("membership exists: %q", testresources.Bar_Alice.Name),
 			want:   false,
 		},
 		{
-			err:    &ExistsError{User: testresources.Alice.Name, Store: testresources.Bar.Name},
+			err:    &ExistsError{User: testresources.Alice.Name, Parent: testresources.Bar.Name},
 			target: fmt.Errorf("membership exists: between %q and %q", testresources.Alice.Name, testresources.Bar.Name),
 			want:   false,
 		},
@@ -199,7 +199,7 @@ func TestExistsError_Is(t *testing.T) {
 
 func TestRepository_LookupMembership(t *testing.T) {
 	ctx := context.Background()
-	r := SeedRepository(t, []*pb.Membership{testresources.Alice_Bar})
+	r := SeedRepository(t, []*pb.Membership{testresources.Bar_Alice})
 	for _, test := range []struct {
 		desc           string
 		name           string
@@ -208,8 +208,8 @@ func TestRepository_LookupMembership(t *testing.T) {
 	}{
 		{
 			desc:           "OK",
-			name:           testresources.Alice_Bar.Name,
-			wantMembership: testresources.Alice_Bar,
+			name:           testresources.Bar_Alice.Name,
+			wantMembership: testresources.Bar_Alice,
 			wantErr:        nil,
 		},
 		{
@@ -220,9 +220,9 @@ func TestRepository_LookupMembership(t *testing.T) {
 		},
 		{
 			desc:           "NotFound",
-			name:           testresources.Alice_Mall.Name,
+			name:           testresources.Mall_Alice.Name,
 			wantMembership: nil,
-			wantErr:        &NotFoundError{Name: testresources.Alice_Mall.Name},
+			wantErr:        &NotFoundError{Name: testresources.Mall_Alice.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
@@ -239,7 +239,7 @@ func TestRepository_LookupMembership(t *testing.T) {
 
 func TestRepository_LookupMembershipBetween(t *testing.T) {
 	ctx := context.Background()
-	r := SeedRepository(t, []*pb.Membership{testresources.Alice_Bar})
+	r := SeedRepository(t, []*pb.Membership{testresources.Bar_Alice})
 	for _, test := range []struct {
 		desc           string
 		user           string
@@ -251,7 +251,7 @@ func TestRepository_LookupMembershipBetween(t *testing.T) {
 			desc:           "OK",
 			user:           testresources.Alice.Name,
 			store:          testresources.Bar.Name,
-			wantMembership: testresources.Alice_Bar,
+			wantMembership: testresources.Bar_Alice,
 			wantErr:        nil,
 		},
 		{
@@ -273,18 +273,18 @@ func TestRepository_LookupMembershipBetween(t *testing.T) {
 			user:           testresources.Bob.Name,
 			store:          testresources.Bar.Name,
 			wantMembership: nil,
-			wantErr:        &NotFoundError{User: testresources.Bob.Name, Store: testresources.Bar.Name},
+			wantErr:        &NotFoundError{User: testresources.Bob.Name, Parent: testresources.Bar.Name},
 		},
 		{
 			desc:           "WrongStore",
 			user:           testresources.Alice.Name,
 			store:          testresources.Mall.Name,
 			wantMembership: nil,
-			wantErr:        &NotFoundError{User: testresources.Alice.Name, Store: testresources.Mall.Name},
+			wantErr:        &NotFoundError{User: testresources.Alice.Name, Parent: testresources.Mall.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			membership, err := r.LookupMembershipBetween(ctx, test.user, test.store)
+			membership, err := r.LookupMembershipIn(ctx, test.store, test.user)
 			if diff := cmp.Diff(membership, test.wantMembership, protocmp.Transform()); diff != "" {
 				t.Errorf("r.LookupMembership(%v, %q, %q) membership != test.wantMembership (-got +want)\n%s", ctx, test.user, test.store, diff)
 			}
@@ -298,10 +298,10 @@ func TestRepository_LookupMembershipBetween(t *testing.T) {
 func TestRepository_ListMemberships(t *testing.T) {
 	ctx := context.Background()
 	allMemberships := []*pb.Membership{
-		testresources.Alice_Bar,
-		testresources.Alice_Mall,
-		testresources.Bob_Bar,
-		testresources.Bob_Mall,
+		testresources.Bar_Alice,
+		testresources.Mall_Alice,
+		testresources.Bar_Bob,
+		testresources.Mall_Bob,
 	}
 	r := SeedRepository(t, allMemberships)
 	memberships, err := r.ListMemberships(ctx)
@@ -316,10 +316,10 @@ func TestRepository_ListMemberships(t *testing.T) {
 func TestRepository_FilterMemberships(t *testing.T) {
 	ctx := context.Background()
 	r := SeedRepository(t, []*pb.Membership{
-		testresources.Alice_Bar,
-		testresources.Alice_Mall,
-		testresources.Bob_Bar,
-		testresources.Bob_Mall,
+		testresources.Bar_Alice,
+		testresources.Mall_Alice,
+		testresources.Bar_Bob,
+		testresources.Mall_Bob,
 	})
 	for _, test := range []struct {
 		desc      string
@@ -333,17 +333,17 @@ func TestRepository_FilterMemberships(t *testing.T) {
 		},
 		{
 			desc:      "OneMatching",
-			predicate: func(membership *pb.Membership) bool { return membership.Name == testresources.Alice_Bar.Name },
+			predicate: func(membership *pb.Membership) bool { return membership.Name == testresources.Bar_Alice.Name },
 			want: []*pb.Membership{
-				testresources.Alice_Bar,
+				testresources.Bar_Alice,
 			},
 		},
 		{
 			desc:      "MultipleMatching",
 			predicate: func(membership *pb.Membership) bool { return membership.User == testresources.Alice.Name },
 			want: []*pb.Membership{
-				testresources.Alice_Bar,
-				testresources.Alice_Mall,
+				testresources.Bar_Alice,
+				testresources.Mall_Alice,
 			},
 		},
 	} {
@@ -371,41 +371,41 @@ func TestRepository_CreateMembership(t *testing.T) {
 		want       error
 	}{
 		{
-			desc:       "OK_SameUser",
-			membership: testresources.Alice_Mall,
+			desc:       "OK_SameParent",
+			membership: testresources.Bar_Bob,
 			want:       nil,
 		},
 		{
-			desc:       "OK_SameStore",
-			membership: testresources.Bob_Bar,
+			desc:       "OK_SameUser",
+			membership: testresources.Mall_Alice,
 			want:       nil,
 		},
 		{
 			desc: "DuplicateName",
 			membership: &pb.Membership{
-				Name:          testresources.Alice_Bar.Name,
-				User:          testresources.Bob.Name,  // chosen arbitrarily
-				Store:         testresources.Mall.Name, // chosen arbitrarily
+				Name:          testresources.Bar_Alice.Name,
+				User:          testresources.Bob.Name, // chosen arbitrarily
 				Administrator: false,
+				Discount:      false,
 			},
-			want: &ExistsError{Name: testresources.Alice_Bar.Name},
+			want: &ExistsError{Name: testresources.Bar_Alice.Name},
 		},
 		{
 			desc: "DuplicateUserAndStore",
 			membership: &pb.Membership{
-				Name:          testresources.Bob_Mall.Name, // chosen arbitrarily
+				Name:          testresources.Bar.Name + "/" + CollectionID + "/2a1f364b-1a1f-400b-a2da-aa2e14e40eae", // chosen arbitrarily
 				User:          testresources.Alice.Name,
-				Store:         testresources.Bar.Name,
 				Administrator: false,
+				Discount:      false,
 			},
 			want: &ExistsError{
-				User:  testresources.Alice.Name,
-				Store: testresources.Bar.Name,
+				Parent: testresources.Bar.Name,
+				User:   testresources.Alice.Name,
 			},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := SeedRepository(t, []*pb.Membership{testresources.Alice_Bar})
+			r := SeedRepository(t, []*pb.Membership{testresources.Bar_Alice})
 			if got := r.CreateMembership(ctx, test.membership); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 				t.Errorf("r.CreateMembership(%v, %v) = %v; want %v", ctx, test.membership, got, test.want)
 			}
@@ -433,8 +433,8 @@ func TestRepository_UpdateMembership(t *testing.T) {
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				r := SeedRepository(t, []*pb.Membership{testresources.Alice_Bar})
-				updated := Clone(testresources.Alice_Bar)
+				r := SeedRepository(t, []*pb.Membership{testresources.Bar_Alice})
+				updated := Clone(testresources.Bar_Alice)
 				test.modify(updated)
 				if got := r.UpdateMembership(ctx, updated); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 					t.Errorf("r.UpdateMembership(%v, %v) = %v; want %v", ctx, updated, got, test.want)
@@ -452,39 +452,34 @@ func TestRepository_UpdateMembership(t *testing.T) {
 	t.Run("Errors", func(t *testing.T) {
 		for _, test := range []struct {
 			desc   string
-			modify func(aliceBar *pb.Membership)
+			modify func(barAlice *pb.Membership)
 			want   error
 		}{
 			{
 				desc:   "UpdateUser",
-				modify: func(aliceBar *pb.Membership) { aliceBar.User = testresources.Bob.Name },
+				modify: func(barAlice *pb.Membership) { barAlice.User = testresources.Bob.Name },
 				want:   ErrUpdateUser,
 			},
 			{
-				desc:   "UpdateStore",
-				modify: func(aliceBar *pb.Membership) { aliceBar.Store = testresources.Mall.Name },
-				want:   ErrUpdateStore,
-			},
-			{
 				desc:   "NotFound",
-				modify: func(aliceBar *pb.Membership) { aliceBar.Name = testresources.Alice_Mall.Name },
-				want:   &NotFoundError{Name: testresources.Alice_Mall.Name},
+				modify: func(barAlice *pb.Membership) { barAlice.Name = testresources.Mall_Alice.Name },
+				want:   &NotFoundError{Name: testresources.Mall_Alice.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				r := SeedRepository(t, []*pb.Membership{testresources.Alice_Bar})
-				oldAliceBar := testresources.Alice_Bar
-				newAliceBar := Clone(oldAliceBar)
-				test.modify(newAliceBar)
-				if got := r.UpdateMembership(ctx, newAliceBar); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
-					t.Errorf("r.UpdateMembership(%v, %v) = %v; want %v", ctx, newAliceBar, got, test.want)
+				r := SeedRepository(t, []*pb.Membership{testresources.Bar_Alice})
+				oldBarAlice := testresources.Bar_Alice
+				newBarAlice := Clone(oldBarAlice)
+				test.modify(newBarAlice)
+				if got := r.UpdateMembership(ctx, newBarAlice); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
+					t.Errorf("r.UpdateMembership(%v, %v) = %v; want %v", ctx, newBarAlice, got, test.want)
 				}
-				membership, err := r.LookupMembership(ctx, oldAliceBar.Name)
-				if diff := cmp.Diff(membership, oldAliceBar, protocmp.Transform()); diff != "" {
-					t.Errorf("r.LookupMembership(%v, %q) membership != testmemberships.Alice_Bar (-got +want)\n%s", ctx, oldAliceBar.Name, diff)
+				membership, err := r.LookupMembership(ctx, oldBarAlice.Name)
+				if diff := cmp.Diff(membership, oldBarAlice, protocmp.Transform()); diff != "" {
+					t.Errorf("r.LookupMembership(%v, %q) membership != testmemberships.Bar_Alice (-got +want)\n%s", ctx, oldBarAlice.Name, diff)
 				}
 				if err != nil {
-					t.Errorf("r.LookupMembership(%v, %q) err = %v; want nil", ctx, oldAliceBar.Name, err)
+					t.Errorf("r.LookupMembership(%v, %q) err = %v; want nil", ctx, oldBarAlice.Name, err)
 				}
 			})
 		}
@@ -495,33 +490,33 @@ func TestRepository_DeleteMembership(t *testing.T) {
 	ctx := context.Background()
 	// Test scenario where the delete succeeds.
 	t.Run("OK", func(t *testing.T) {
-		r := SeedRepository(t, []*pb.Membership{testresources.Alice_Bar})
+		r := SeedRepository(t, []*pb.Membership{testresources.Bar_Alice})
 		// First, delete the membership.
-		if err := r.DeleteMembership(ctx, testresources.Alice_Bar.Name); err != nil {
-			t.Errorf("r.DeleteMembership(%v, %q) = %v; want nil", ctx, testresources.Alice_Bar.Name, err)
+		if err := r.DeleteMembership(ctx, testresources.Bar_Alice.Name); err != nil {
+			t.Errorf("r.DeleteMembership(%v, %q) = %v; want nil", ctx, testresources.Bar_Alice.Name, err)
 		}
 		// Then, verify that looking it up by name fails.
 		wantMembership := (*pb.Membership)(nil)
-		wantErr := &NotFoundError{Name: testresources.Alice_Bar.Name}
-		membership, err := r.LookupMembership(ctx, testresources.Alice_Bar.Name)
+		wantErr := &NotFoundError{Name: testresources.Bar_Alice.Name}
+		membership, err := r.LookupMembership(ctx, testresources.Bar_Alice.Name)
 		if diff := cmp.Diff(membership, wantMembership, protocmp.Transform()); diff != "" {
-			t.Errorf("r.LookupMembership(%v, %q) membership != wantMembership (-got +want)\n%s", ctx, testresources.Alice_Bar.Name, diff)
+			t.Errorf("r.LookupMembership(%v, %q) membership != wantMembership (-got +want)\n%s", ctx, testresources.Bar_Alice.Name, diff)
 		}
 		if !cmp.Equal(err, wantErr, cmpopts.EquateErrors()) {
-			t.Errorf("r.LookupMembership(%v, %q) err = %v; want %v", ctx, testresources.Alice_Bar.Name, err, wantErr)
+			t.Errorf("r.LookupMembership(%v, %q) err = %v; want %v", ctx, testresources.Bar_Alice.Name, err, wantErr)
 		}
-		// Finally, verify that looking it up by user and store fails also.
+		// Finally, verify that looking it up by user and parent fails also.
 		wantMembership = (*pb.Membership)(nil)
 		wantErr = &NotFoundError{
-			User:  testresources.Alice.Name,
-			Store: testresources.Bar.Name,
+			Parent: testresources.Bar.Name,
+			User:   testresources.Alice.Name,
 		}
-		membership, err = r.LookupMembershipBetween(ctx, testresources.Alice.Name, testresources.Bar.Name)
+		membership, err = r.LookupMembershipIn(ctx, testresources.Bar.Name, testresources.Alice.Name)
 		if diff := cmp.Diff(membership, wantMembership, protocmp.Transform()); diff != "" {
-			t.Errorf("r.LookupMembershipBetween(%v, %q, %q) membership != wantMembership (-got +want)\n%s", ctx, testresources.Alice.Name, testresources.Bar.Name, diff)
+			t.Errorf("r.LookupMembershipIn(%v, %q, %q) membership != wantMembership (-got +want)\n%s", ctx, testresources.Bar.Name, testresources.Alice.Name, diff)
 		}
 		if !cmp.Equal(err, wantErr, cmpopts.EquateErrors()) {
-			t.Errorf("r.LookupMembershipBetween(%v, %q, %q) err = %v; want %v", ctx, testresources.Alice.Name, testresources.Bar.Name, err, wantErr)
+			t.Errorf("r.LookupMembershipIn(%v, %q, %q) err = %v; want %v", ctx, testresources.Bar.Name, testresources.Alice.Name, err, wantErr)
 		}
 	})
 	// Test scenarios where the delete fails.
@@ -538,32 +533,32 @@ func TestRepository_DeleteMembership(t *testing.T) {
 			},
 			{
 				desc: "NotFound",
-				name: testresources.Alice_Mall.Name,
-				want: &NotFoundError{Name: testresources.Alice_Mall.Name},
+				name: testresources.Mall_Alice.Name,
+				want: &NotFoundError{Name: testresources.Mall_Alice.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				r := SeedRepository(t, []*pb.Membership{testresources.Alice_Bar})
+				r := SeedRepository(t, []*pb.Membership{testresources.Bar_Alice})
 				// First, try and fail to delete the membership.
 				if got := r.DeleteMembership(ctx, test.name); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 					t.Errorf("r.DeleteMembership(%v, %q) = %v; want %v", ctx, test.name, got, test.want)
 				}
-				wantMembership := testresources.Alice_Bar
+				wantMembership := testresources.Bar_Alice
 				// Then, verify that a lookup by name succeeds.
-				membership, err := r.LookupMembership(ctx, testresources.Alice_Bar.Name)
+				membership, err := r.LookupMembership(ctx, testresources.Bar_Alice.Name)
 				if diff := cmp.Diff(membership, wantMembership, protocmp.Transform()); diff != "" {
-					t.Errorf("r.LookupMembership(%v, %q) membership != wantMembership (-got +want)\n%s", ctx, testresources.Alice_Bar.Name, diff)
+					t.Errorf("r.LookupMembership(%v, %q) membership != wantMembership (-got +want)\n%s", ctx, testresources.Bar_Alice.Name, diff)
 				}
 				if err != nil {
-					t.Errorf("r.LookupMembership(%v, %q) err = %v; want nil", ctx, testresources.Alice_Bar.Name, err)
+					t.Errorf("r.LookupMembership(%v, %q) err = %v; want nil", ctx, testresources.Bar_Alice.Name, err)
 				}
-				// Finally, verify that a lookup by user and store succeeds.
-				membership, err = r.LookupMembershipBetween(ctx, testresources.Alice.Name, testresources.Bar.Name)
+				// Finally, verify that a lookup by user and parent succeeds.
+				membership, err = r.LookupMembershipIn(ctx, testresources.Bar.Name, testresources.Alice.Name)
 				if diff := cmp.Diff(membership, wantMembership, protocmp.Transform()); diff != "" {
-					t.Errorf("r.LookupMembershipBetween(%v, %q, %q) membership != wantMembership (-got +want)\n%s", ctx, testresources.Alice.Name, testresources.Bar.Name, diff)
+					t.Errorf("r.LookupMembershipIn(%v, %q, %q) membership != wantMembership (-got +want)\n%s", ctx, testresources.Bar.Name, testresources.Alice.Name, diff)
 				}
 				if err != nil {
-					t.Errorf("r.LookupMembershipBetween(%v, %q, %q) err = %v; want nil", ctx, testresources.Alice.Name, testresources.Bar.Name, err)
+					t.Errorf("r.LookupMembershipIn(%v, %q, %q) err = %v; want nil", ctx, testresources.Bar.Name, testresources.Alice.Name, err)
 				}
 			})
 		}
