@@ -84,7 +84,7 @@ func TestBasic_GetRequestMetadata(t *testing.T) {
 
 func TestBasic_RequireTransportSecurity(t *testing.T) {
 	var b Basic
-	if got, want := b.RequireTransportSecurity(), true; got != want {
-		t.Errorf("b.RequireTransportSecurity() = %v; want %v", got, want)
+	if got := b.RequireTransportSecurity(); got != true {
+		t.Errorf("b.RequireTransportSecurity() = %v; want true", got)
 	}
 }

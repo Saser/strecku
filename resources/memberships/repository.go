@@ -12,10 +12,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-var (
-	ErrUpdateUser  = errors.New("user cannot be updated")
-	ErrUpdateStore = errors.New("store cannot be updated")
-)
+var ErrUpdateUser = errors.New("user cannot be updated")
 
 type NotFoundError struct {
 	Name         string

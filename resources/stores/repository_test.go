@@ -111,6 +111,10 @@ func TestExistsError_Is(t *testing.T) {
 	}
 }
 
+func TestNewRepository(t *testing.T) {
+	NewRepository()
+}
+
 func TestRepository_LookupStore(t *testing.T) {
 	ctx := context.Background()
 	r := seedBar(t)

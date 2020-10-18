@@ -37,7 +37,7 @@ func TestBearer_GetRequestMetadata(t *testing.T) {
 
 func TestBearer_GetTransportSecurity(t *testing.T) {
 	var b Bearer
-	if got, want := b.RequireTransportSecurity(), true; got != want {
-		t.Errorf("b.RequireTransportSecurity() = %v; want %v", got, want)
+	if got := b.RequireTransportSecurity(); got != true {
+		t.Errorf("b.RequireTransportSecurity() = %v; want true", got)
 	}
 }

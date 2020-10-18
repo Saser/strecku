@@ -197,6 +197,10 @@ func TestExistsError_Is(t *testing.T) {
 	}
 }
 
+func TestNewRepository(t *testing.T) {
+	NewRepository()
+}
+
 func TestRepository_LookupMembership(t *testing.T) {
 	ctx := context.Background()
 	r := SeedRepository(t, []*pb.Membership{testresources.Bar_Alice})

@@ -88,6 +88,10 @@ func TestExistsError_Is(t *testing.T) {
 	}
 }
 
+func TestNewRepository(t *testing.T) {
+	NewRepository()
+}
+
 func TestRepository_LookupProduct(t *testing.T) {
 	ctx := context.Background()
 	r := SeedRepository(t, []*pb.Product{testresources.Beer})

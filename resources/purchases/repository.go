@@ -9,10 +9,7 @@ import (
 	pb "github.com/Saser/strecku/api/v1"
 )
 
-var (
-	ErrUpdateUser  = errors.New("user cannot be updated")
-	ErrUpdateStore = errors.New("store cannot be updated")
-)
+var ErrUpdateUser = errors.New("user cannot be updated")
 
 type NotFoundError struct {
 	Name string
@@ -74,7 +71,7 @@ func newRepository(purchases map[string]*pb.Purchase) *Repository {
 	}
 }
 
-func (r *Repository) LookupPurchase(ctx context.Context, name string) (*pb.Purchase, error) {
+func (r *Repository) LookupPurchase(_ context.Context, name string) (*pb.Purchase, error) {
 	if err := ValidateName(name); err != nil {
 		return nil, err
 	}
@@ -89,7 +86,7 @@ func (r *Repository) ListPurchases(ctx context.Context) ([]*pb.Purchase, error) 
 	return r.FilterPurchases(ctx, func(*pb.Purchase) bool { return true })
 }
 
-func (r *Repository) FilterPurchases(ctx context.Context, predicate func(*pb.Purchase) bool) ([]*pb.Purchase, error) {
+func (r *Repository) FilterPurchases(_ context.Context, predicate func(*pb.Purchase) bool) ([]*pb.Purchase, error) {
 	var filtered []*pb.Purchase
 	for _, purchase := range r.purchases {
 		if predicate(purchase) {
@@ -99,7 +96,7 @@ func (r *Repository) FilterPurchases(ctx context.Context, predicate func(*pb.Pur
 	return filtered, nil
 }
 
-func (r *Repository) CreatePurchase(ctx context.Context, purchase *pb.Purchase) error {
+func (r *Repository) CreatePurchase(_ context.Context, purchase *pb.Purchase) error {
 	if err := Validate(purchase); err != nil {
 		return err
 	}
@@ -111,7 +108,7 @@ func (r *Repository) CreatePurchase(ctx context.Context, purchase *pb.Purchase) 
 	return nil
 }
 
-func (r *Repository) UpdatePurchase(ctx context.Context, updated *pb.Purchase) error {
+func (r *Repository) UpdatePurchase(_ context.Context, updated *pb.Purchase) error {
 	if err := Validate(updated); err != nil {
 		return err
 	}
@@ -127,7 +124,7 @@ func (r *Repository) UpdatePurchase(ctx context.Context, updated *pb.Purchase) e
 	return nil
 }
 
-func (r *Repository) DeletePurchase(ctx context.Context, name string) error {
+func (r *Repository) DeletePurchase(_ context.Context, name string) error {
 	if err := ValidateName(name); err != nil {
 		return err
 	}

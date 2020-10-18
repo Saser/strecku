@@ -180,6 +180,10 @@ func TestExistsError_Is(t *testing.T) {
 	}
 }
 
+func TestNewRepository(t *testing.T) {
+	NewRepository()
+}
+
 func TestWrongPasswordError_Error(t *testing.T) {
 	err := &WrongPasswordError{Name: testresources.Alice.Name}
 	if got, want := err.Error(), fmt.Sprintf("wrong password for user %q", testresources.Alice.Name); got != want {
