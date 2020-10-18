@@ -47,7 +47,7 @@ func TestService_GetStore(t *testing.T) {
 		},
 		{
 			desc:      "NotFound",
-			req:       &pb.GetStoreRequest{Name: testresources.Mall.Name},
+			req:       &pb.GetStoreRequest{Name: testresources.Pharmacy.Name},
 			wantStore: nil,
 			wantCode:  codes.NotFound,
 		},
@@ -76,7 +76,7 @@ func TestService_ListStores(t *testing.T) {
 		{
 			desc:     "OK",
 			req:      &pb.ListStoresRequest{PageSize: 0, PageToken: ""},
-			wantResp: &pb.ListStoresResponse{Stores: []*pb.Store{testresources.Bar, testresources.Pharmacy}},
+			wantResp: &pb.ListStoresResponse{Stores: []*pb.Store{testresources.Bar, testresources.Mall}},
 			wantCode: codes.OK,
 		},
 		{
@@ -233,7 +233,7 @@ func TestService_UpdateStore(t *testing.T) {
 			{
 				desc: "NotFound",
 				req: &pb.UpdateStoreRequest{
-					Store:      testresources.Mall,
+					Store:      testresources.Pharmacy,
 					UpdateMask: nil,
 				},
 				want: codes.NotFound,
@@ -293,7 +293,7 @@ func TestService_DeleteStore(t *testing.T) {
 			},
 			{
 				desc: "NotFound",
-				req:  &pb.DeleteStoreRequest{Name: testresources.Mall.Name},
+				req:  &pb.DeleteStoreRequest{Name: testresources.Pharmacy.Name},
 				want: codes.NotFound,
 			},
 		} {

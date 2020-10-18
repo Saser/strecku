@@ -33,7 +33,7 @@ func seed(t *testing.T) *Service {
 		t,
 		[]*pb.Store{
 			testresources.Bar,
-			testresources.Pharmacy,
+			testresources.Mall,
 		},
 	)
 	return New(userRepo, storeRepo)
