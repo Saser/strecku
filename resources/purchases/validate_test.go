@@ -4,13 +4,12 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/testresources"
 	"github.com/Saser/strecku/resources/users"
 )
 
 func TestValidate(t *testing.T) {
-	// In the following test cases, the valid purchase will be a clone of testresources.Alice_Beer1.
+	// In the following test cases, the valid purchase will be a clone of testresources.Bar_Alice_Beer1.
 	for _, test := range []struct {
 		modify func(valid *pb.Purchase)
 		want   error
@@ -18,10 +17,6 @@ func TestValidate(t *testing.T) {
 		{
 			modify: func(valid *pb.Purchase) { valid.User = "" },
 			want:   users.ErrNameInvalidFormat,
-		},
-		{
-			modify: func(valid *pb.Purchase) { valid.Store = "" },
-			want:   stores.ErrNameInvalidFormat,
 		},
 		{
 			modify: func(valid *pb.Purchase) { valid.Lines = nil },
@@ -56,7 +51,7 @@ func TestValidate(t *testing.T) {
 			want:   ErrLineProductWrongStore,
 		},
 	} {
-		purchase := Clone(testresources.Alice_Beer1)
+		purchase := Clone(testresources.Bar_Alice_Beer1)
 		test.modify(purchase)
 		if got := Validate(purchase); got != test.want {
 			t.Errorf("Validate(%v) = %v; want %v", purchase, got, test.want)

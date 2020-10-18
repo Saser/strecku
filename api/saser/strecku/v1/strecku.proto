@@ -166,7 +166,7 @@ message Product {
 // message Line for more details.
 message Purchase {
   // name is the resource name of the purchase.
-  // Format: purchases/{purchase}
+  // Format: stores/{store}/purchases/{purchase}
   // Required.
   string name = 1;
 
@@ -174,11 +174,6 @@ message Purchase {
   // Format: users/{user}
   // Required.
   string user = 2;
-
-  // store is the resource name of the store in which the purchase is made.
-  // Format: stores/{store}
-  // Required.
-  string store = 3;
 
   // Line represents a single "order line" in the purchase. Each line contains
   // information about what is bought, how many of it, and what price each unit
@@ -210,7 +205,7 @@ message Purchase {
   // lines contains the lines of this purchase. There must be at least one line
   // in each purchase.
   // Required.
-  repeated Line lines = 4;
+  repeated Line lines = 3;
 }
 
 // GetUserRequest is the request message for GetUser.
@@ -508,24 +503,26 @@ message DeleteProductRequest {
 // GetPurchaseRequest is the request message for GetPurchase.
 message GetPurchaseRequest {
   // name is the resource name of the purchase to get.
-  // Format: purchases/{purchase}
+  // Format: stores/{store}/purchases/{purchase}
   // Required.
   string name = 1;
 }
 
 // ListPurchasesRequest is the request message for ListPurchases.
-//
-// (-- api-linter: core::0132::request-parent-required=disabled
-//     aip.dev/not-precedent: Purchases are top-level resources. --)
 message ListPurchasesRequest {
+  // parent is the resource name of the store for which to list purchases.
+  // Format: stores/{store}
+  // Required.
+  string parent = 1;
+
   // page_size is the maximum number of purchases to return.
   // If unspecified, the server will choose a suitable number.
-  int32 page_size = 1;
+  int32 page_size = 2;
 
   // page_token contains an opaque string used to get the next page of
   // results. It is usually provided by the previous call to ListPurchases.
   // If unspecified, the first page will be returned.
-  string page_token = 2;
+  string page_token = 3;
 }
 
 // ListPurchasesResponse is the response message for ListPurchases.
@@ -540,13 +537,16 @@ message ListPurchasesResponse {
 }
 
 // CreatePurchaseRequest is the request message for CreatePurchase.
-//
-// (-- api-linter: core::0133::request-parent-required=disabled
-//     aip.dev/not-precedent: Purchases are top-level resources. --)
 message CreatePurchaseRequest {
+  // parent is the resource name of the store where the purchase should be
+  // created.
+  // Format: stores/{store}
+  // Required.
+  string parent = 1;
+
   // purchase is the purchase to be created.
   // Required.
-  Purchase purchase = 1;
+  Purchase purchase = 2;
 }
 
 // UpdatePurchaseRequest is the request message for UpdatePurchase.
@@ -565,7 +565,7 @@ message UpdatePurchaseRequest {
 // DeletePurchaseRequest is the request message for DeletePurchase.
 message DeletePurchaseRequest {
   // name specifies the resource name of the purchase to delete.
-  // Format: purchases/{purchase}
+  // Format: stores/{store}/purchases/{purchase}
   // Required.
   string name = 1;
 }

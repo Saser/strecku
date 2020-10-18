@@ -5,7 +5,6 @@ import (
 
 	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/products"
-	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/users"
 	"google.golang.org/protobuf/proto"
 )
@@ -27,9 +26,6 @@ func Validate(purchase *pb.Purchase) error {
 		return err
 	}
 	if err := users.ValidateName(purchase.User); err != nil {
-		return err
-	}
-	if err := stores.ValidateName(purchase.Store); err != nil {
 		return err
 	}
 	if len(purchase.Lines) == 0 {
@@ -58,11 +54,9 @@ func ValidateLine(purchase *pb.Purchase, line *pb.Purchase_Line) error {
 		if err := products.ValidateName(product); err != nil {
 			return err
 		}
-		store, err := products.Parent(product)
-		if err != nil {
-			return err
-		}
-		if store != purchase.Store {
+		store, _ := products.Parent(product)
+		parent, _ := Parent(purchase.Name)
+		if parent != store {
 			return ErrLineProductWrongStore
 		}
 	}

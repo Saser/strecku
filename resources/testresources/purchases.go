@@ -3,10 +3,9 @@ package testresources
 import pb "github.com/Saser/strecku/api/v1"
 
 var (
-	Alice_Beer1 = &pb.Purchase{
-		Name:  "purchases/8e386dfa-1085-4d0d-99a1-33540cec25c3",
-		User:  Alice.Name,
-		Store: Bar.Name,
+	Bar_Alice_Beer1 = &pb.Purchase{
+		Name: Bar.Name + "/purchases/8e386dfa-1085-4d0d-99a1-33540cec25c3",
+		User: Alice.Name,
 		Lines: []*pb.Purchase_Line{
 			{
 				Description: Beer.DisplayName,
@@ -16,10 +15,9 @@ var (
 			},
 		},
 	}
-	Alice_Cocktail1 = &pb.Purchase{
-		Name:  "purchases/926eeccc-0d6d-4bab-a5da-19e79995aeb1",
-		User:  Alice.Name,
-		Store: Bar.Name,
+	Bar_Alice_Cocktail1 = &pb.Purchase{
+		Name: Bar.Name + "/purchases/926eeccc-0d6d-4bab-a5da-19e79995aeb1",
+		User: Alice.Name,
 		Lines: []*pb.Purchase_Line{
 			{
 				Description: Cocktail.DisplayName,
@@ -29,10 +27,9 @@ var (
 			},
 		},
 	}
-	Alice_Beer2_Cocktail2 = &pb.Purchase{
-		Name:  "purchases/ecfb87bd-9ba4-40e4-a62c-75a14227b037",
-		User:  Alice.Name,
-		Store: Bar.Name,
+	Bar_Alice_Beer2_Cocktail2 = &pb.Purchase{
+		Name: Bar.Name + "/purchases/ecfb87bd-9ba4-40e4-a62c-75a14227b037",
+		User: Alice.Name,
 		Lines: []*pb.Purchase_Line{
 			{
 				Description: Beer.DisplayName,

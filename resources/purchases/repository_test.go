@@ -21,8 +21,8 @@ func purchaseLineLess(l1, l2 *pb.Purchase_Line) bool {
 }
 
 func TestNotFoundError_Error(t *testing.T) {
-	err := &NotFoundError{Name: testresources.Alice_Beer1.Name}
-	want := fmt.Sprintf("purchase not found: %q", testresources.Alice_Beer1.Name)
+	err := &NotFoundError{Name: testresources.Bar_Alice_Beer1.Name}
+	want := fmt.Sprintf("purchase not found: %q", testresources.Bar_Alice_Beer1.Name)
 	if got := err.Error(); !cmp.Equal(got, want) {
 		t.Errorf("err.Error() = %q; want %q", got, want)
 	}
@@ -35,18 +35,18 @@ func TestNotFoundError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &NotFoundError{Name: testresources.Alice_Beer1.Name},
-			target: &NotFoundError{Name: testresources.Alice_Beer1.Name},
+			err:    &NotFoundError{Name: testresources.Bar_Alice_Beer1.Name},
+			target: &NotFoundError{Name: testresources.Bar_Alice_Beer1.Name},
 			want:   true,
 		},
 		{
-			err:    &NotFoundError{Name: testresources.Alice_Beer1.Name},
-			target: &NotFoundError{Name: testresources.Alice_Cocktail1.Name},
+			err:    &NotFoundError{Name: testresources.Bar_Alice_Beer1.Name},
+			target: &NotFoundError{Name: testresources.Bar_Alice_Cocktail1.Name},
 			want:   false,
 		},
 		{
-			err:    &NotFoundError{Name: testresources.Alice_Beer1.Name},
-			target: fmt.Errorf("purchase not found: %q", testresources.Alice_Beer1.Name),
+			err:    &NotFoundError{Name: testresources.Bar_Alice_Beer1.Name},
+			target: fmt.Errorf("purchase not found: %q", testresources.Bar_Alice_Beer1.Name),
 			want:   false,
 		},
 	} {
@@ -71,18 +71,18 @@ func TestExistsError_Is(t *testing.T) {
 		want   bool
 	}{
 		{
-			err:    &ExistsError{Name: testresources.Alice_Beer1.Name},
-			target: &ExistsError{Name: testresources.Alice_Beer1.Name},
+			err:    &ExistsError{Name: testresources.Bar_Alice_Beer1.Name},
+			target: &ExistsError{Name: testresources.Bar_Alice_Beer1.Name},
 			want:   true,
 		},
 		{
-			err:    &ExistsError{Name: testresources.Alice_Beer1.Name},
-			target: &ExistsError{Name: testresources.Alice_Cocktail1.Name},
+			err:    &ExistsError{Name: testresources.Bar_Alice_Beer1.Name},
+			target: &ExistsError{Name: testresources.Bar_Alice_Cocktail1.Name},
 			want:   false,
 		},
 		{
-			err:    &ExistsError{Name: testresources.Alice_Beer1.Name},
-			target: fmt.Errorf("purchase exists: %q", testresources.Alice_Beer1.Name),
+			err:    &ExistsError{Name: testresources.Bar_Alice_Beer1.Name},
+			target: fmt.Errorf("purchase exists: %q", testresources.Bar_Alice_Beer1.Name),
 			want:   false,
 		},
 	} {
@@ -94,7 +94,7 @@ func TestExistsError_Is(t *testing.T) {
 
 func TestRepository_LookupPurchase(t *testing.T) {
 	ctx := context.Background()
-	r := SeedRepository(t, []*pb.Purchase{testresources.Alice_Beer1})
+	r := SeedRepository(t, []*pb.Purchase{testresources.Bar_Alice_Beer1})
 	for _, test := range []struct {
 		desc         string
 		name         string
@@ -103,8 +103,8 @@ func TestRepository_LookupPurchase(t *testing.T) {
 	}{
 		{
 			desc:         "OK",
-			name:         testresources.Alice_Beer1.Name,
-			wantPurchase: testresources.Alice_Beer1,
+			name:         testresources.Bar_Alice_Beer1.Name,
+			wantPurchase: testresources.Bar_Alice_Beer1,
 			wantErr:      nil,
 		},
 		{
@@ -115,9 +115,9 @@ func TestRepository_LookupPurchase(t *testing.T) {
 		},
 		{
 			desc:         "NotFound",
-			name:         testresources.Alice_Cocktail1.Name,
+			name:         testresources.Bar_Alice_Cocktail1.Name,
 			wantPurchase: nil,
-			wantErr:      &NotFoundError{Name: testresources.Alice_Cocktail1.Name},
+			wantErr:      &NotFoundError{Name: testresources.Bar_Alice_Cocktail1.Name},
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
@@ -135,9 +135,9 @@ func TestRepository_LookupPurchase(t *testing.T) {
 func TestRepository_ListPurchases(t *testing.T) {
 	ctx := context.Background()
 	allPurchases := []*pb.Purchase{
-		testresources.Alice_Beer1,
-		testresources.Alice_Cocktail1,
-		testresources.Alice_Beer2_Cocktail2,
+		testresources.Bar_Alice_Beer1,
+		testresources.Bar_Alice_Cocktail1,
+		testresources.Bar_Alice_Beer2_Cocktail2,
 	}
 	r := SeedRepository(t, allPurchases)
 	purchases, err := r.ListPurchases(ctx)
@@ -157,9 +157,9 @@ func TestRepository_ListPurchases(t *testing.T) {
 func TestRepository_FilterPurchases(t *testing.T) {
 	ctx := context.Background()
 	r := SeedRepository(t, []*pb.Purchase{
-		testresources.Alice_Beer1,
-		testresources.Alice_Cocktail1,
-		testresources.Alice_Beer2_Cocktail2,
+		testresources.Bar_Alice_Beer1,
+		testresources.Bar_Alice_Cocktail1,
+		testresources.Bar_Alice_Beer2_Cocktail2,
 	})
 	for _, test := range []struct {
 		desc      string
@@ -173,17 +173,17 @@ func TestRepository_FilterPurchases(t *testing.T) {
 		},
 		{
 			desc:      "OneMatching",
-			predicate: func(purchase *pb.Purchase) bool { return purchase.Name == testresources.Alice_Beer1.Name },
+			predicate: func(purchase *pb.Purchase) bool { return purchase.Name == testresources.Bar_Alice_Beer1.Name },
 			want: []*pb.Purchase{
-				testresources.Alice_Beer1,
+				testresources.Bar_Alice_Beer1,
 			},
 		},
 		{
 			desc:      "MultipleMatching",
 			predicate: func(purchase *pb.Purchase) bool { return len(purchase.Lines) == 1 },
 			want: []*pb.Purchase{
-				testresources.Alice_Beer1,
-				testresources.Alice_Cocktail1,
+				testresources.Bar_Alice_Beer1,
+				testresources.Bar_Alice_Cocktail1,
 			},
 		},
 	} {
@@ -213,24 +213,24 @@ func TestRepository_CreatePurchase(t *testing.T) {
 	}{
 		{
 			desc:     "OK",
-			purchase: testresources.Alice_Cocktail1,
+			purchase: testresources.Bar_Alice_Cocktail1,
 			want:     nil,
 		},
 		{
 			desc: "DuplicateName",
 			purchase: func() *pb.Purchase {
-				purchase := Clone(testresources.Alice_Cocktail1)
-				purchase.Name = testresources.Alice_Beer1.Name
+				purchase := Clone(testresources.Bar_Alice_Cocktail1)
+				purchase.Name = testresources.Bar_Alice_Beer1.Name
 				return purchase
 			}(),
-			want: &ExistsError{Name: testresources.Alice_Beer1.Name},
+			want: &ExistsError{Name: testresources.Bar_Alice_Beer1.Name},
 		},
 		{
 			desc: "InvalidPurchase",
 			purchase: func() *pb.Purchase {
 				// Create a purchase with no lines.
 				// This type of invalidity was chosen arbitrarily.
-				purchase := Clone(testresources.Alice_Cocktail1)
+				purchase := Clone(testresources.Bar_Alice_Cocktail1)
 				purchase.Lines = nil
 				return purchase
 			}(),
@@ -238,7 +238,7 @@ func TestRepository_CreatePurchase(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			r := SeedRepository(t, []*pb.Purchase{testresources.Alice_Beer1})
+			r := SeedRepository(t, []*pb.Purchase{testresources.Bar_Alice_Beer1})
 			if got := r.CreatePurchase(ctx, test.purchase); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 				t.Errorf("r.CreatePurchase(%v, %v) = %v; want %v", ctx, test.purchase, got, test.want)
 			}
@@ -277,8 +277,8 @@ func TestRepository_UpdatePurchase(t *testing.T) {
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				r := SeedRepository(t, []*pb.Purchase{testresources.Alice_Beer1})
-				oldPurchase := Clone(testresources.Alice_Beer1)
+				r := SeedRepository(t, []*pb.Purchase{testresources.Bar_Alice_Beer1})
+				oldPurchase := Clone(testresources.Bar_Alice_Beer1)
 				newPurchase := Clone(oldPurchase)
 				test.modify(newPurchase)
 				if err := r.UpdatePurchase(ctx, newPurchase); err != nil {
@@ -299,7 +299,7 @@ func TestRepository_UpdatePurchase(t *testing.T) {
 	})
 	// Test scenario(s) where the update failed.
 	t.Run("Errors", func(t *testing.T) {
-		r := SeedRepository(t, []*pb.Purchase{testresources.Alice_Beer1})
+		r := SeedRepository(t, []*pb.Purchase{testresources.Bar_Alice_Beer1})
 		for _, test := range []struct {
 			desc   string
 			modify func(purchase *pb.Purchase)
@@ -311,24 +311,13 @@ func TestRepository_UpdatePurchase(t *testing.T) {
 				want:   ErrUpdateUser,
 			},
 			{
-				desc: "UpdateStore",
-				modify: func(purchase *pb.Purchase) {
-					purchase.Store = testresources.Mall.Name
-					// The store is updated, so the product must be modified to be either unset or a
-					// product that belongs to the new store (otherwise it is not a valid purchase).
-					// Unsetting seems simplest.
-					purchase.Lines[0].Product = ""
-				},
-				want: ErrUpdateStore,
-			},
-			{
 				desc:   "NotFound",
-				modify: func(purchase *pb.Purchase) { purchase.Name = testresources.Alice_Cocktail1.Name },
-				want:   &NotFoundError{Name: testresources.Alice_Cocktail1.Name},
+				modify: func(purchase *pb.Purchase) { purchase.Name = testresources.Bar_Alice_Cocktail1.Name },
+				want:   &NotFoundError{Name: testresources.Bar_Alice_Cocktail1.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				oldPurchase := Clone(testresources.Alice_Beer1)
+				oldPurchase := Clone(testresources.Bar_Alice_Beer1)
 				newPurchase := Clone(oldPurchase)
 				test.modify(newPurchase)
 				if got := r.UpdatePurchase(ctx, newPurchase); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
@@ -353,11 +342,11 @@ func TestRepository_DeletePurchase(t *testing.T) {
 	ctx := context.Background()
 	t.Run("OK", func(t *testing.T) {
 		r := SeedRepository(t, []*pb.Purchase{
-			testresources.Alice_Beer1,
-			testresources.Alice_Cocktail1,
+			testresources.Bar_Alice_Beer1,
+			testresources.Bar_Alice_Cocktail1,
 		})
-		if err := r.DeletePurchase(ctx, testresources.Alice_Beer1.Name); err != nil {
-			t.Errorf("r.DeletePurchase(%v, %q) = %v; want nil", ctx, testresources.Alice_Beer1.Name, err)
+		if err := r.DeletePurchase(ctx, testresources.Bar_Alice_Beer1.Name); err != nil {
+			t.Errorf("r.DeletePurchase(%v, %q) = %v; want nil", ctx, testresources.Bar_Alice_Beer1.Name, err)
 		}
 		for _, test := range []struct {
 			desc         string
@@ -367,14 +356,14 @@ func TestRepository_DeletePurchase(t *testing.T) {
 		}{
 			{
 				desc:         "LookupDeleted",
-				name:         testresources.Alice_Beer1.Name,
+				name:         testresources.Bar_Alice_Beer1.Name,
 				wantPurchase: nil,
-				wantErr:      &NotFoundError{Name: testresources.Alice_Beer1.Name},
+				wantErr:      &NotFoundError{Name: testresources.Bar_Alice_Beer1.Name},
 			},
 			{
 				desc:         "LookupExisting",
-				name:         testresources.Alice_Cocktail1.Name,
-				wantPurchase: testresources.Alice_Cocktail1,
+				name:         testresources.Bar_Alice_Cocktail1.Name,
+				wantPurchase: testresources.Bar_Alice_Cocktail1,
 				wantErr:      nil,
 			},
 		} {
@@ -390,7 +379,7 @@ func TestRepository_DeletePurchase(t *testing.T) {
 		}
 	})
 	t.Run("Errors", func(t *testing.T) {
-		r := SeedRepository(t, []*pb.Purchase{testresources.Alice_Beer1})
+		r := SeedRepository(t, []*pb.Purchase{testresources.Bar_Alice_Beer1})
 		for _, test := range []struct {
 			desc string
 			name string
@@ -403,8 +392,8 @@ func TestRepository_DeletePurchase(t *testing.T) {
 			},
 			{
 				desc: "NotFound",
-				name: testresources.Alice_Cocktail1.Name,
-				want: &NotFoundError{Name: testresources.Alice_Cocktail1.Name},
+				name: testresources.Bar_Alice_Cocktail1.Name,
+				want: &NotFoundError{Name: testresources.Bar_Alice_Cocktail1.Name},
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {

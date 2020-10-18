@@ -4,19 +4,23 @@ import (
 	"fmt"
 
 	"github.com/Saser/strecku/resources/names"
+	"github.com/Saser/strecku/resources/stores"
 	"github.com/google/uuid"
 )
 
 const CollectionID = "purchases"
 
 var (
-	Regexp = names.MustCompile(CollectionID, names.UUID)
+	Regexp = names.MustCompile(
+		fmt.Sprintf("(?P<store>%s)", stores.Regexp.String()),
+		CollectionID, names.UUID,
+	)
 
-	ErrNameInvalidFormat = fmt.Errorf("name must have format %q", CollectionID+"/<uuid>")
+	ErrNameInvalidFormat = fmt.Errorf("name must have format %q", stores.CollectionID+"/<uuid>/"+CollectionID+"/<uuid>")
 )
 
-func GenerateName() string {
-	return fmt.Sprintf("%s/%s", CollectionID, uuid.New().String())
+func GenerateName(store string) string {
+	return fmt.Sprintf("%s/%s/%s", store, CollectionID, uuid.New().String())
 }
 
 func ValidateName(name string) error {
@@ -24,4 +28,12 @@ func ValidateName(name string) error {
 		return ErrNameInvalidFormat
 	}
 	return nil
+}
+
+func Parent(name string) (string, error) {
+	if err := ValidateName(name); err != nil {
+		return "", err
+	}
+	matches := Regexp.FindStringSubmatch(name)
+	return matches[Regexp.SubexpIndex("store")], nil
 }

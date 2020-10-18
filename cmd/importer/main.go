@@ -44,10 +44,6 @@ func imain() int {
 		return 1
 	}
 	db := streckudb.New(client)
-	if err != nil {
-		log.Print(err)
-		return 1
-	}
 	m := mapper.New()
 
 	log.Print("finding all users...")
@@ -79,7 +75,12 @@ func imain() int {
 		m.Store(store.ID, stores.GenerateName())
 	}
 	for _, purchase := range allPurchases {
-		m.Purchase(purchase.ID, purchases.GenerateName())
+		storeName, ok := m.StoreName(purchase.Store)
+		if !ok {
+			log.Printf("store not found in mapper: %v", purchase.Store)
+			return 1
+		}
+		m.Purchase(purchase.ID, purchases.GenerateName(storeName))
 	}
 	// We have to gather combinations of stores and products. There are two
 	// kinds of products we care about:
@@ -195,14 +196,8 @@ func imain() int {
 				log.Printf("product not found in mapper: %v", sp)
 				return 1
 			}
-			storeName, ok := m.StoreName(store.ID)
-			if !ok {
-				log.Printf("store not found in mapper: %v", store.ID)
-				return 1
-			}
 			apiProduct := &pb.Product{
 				Name:               productName,
-				Parent:             storeName,
 				DisplayName:        product.Name,
 				FullPriceCents:     priceCents(fullPrice),
 				DiscountPriceCents: priceCents(discountPrice),
@@ -237,11 +232,6 @@ func imain() int {
 		if _, ok := apiProducts[productName]; ok {
 			continue
 		}
-		storeName, ok := m.StoreName(purchase.Store)
-		if !ok {
-			log.Printf("store not found in mapper: %v", purchase.Store)
-			return 1
-		}
 		product, err := db.GetProduct(ctx, *purchase.Product)
 		if err != nil {
 			log.Print(err)
@@ -250,7 +240,6 @@ func imain() int {
 		fullPriceCents := priceCents(purchase.Price)
 		apiProduct := &pb.Product{
 			Name:               productName,
-			Parent:             storeName,
 			DisplayName:        product.Name,
 			FullPriceCents:     fullPriceCents,
 			DiscountPriceCents: fullPriceCents,
@@ -313,15 +302,9 @@ func imain() int {
 			log.Printf("user not found in mapper: %v", purchase.User)
 			return 1
 		}
-		storeName, ok := m.StoreName(purchase.Store)
-		if !ok {
-			log.Printf("store not found in mapper: %v", purchase.Store)
-			return 1
-		}
 		apiPurchase := &pb.Purchase{
 			Name:  purchaseName,
 			User:  userName,
-			Store: storeName,
 			Lines: []*pb.Purchase_Line{line},
 		}
 		if err := purchases.Validate(apiPurchase); err != nil {

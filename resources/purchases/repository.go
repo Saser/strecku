@@ -123,9 +123,6 @@ func (r *Repository) UpdatePurchase(ctx context.Context, updated *pb.Purchase) e
 	if updated.User != purchase.User {
 		return ErrUpdateUser
 	}
-	if updated.Store != purchase.Store {
-		return ErrUpdateStore
-	}
 	r.purchases[name] = updated
 	return nil
 }
