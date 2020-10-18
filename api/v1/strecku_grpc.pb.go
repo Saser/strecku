@@ -68,6 +68,16 @@ type StreckUClient interface {
 	UpdatePurchase(ctx context.Context, in *UpdatePurchaseRequest, opts ...grpc.CallOption) (*Purchase, error)
 	// DeletePurchase deletes a purchase.
 	DeletePurchase(ctx context.Context, in *DeletePurchaseRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	// GetPayment gets a single payment.
+	GetPayment(ctx context.Context, in *GetPaymentRequest, opts ...grpc.CallOption) (*Payment, error)
+	// ListPayments lists payments.
+	ListPayments(ctx context.Context, in *ListPaymentsRequest, opts ...grpc.CallOption) (*ListPaymentsResponse, error)
+	// CreatePayment creates a new payment.
+	CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*Payment, error)
+	// UpdatePayment updates a single payment.
+	UpdatePayment(ctx context.Context, in *UpdatePaymentRequest, opts ...grpc.CallOption) (*Payment, error)
+	// DeletePayment deletes a payment.
+	DeletePayment(ctx context.Context, in *DeletePaymentRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type streckUClient struct {
@@ -303,6 +313,51 @@ func (c *streckUClient) DeletePurchase(ctx context.Context, in *DeletePurchaseRe
 	return out, nil
 }
 
+func (c *streckUClient) GetPayment(ctx context.Context, in *GetPaymentRequest, opts ...grpc.CallOption) (*Payment, error) {
+	out := new(Payment)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/GetPayment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) ListPayments(ctx context.Context, in *ListPaymentsRequest, opts ...grpc.CallOption) (*ListPaymentsResponse, error) {
+	out := new(ListPaymentsResponse)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/ListPayments", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) CreatePayment(ctx context.Context, in *CreatePaymentRequest, opts ...grpc.CallOption) (*Payment, error) {
+	out := new(Payment)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/CreatePayment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) UpdatePayment(ctx context.Context, in *UpdatePaymentRequest, opts ...grpc.CallOption) (*Payment, error) {
+	out := new(Payment)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/UpdatePayment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *streckUClient) DeletePayment(ctx context.Context, in *DeletePaymentRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/saser.strecku.v1.StreckU/DeletePayment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StreckUServer is the server API for StreckU service.
 // All implementations must embed UnimplementedStreckUServer
 // for forward compatibility
@@ -357,6 +412,16 @@ type StreckUServer interface {
 	UpdatePurchase(context.Context, *UpdatePurchaseRequest) (*Purchase, error)
 	// DeletePurchase deletes a purchase.
 	DeletePurchase(context.Context, *DeletePurchaseRequest) (*empty.Empty, error)
+	// GetPayment gets a single payment.
+	GetPayment(context.Context, *GetPaymentRequest) (*Payment, error)
+	// ListPayments lists payments.
+	ListPayments(context.Context, *ListPaymentsRequest) (*ListPaymentsResponse, error)
+	// CreatePayment creates a new payment.
+	CreatePayment(context.Context, *CreatePaymentRequest) (*Payment, error)
+	// UpdatePayment updates a single payment.
+	UpdatePayment(context.Context, *UpdatePaymentRequest) (*Payment, error)
+	// DeletePayment deletes a payment.
+	DeletePayment(context.Context, *DeletePaymentRequest) (*empty.Empty, error)
 	mustEmbedUnimplementedStreckUServer()
 }
 
@@ -438,6 +503,21 @@ func (UnimplementedStreckUServer) UpdatePurchase(context.Context, *UpdatePurchas
 }
 func (UnimplementedStreckUServer) DeletePurchase(context.Context, *DeletePurchaseRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePurchase not implemented")
+}
+func (UnimplementedStreckUServer) GetPayment(context.Context, *GetPaymentRequest) (*Payment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPayment not implemented")
+}
+func (UnimplementedStreckUServer) ListPayments(context.Context, *ListPaymentsRequest) (*ListPaymentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPayments not implemented")
+}
+func (UnimplementedStreckUServer) CreatePayment(context.Context, *CreatePaymentRequest) (*Payment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePayment not implemented")
+}
+func (UnimplementedStreckUServer) UpdatePayment(context.Context, *UpdatePaymentRequest) (*Payment, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePayment not implemented")
+}
+func (UnimplementedStreckUServer) DeletePayment(context.Context, *DeletePaymentRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePayment not implemented")
 }
 func (UnimplementedStreckUServer) mustEmbedUnimplementedStreckUServer() {}
 
@@ -902,6 +982,96 @@ func _StreckU_DeletePurchase_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StreckU_GetPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPaymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).GetPayment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/GetPayment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).GetPayment(ctx, req.(*GetPaymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_ListPayments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPaymentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).ListPayments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/ListPayments",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).ListPayments(ctx, req.(*ListPaymentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_CreatePayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePaymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).CreatePayment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/CreatePayment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).CreatePayment(ctx, req.(*CreatePaymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_UpdatePayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePaymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).UpdatePayment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/UpdatePayment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).UpdatePayment(ctx, req.(*UpdatePaymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StreckU_DeletePayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePaymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StreckUServer).DeletePayment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/saser.strecku.v1.StreckU/DeletePayment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StreckUServer).DeletePayment(ctx, req.(*DeletePaymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _StreckU_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "saser.strecku.v1.StreckU",
 	HandlerType: (*StreckUServer)(nil),
@@ -1005,6 +1175,26 @@ var _StreckU_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeletePurchase",
 			Handler:    _StreckU_DeletePurchase_Handler,
+		},
+		{
+			MethodName: "GetPayment",
+			Handler:    _StreckU_GetPayment_Handler,
+		},
+		{
+			MethodName: "ListPayments",
+			Handler:    _StreckU_ListPayments_Handler,
+		},
+		{
+			MethodName: "CreatePayment",
+			Handler:    _StreckU_CreatePayment_Handler,
+		},
+		{
+			MethodName: "UpdatePayment",
+			Handler:    _StreckU_UpdatePayment_Handler,
+		},
+		{
+			MethodName: "DeletePayment",
+			Handler:    _StreckU_DeletePayment_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

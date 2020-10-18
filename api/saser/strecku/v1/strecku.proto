@@ -86,6 +86,21 @@ service StreckU {
 
   // DeletePurchase deletes a purchase.
   rpc DeletePurchase(DeletePurchaseRequest) returns (google.protobuf.Empty);
+
+  // GetPayment gets a single payment.
+  rpc GetPayment(GetPaymentRequest) returns (Payment);
+
+  // ListPayments lists payments.
+  rpc ListPayments(ListPaymentsRequest) returns (ListPaymentsResponse);
+
+  // CreatePayment creates a new payment.
+  rpc CreatePayment(CreatePaymentRequest) returns (Payment);
+
+  // UpdatePayment updates a single payment.
+  rpc UpdatePayment(UpdatePaymentRequest) returns (Payment);
+
+  // DeletePayment deletes a payment.
+  rpc DeletePayment(DeletePaymentRequest) returns (google.protobuf.Empty);
 }
 
 // User represents a user in the system.
@@ -206,6 +221,28 @@ message Purchase {
   // in each purchase.
   // Required.
   repeated Line lines = 3;
+}
+
+// Payment represents a transaction where a user decreases their debt towards a
+// store.
+message Payment {
+  // name is the resource name of the payment.
+  // Format: stores/{store}/payments/{payment}
+  // Required.
+  string name = 1;
+
+  // user is the resource name of the user making the payment.
+  // Format: users/{user}
+  // Required.
+  string user = 2;
+
+  // description contains a human-readable description of the payment.
+  // Optional.
+  string description = 3;
+
+  // amount_cents contains the amount paid in cents. It must be non-negative.
+  // Required.
+  int64 amount_cents = 4;
 }
 
 // GetUserRequest is the request message for GetUser.
@@ -566,6 +603,76 @@ message UpdatePurchaseRequest {
 message DeletePurchaseRequest {
   // name specifies the resource name of the purchase to delete.
   // Format: stores/{store}/purchases/{purchase}
+  // Required.
+  string name = 1;
+}
+
+// GetPaymentRequest is the request message for GetPayment.
+message GetPaymentRequest {
+  // name is the resource name of the payment to get.
+  // Format: stores/{store}/payments/{payment}
+  // Required.
+  string name = 1;
+}
+
+// ListPaymentsRequest is the request message for ListPayments.
+message ListPaymentsRequest {
+  // parent is the resource name of the store for which to list payments.
+  // Format: stores/{store}
+  // Required.
+  string parent = 1;
+
+  // page_size is the maximum number of payments to return.
+  // If unspecified, the server will choose a suitable number.
+  int32 page_size = 2;
+
+  // page_token contains an opaque string used to get the next page of
+  // results. It is usually provided by the previous call to ListPayments.
+  // If unspecified, the first page will be returned.
+  string page_token = 3;
+}
+
+// ListPaymentsResponse is the response message for ListPayments.
+message ListPaymentsResponse {
+  // payments contains the page of payments.
+  repeated Payment payments = 1;
+
+  // next_page_token contains an opaque string used to get the next page of
+  // results. Provide this in a subsequent call to ListPayments.
+  // If this field is empty, there are no more pages.
+  string next_page_token = 2;
+}
+
+// CreatePaymentRequest is the request message for CreatePayment.
+message CreatePaymentRequest {
+  // parent is the resource name of the store where the payment should be
+  // created.
+  // Format: stores/{store}
+  // Required.
+  string parent = 1;
+
+  // payment is the payment to be created.
+  // Required.
+  Payment payment = 2;
+}
+
+// UpdatePaymentRequest is the request message for UpdatePayment.
+message UpdatePaymentRequest {
+  // payment is the updated payment. The `name` field will be used to identify
+  // which payment to updated.
+  // Required.
+  Payment payment = 1;
+
+  // update_mask contains the field mask specifying which fields to update. An
+  // empty field mask will cause the entire resource to be updated.
+  // Optional.
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+// DeletePaymentRequest is the request message for DeletePayment.
+message DeletePaymentRequest {
+  // name specifies the resource name of the payment to delete.
+  // Format: stores/{store}/payments/{payment}
   // Required.
   string name = 1;
 }
