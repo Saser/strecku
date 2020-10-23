@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package saser.strecku.v1;
 
+import "google/api/annotations.proto";
+import "google/api/client.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 
@@ -13,7 +15,12 @@ option java_outer_classname = "StreckUProto";
 // StreckU is a service for buying things on credit.
 service StreckU {
   // GetUser gets a single user.
-  rpc GetUser(GetUserRequest) returns (User);
+  rpc GetUser(GetUserRequest) returns (User) {
+    option (google.api.http) = {
+      get: "/v1/{name=users/*}"
+    };
+    option (google.api.method_signature) = "name";
+  }
 
   // ListUsers lists users.
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);

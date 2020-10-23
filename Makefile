@@ -9,6 +9,7 @@ lint: \
 	$(proto-files)
 lint:
 	$(api-linter) \
+		--proto-path=third_party/api-common-protos \
 		--config=.api-linter.yml \
 		$(proto_files)
 
@@ -21,6 +22,7 @@ generate: \
 generate:
 	$(protoc) \
 		--proto_path=api \
+		--proto_path=third_party/api-common-protos \
 		--plugin='$(protoc-gen-go)' \
 		--go_out=. \
 		--go_opt=module='$(go_module)' \
