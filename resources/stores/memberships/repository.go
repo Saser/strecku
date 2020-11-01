@@ -116,7 +116,7 @@ func (r *Repository) LookupMembership(_ context.Context, name string) (*pb.Membe
 	if !ok {
 		return nil, &NotFoundError{Name: name}
 	}
-	return membership, nil
+	return Clone(membership), nil
 }
 
 func (r *Repository) LookupMembershipIn(ctx context.Context, parent string, user string) (*pb.Membership, error) {
@@ -141,7 +141,7 @@ func (r *Repository) FilterMemberships(_ context.Context, predicate func(*pb.Mem
 	var filtered []*pb.Membership
 	for _, membership := range r.memberships {
 		if predicate(membership) {
-			filtered = append(filtered, membership)
+			filtered = append(filtered, Clone(membership))
 		}
 	}
 	return filtered, nil
@@ -160,7 +160,7 @@ func (r *Repository) CreateMembership(_ context.Context, membership *pb.Membersh
 			User:   membership.User,
 		}
 	}
-	r.memberships[name] = membership
+	r.memberships[name] = Clone(membership)
 	r.names[key] = name
 	return nil
 }
@@ -173,7 +173,7 @@ func (r *Repository) UpdateMembership(_ context.Context, updated *pb.Membership)
 	if updated.User != membership.User {
 		return ErrUpdateUser
 	}
-	r.memberships[updated.Name] = updated
+	r.memberships[updated.Name] = Clone(updated)
 	return nil
 }
 
