@@ -45,4 +45,16 @@ var (
 			},
 		},
 	}
+	Mall_Alice_Jeans1 = &pb.Purchase{
+		Name: Mall.Name + "/purchases/f4037d30-6ecc-4fe6-9b90-0caba0594335",
+		User: Alice.Name,
+		Lines: []*pb.Purchase_Line{
+			{
+				Description: Jeans.DisplayName,
+				Quantity:    1,
+				PriceCents:  Jeans.FullPriceCents,
+				Product:     Jeans.Name,
+			},
+		},
+	}
 )
