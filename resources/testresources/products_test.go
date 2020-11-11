@@ -11,6 +11,8 @@ func TestProductsValid(t *testing.T) {
 	for _, product := range []*pb.Product{
 		Beer,
 		Cocktail,
+		Jeans,
+		Shirt,
 		Pills,
 		Lotion,
 	} {

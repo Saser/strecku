@@ -15,6 +15,18 @@ var (
 		FullPriceCents:     -10000,
 		DiscountPriceCents: -7500,
 	}
+	Jeans = &pb.Product{
+		Name:               Mall.Name + "/products/032b6523-9503-4ac4-95c5-622f723d91f4",
+		DisplayName:        "Jeans",
+		FullPriceCents:     -50000,
+		DiscountPriceCents: -40000,
+	}
+	Shirt = &pb.Product{
+		Name:               Mall.Name + "/products/110436c0-ab22-4813-96ae-e079ab90a5e6",
+		DisplayName:        "Shirt",
+		FullPriceCents:     -30000,
+		DiscountPriceCents: -25000,
+	}
 	Pills = &pb.Product{
 		Name:               Pharmacy.Name + "/products/156773ff-4424-446b-8d4d-ce5808359386",
 		DisplayName:        "Pills",
