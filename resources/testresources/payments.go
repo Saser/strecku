@@ -21,4 +21,10 @@ var (
 		Description: "Carol's payment",
 		AmountCents: 20000,
 	}
+	Mall_Alice_Payment = &pb.Payment{
+		Name:        Mall.Name + "/payments/bf2ba5da-100b-4bf5-a6c1-9689cc324287",
+		User:        Alice.Name,
+		Description: "Alice's payment",
+		AmountCents: 50000,
+	}
 )

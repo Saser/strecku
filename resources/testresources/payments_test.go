@@ -12,6 +12,7 @@ func TestPaymentsValid(t *testing.T) {
 		Bar_Alice_Payment,
 		Bar_Bob_Payment,
 		Bar_Carol_Payment,
+		Mall_Alice_Payment,
 	} {
 		if err := payments.Validate(payment); err != nil {
 			t.Errorf("payments.Validate(%v) = %v; want nil", payment, err)
