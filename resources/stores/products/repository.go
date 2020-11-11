@@ -81,7 +81,7 @@ func (r *Repository) LookupProduct(_ context.Context, name string) (*pb.Product,
 	if !ok {
 		return nil, &NotFoundError{Name: name}
 	}
-	return product, nil
+	return Clone(product), nil
 }
 
 func (r *Repository) ListProducts(ctx context.Context) ([]*pb.Product, error) {
@@ -92,7 +92,7 @@ func (r *Repository) FilterProducts(_ context.Context, predicate func(*pb.Produc
 	var filtered []*pb.Product
 	for _, product := range r.products {
 		if predicate(product) {
-			filtered = append(filtered, product)
+			filtered = append(filtered, Clone(product))
 		}
 	}
 	return filtered, nil
@@ -106,7 +106,7 @@ func (r *Repository) CreateProduct(_ context.Context, product *pb.Product) error
 	if _, exists := r.products[name]; exists {
 		return &ExistsError{Name: name}
 	}
-	r.products[name] = product
+	r.products[name] = Clone(product)
 	return nil
 }
 
@@ -118,7 +118,7 @@ func (r *Repository) UpdateProduct(_ context.Context, updated *pb.Product) error
 	if _, ok := r.products[name]; !ok {
 		return &NotFoundError{Name: name}
 	}
-	r.products[name] = updated
+	r.products[name] = Clone(updated)
 	return nil
 }
 
