@@ -9,6 +9,7 @@ import (
 	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/stores/memberships"
+	"github.com/Saser/strecku/resources/stores/products"
 	"github.com/Saser/strecku/resources/testresources"
 	"github.com/Saser/strecku/resources/users"
 	"google.golang.org/grpc"
@@ -45,7 +46,14 @@ func seed(t *testing.T) *Service {
 			testresources.Mall_Alice,
 		},
 	)
-	return New(userRepo, storeRepo, membershipRepo)
+	productRepo := products.SeedRepository(
+		t,
+		[]*pb.Product{
+			testresources.Beer,
+			testresources.Jeans,
+		},
+	)
+	return New(userRepo, storeRepo, membershipRepo, productRepo)
 }
 
 func serveAndDial(ctx context.Context, t *testing.T, svc *Service) pb.StreckUClient {
