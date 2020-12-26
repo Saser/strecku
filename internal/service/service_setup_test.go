@@ -9,6 +9,7 @@ import (
 	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/stores/memberships"
+	"github.com/Saser/strecku/resources/stores/payments"
 	"github.com/Saser/strecku/resources/stores/products"
 	"github.com/Saser/strecku/resources/stores/purchases"
 	"github.com/Saser/strecku/resources/testresources"
@@ -61,7 +62,14 @@ func seed(t *testing.T) *Service {
 			testresources.Mall_Alice_Jeans1,
 		},
 	)
-	return New(userRepo, storeRepo, membershipRepo, productRepo, purchaseRepo)
+	paymentRepo := payments.SeedRepository(
+		t,
+		[]*pb.Payment{
+			testresources.Bar_Alice_Payment,
+			testresources.Mall_Alice_Payment,
+		},
+	)
+	return New(userRepo, storeRepo, membershipRepo, productRepo, purchaseRepo, paymentRepo)
 }
 
 func serveAndDial(ctx context.Context, t *testing.T, svc *Service) pb.StreckUClient {
