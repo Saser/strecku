@@ -28,3 +28,14 @@ generate:
 		--go-grpc_out=. \
 		--go-grpc_opt=module='$(go_module)' \
 		$(proto_files)
+
+.PHONY: new-migration
+new-migration: \
+	$(migrate)
+new-migration:
+	$(migrate) \
+		create \
+		-ext='sql' \
+		-dir='database' \
+		-seq \
+		todo_rename_migration

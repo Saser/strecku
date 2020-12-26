@@ -57,3 +57,11 @@ $(protoc-gen-go-grpc): go.mod go.sum
 		build \
 		-o='$@' \
 		google.golang.org/grpc/cmd/protoc-gen-go-grpc
+
+# migrate: CLI for the Go-based migration tool `migrate`.
+migrate := $(tools)/migrate
+$(migrate): go.mod go.sum
+	go \
+		build \
+		-o='$@' \
+		github.com/golang-migrate/migrate/v4/cmd/migrate
