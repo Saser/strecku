@@ -79,7 +79,7 @@ func (r *Repository) LookupPayment(_ context.Context, name string) (*pb.Payment,
 	if !ok {
 		return nil, &NotFoundError{Name: name}
 	}
-	return payment, nil
+	return Clone(payment), nil
 }
 
 func (r *Repository) ListPayments(ctx context.Context) ([]*pb.Payment, error) {
@@ -90,7 +90,7 @@ func (r *Repository) FilterPayments(_ context.Context, predicate func(*pb.Paymen
 	var filtered []*pb.Payment
 	for _, payment := range r.payments {
 		if predicate(payment) {
-			filtered = append(filtered, payment)
+			filtered = append(filtered, Clone(payment))
 		}
 	}
 	return filtered, nil
@@ -104,7 +104,7 @@ func (r *Repository) CreatePayment(_ context.Context, payment *pb.Payment) error
 	if _, exists := r.payments[name]; exists {
 		return &ExistsError{Name: name}
 	}
-	r.payments[name] = payment
+	r.payments[name] = Clone(payment)
 	return nil
 }
 
@@ -120,7 +120,7 @@ func (r *Repository) UpdatePayment(_ context.Context, updated *pb.Payment) error
 	if updated.User != payment.User {
 		return ErrUpdateUser
 	}
-	r.payments[name] = updated
+	r.payments[name] = Clone(updated)
 	return nil
 }
 
