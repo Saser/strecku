@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
 )
@@ -75,4 +76,19 @@ type Users interface {
 	// will be validated using package users. If no user with that name
 	// exists, a NotFound error will be returned.
 	Delete(ctx context.Context, name string) error
+}
+
+func SeedUsers(ctx context.Context, t *testing.T, r Users, users []*pb.User, passwords []string) {
+	t.Helper()
+	if userCount, passwordCount := len(users), len(passwords); userCount != passwordCount {
+		t.Fatalf("len(users), len(passwords) = %v, %v; want equal", userCount, passwordCount)
+	}
+	for i, user := range users {
+		if err := r.Create(ctx, user, passwords[i]); err != nil {
+			t.Errorf("r.Create(ctx, %v, %q) = %v; want nil", user, passwords[i], err)
+		}
+	}
+	if t.Failed() {
+		t.FailNow()
+	}
 }

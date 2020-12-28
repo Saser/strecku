@@ -20,7 +20,7 @@ func membershipLess(u1, u2 *pb.Membership) bool {
 
 func TestService_GetMembership(t *testing.T) {
 	ctx := context.Background()
-	c := serveAndDial(ctx, t, seed(t))
+	c := serveAndDial(ctx, t, seed(ctx, t))
 	for _, test := range []struct {
 		desc           string
 		req            *pb.GetMembershipRequest
@@ -66,7 +66,7 @@ func TestService_GetMembership(t *testing.T) {
 
 func TestService_ListMemberships(t *testing.T) {
 	ctx := context.Background()
-	c := serveAndDial(ctx, t, seed(t))
+	c := serveAndDial(ctx, t, seed(ctx, t))
 	for _, test := range []struct {
 		desc     string
 		req      *pb.ListMembershipsRequest
@@ -203,7 +203,7 @@ func TestService_CreateMembership(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			c := serveAndDial(ctx, t, seed(t))
+			c := serveAndDial(ctx, t, seed(ctx, t))
 			membership, err := c.CreateMembership(ctx, test.req)
 			if diff := cmp.Diff(
 				membership, test.wantMembership, protocmp.Transform(),
@@ -327,7 +327,7 @@ func TestService_UpdateMembership(t *testing.T) {
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				c := serveAndDial(ctx, t, seed(t))
+				c := serveAndDial(ctx, t, seed(ctx, t))
 				membership, err := c.UpdateMembership(ctx, test.req)
 				if diff := cmp.Diff(membership, test.want, protocmp.Transform()); diff != "" {
 					t.Errorf("c.UpdateMembership(%v, %v) membership != test.want (-got +want)\n%s", ctx, test.req, diff)
@@ -395,7 +395,7 @@ func TestService_UpdateMembership(t *testing.T) {
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				c := serveAndDial(ctx, t, seed(t))
+				c := serveAndDial(ctx, t, seed(ctx, t))
 				_, err := c.UpdateMembership(ctx, test.req)
 				if got := status.Code(err); got != test.want {
 					t.Errorf("status.Code(%v) = %v; want %v", err, got, test.want)
@@ -409,7 +409,7 @@ func TestService_DeleteMembership(t *testing.T) {
 	ctx := context.Background()
 	// Test scenario(s) where the delete is successful.
 	t.Run("OK", func(t *testing.T) {
-		c := serveAndDial(ctx, t, seed(t))
+		c := serveAndDial(ctx, t, seed(ctx, t))
 		{
 			req := &pb.DeleteMembershipRequest{Name: testresources.Bar_Alice.Name}
 			_, err := c.DeleteMembership(ctx, req)
@@ -427,7 +427,7 @@ func TestService_DeleteMembership(t *testing.T) {
 	})
 	// Test scenario(s) where the delete fails.
 	t.Run("Errors", func(t *testing.T) {
-		c := serveAndDial(ctx, t, seed(t))
+		c := serveAndDial(ctx, t, seed(ctx, t))
 		for _, test := range []struct {
 			desc string
 			req  *pb.DeleteMembershipRequest

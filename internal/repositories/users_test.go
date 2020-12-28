@@ -17,21 +17,6 @@ func userLess(u1, u2 *pb.User) bool {
 	return u1.Name < u2.Name
 }
 
-func seedUsers(ctx context.Context, t *testing.T, r Users, users []*pb.User, passwords []string) {
-	t.Helper()
-	if userCount, passwordCount := len(users), len(passwords); userCount != passwordCount {
-		t.Fatalf("len(users), len(passwords) = %v, %v; want equal", userCount, passwordCount)
-	}
-	for i, user := range users {
-		if err := r.Create(ctx, user, passwords[i]); err != nil {
-			t.Errorf("r.Create(ctx, %v, %q) = %v; want nil", user, passwords[i], err)
-		}
-	}
-	if t.Failed() {
-		t.FailNow()
-	}
-}
-
 type UsersTestSuite struct {
 	suite.Suite
 	newUsers func() Users
@@ -40,7 +25,7 @@ type UsersTestSuite struct {
 func (s *UsersTestSuite) seedUsers(ctx context.Context, t *testing.T, users []*pb.User, passwords []string) Users {
 	t.Helper()
 	r := s.newUsers()
-	seedUsers(ctx, t, r, users, passwords)
+	SeedUsers(ctx, t, r, users, passwords)
 	return r
 }
 

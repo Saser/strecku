@@ -7,23 +7,26 @@ import (
 	"time"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/internal/repositories"
 	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/stores/memberships"
 	"github.com/Saser/strecku/resources/stores/payments"
 	"github.com/Saser/strecku/resources/stores/products"
 	"github.com/Saser/strecku/resources/stores/purchases"
 	"github.com/Saser/strecku/resources/testresources"
-	"github.com/Saser/strecku/resources/users"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 )
 
 const bufSize = 1024 * 1024
 
-func seed(t *testing.T) *Service {
+func seed(ctx context.Context, t *testing.T) *Service {
 	t.Helper()
-	userRepo := users.SeedRepository(
+	userRepo := repositories.NewInMemoryUsers()
+	repositories.SeedUsers(
+		ctx,
 		t,
+		userRepo,
 		[]*pb.User{
 			testresources.Alice,
 			testresources.Bob,
@@ -98,11 +101,11 @@ func serveAndDial(ctx context.Context, t *testing.T, svc *Service) pb.StreckUCli
 }
 
 func TestSeed(t *testing.T) {
-	seed(t)
+	seed(context.Background(), t)
 }
 
 func TestDial(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	serveAndDial(ctx, t, seed(t))
+	serveAndDial(ctx, t, seed(ctx, t))
 }

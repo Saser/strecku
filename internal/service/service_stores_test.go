@@ -20,7 +20,7 @@ func storeLess(u1, u2 *pb.Store) bool {
 
 func TestService_GetStore(t *testing.T) {
 	ctx := context.Background()
-	c := serveAndDial(ctx, t, seed(t))
+	c := serveAndDial(ctx, t, seed(ctx, t))
 	for _, test := range []struct {
 		desc      string
 		req       *pb.GetStoreRequest
@@ -66,7 +66,7 @@ func TestService_GetStore(t *testing.T) {
 
 func TestService_ListStores(t *testing.T) {
 	ctx := context.Background()
-	c := serveAndDial(ctx, t, seed(t))
+	c := serveAndDial(ctx, t, seed(ctx, t))
 	for _, test := range []struct {
 		desc     string
 		req      *pb.ListStoresRequest
@@ -131,7 +131,7 @@ func TestService_CreateStore(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			c := serveAndDial(ctx, t, seed(t))
+			c := serveAndDial(ctx, t, seed(ctx, t))
 			store, err := c.CreateStore(ctx, test.req)
 			if diff := cmp.Diff(
 				store, test.wantStore, protocmp.Transform(),
@@ -200,7 +200,7 @@ func TestService_UpdateStore(t *testing.T) {
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				c := serveAndDial(ctx, t, seed(t))
+				c := serveAndDial(ctx, t, seed(ctx, t))
 				store, err := c.UpdateStore(ctx, test.req)
 				if diff := cmp.Diff(store, test.want, protocmp.Transform()); diff != "" {
 					t.Errorf("c.UpdateStore(%v, %v) store != test.want (-got +want)\n%s", ctx, test.req, diff)
@@ -248,7 +248,7 @@ func TestService_UpdateStore(t *testing.T) {
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				c := serveAndDial(ctx, t, seed(t))
+				c := serveAndDial(ctx, t, seed(ctx, t))
 				_, err := c.UpdateStore(ctx, test.req)
 				if got := status.Code(err); got != test.want {
 					t.Errorf("status.Code(%v) = %v; want %v", err, got, test.want)
@@ -262,7 +262,7 @@ func TestService_DeleteStore(t *testing.T) {
 	ctx := context.Background()
 	// Test scenario(s) where the delete is successful.
 	t.Run("OK", func(t *testing.T) {
-		c := serveAndDial(ctx, t, seed(t))
+		c := serveAndDial(ctx, t, seed(ctx, t))
 		{
 			req := &pb.DeleteStoreRequest{Name: testresources.Bar.Name}
 			_, err := c.DeleteStore(ctx, req)
@@ -280,7 +280,7 @@ func TestService_DeleteStore(t *testing.T) {
 	})
 	// Test scenario(s) where the delete fails.
 	t.Run("Errors", func(t *testing.T) {
-		c := serveAndDial(ctx, t, seed(t))
+		c := serveAndDial(ctx, t, seed(ctx, t))
 		for _, test := range []struct {
 			desc string
 			req  *pb.DeleteStoreRequest

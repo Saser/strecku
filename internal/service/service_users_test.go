@@ -20,7 +20,7 @@ func userLess(u1, u2 *pb.User) bool {
 
 func TestService_GetUser(t *testing.T) {
 	ctx := context.Background()
-	c := serveAndDial(ctx, t, seed(t))
+	c := serveAndDial(ctx, t, seed(ctx, t))
 	for _, test := range []struct {
 		desc     string
 		req      *pb.GetUserRequest
@@ -66,7 +66,7 @@ func TestService_GetUser(t *testing.T) {
 
 func TestService_ListUsers(t *testing.T) {
 	ctx := context.Background()
-	c := serveAndDial(ctx, t, seed(t))
+	c := serveAndDial(ctx, t, seed(ctx, t))
 	for _, test := range []struct {
 		desc     string
 		req      *pb.ListUsersRequest
@@ -145,7 +145,7 @@ func TestService_CreateUser(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			c := serveAndDial(ctx, t, seed(t))
+			c := serveAndDial(ctx, t, seed(ctx, t))
 			user, err := c.CreateUser(ctx, test.req)
 			if diff := cmp.Diff(
 				user, test.wantUser, protocmp.Transform(),
@@ -269,7 +269,7 @@ func TestService_UpdateUser(t *testing.T) {
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				c := serveAndDial(ctx, t, seed(t))
+				c := serveAndDial(ctx, t, seed(ctx, t))
 				user, err := c.UpdateUser(ctx, test.req)
 				if diff := cmp.Diff(user, test.want, protocmp.Transform()); diff != "" {
 					t.Errorf("c.UpdateUser(%v, %v) user != test.want (-got +want)\n%s", ctx, test.req, diff)
@@ -329,7 +329,7 @@ func TestService_UpdateUser(t *testing.T) {
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				c := serveAndDial(ctx, t, seed(t))
+				c := serveAndDial(ctx, t, seed(ctx, t))
 				_, err := c.UpdateUser(ctx, test.req)
 				if got := status.Code(err); got != test.want {
 					t.Errorf("status.Code(%v) = %v; want %v", err, got, test.want)
@@ -343,7 +343,7 @@ func TestService_DeleteUser(t *testing.T) {
 	ctx := context.Background()
 	// Test scenario(s) where the delete is successful.
 	t.Run("OK", func(t *testing.T) {
-		c := serveAndDial(ctx, t, seed(t))
+		c := serveAndDial(ctx, t, seed(ctx, t))
 		{
 			req := &pb.DeleteUserRequest{Name: testresources.Alice.Name}
 			_, err := c.DeleteUser(ctx, req)
@@ -361,7 +361,7 @@ func TestService_DeleteUser(t *testing.T) {
 	})
 	// Test scenario(s) where the delete fails.
 	t.Run("Errors", func(t *testing.T) {
-		c := serveAndDial(ctx, t, seed(t))
+		c := serveAndDial(ctx, t, seed(ctx, t))
 		for _, test := range []struct {
 			desc string
 			req  *pb.DeleteUserRequest

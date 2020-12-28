@@ -20,7 +20,7 @@ func purchaseLess(u1, u2 *pb.Purchase) bool {
 
 func TestService_GetPurchase(t *testing.T) {
 	ctx := context.Background()
-	c := serveAndDial(ctx, t, seed(t))
+	c := serveAndDial(ctx, t, seed(ctx, t))
 	for _, test := range []struct {
 		desc         string
 		req          *pb.GetPurchaseRequest
@@ -66,7 +66,7 @@ func TestService_GetPurchase(t *testing.T) {
 
 func TestService_ListPurchases(t *testing.T) {
 	ctx := context.Background()
-	c := serveAndDial(ctx, t, seed(t))
+	c := serveAndDial(ctx, t, seed(ctx, t))
 	for _, test := range []struct {
 		desc     string
 		req      *pb.ListPurchasesRequest
@@ -176,7 +176,7 @@ func TestService_CreatePurchase(t *testing.T) {
 		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			c := serveAndDial(ctx, t, seed(t))
+			c := serveAndDial(ctx, t, seed(ctx, t))
 			purchase, err := c.CreatePurchase(ctx, test.req)
 			if diff := cmp.Diff(
 				purchase, test.wantPurchase, protocmp.Transform(),
@@ -256,7 +256,7 @@ func TestService_UpdatePurchase(t *testing.T) {
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				c := serveAndDial(ctx, t, seed(t))
+				c := serveAndDial(ctx, t, seed(ctx, t))
 				purchase, err := c.UpdatePurchase(ctx, test.req)
 				if diff := cmp.Diff(purchase, test.want, protocmp.Transform()); diff != "" {
 					t.Errorf("c.UpdatePurchase(%v, %v) purchase != test.want (-got +want)\n%s", ctx, test.req, diff)
@@ -364,7 +364,7 @@ func TestService_UpdatePurchase(t *testing.T) {
 			},
 		} {
 			t.Run(test.desc, func(t *testing.T) {
-				c := serveAndDial(ctx, t, seed(t))
+				c := serveAndDial(ctx, t, seed(ctx, t))
 				_, err := c.UpdatePurchase(ctx, test.req)
 				if got := status.Code(err); got != test.want {
 					t.Errorf("status.Code(%v) = %v; want %v", err, got, test.want)
@@ -378,7 +378,7 @@ func TestService_DeletePurchase(t *testing.T) {
 	ctx := context.Background()
 	// Test scenario(s) where the delete is successful.
 	t.Run("OK", func(t *testing.T) {
-		c := serveAndDial(ctx, t, seed(t))
+		c := serveAndDial(ctx, t, seed(ctx, t))
 		{
 			req := &pb.DeletePurchaseRequest{Name: testresources.Bar_Alice_Beer1.Name}
 			_, err := c.DeletePurchase(ctx, req)
@@ -396,7 +396,7 @@ func TestService_DeletePurchase(t *testing.T) {
 	})
 	// Test scenario(s) where the delete fails.
 	t.Run("Errors", func(t *testing.T) {
-		c := serveAndDial(ctx, t, seed(t))
+		c := serveAndDial(ctx, t, seed(ctx, t))
 		for _, test := range []struct {
 			desc string
 			req  *pb.DeletePurchaseRequest

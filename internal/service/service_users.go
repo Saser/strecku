@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/internal/repositories"
 	"github.com/Saser/strecku/resources/users"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,9 +22,9 @@ func (s *Service) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.User
 			return nil, internalError
 		}
 	}
-	user, err := s.userRepo.LookupUser(ctx, name)
+	user, err := s.userRepo.Lookup(ctx, name)
 	if err != nil {
-		if notFound := new(users.NotFoundError); errors.As(err, &notFound) {
+		if notFound := new(repositories.NotFound); errors.As(err, &notFound) {
 			return nil, status.Error(codes.NotFound, notFound.Error())
 		}
 		return nil, internalError
@@ -38,7 +39,7 @@ func (s *Service) ListUsers(ctx context.Context, req *pb.ListUsersRequest) (*pb.
 	if req.PageSize > 0 || req.PageToken != "" {
 		return nil, status.Error(codes.Unimplemented, "pagination is not implemented")
 	}
-	allUsers, err := s.userRepo.ListUsers(ctx)
+	allUsers, err := s.userRepo.List(ctx)
 	if err != nil {
 		return nil, internalError
 	}
@@ -57,8 +58,11 @@ func (s *Service) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*p
 	if err := users.ValidatePassword(req.Password); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid password: %v", err)
 	}
-	if err := s.userRepo.CreateUser(ctx, user, req.Password); err != nil {
-		if exists := new(users.ExistsError); errors.As(err, &exists) {
+	if err := s.userRepo.Create(ctx, user, req.Password); err != nil {
+		if exists := new(repositories.Exists); errors.As(err, &exists) {
+			return nil, status.Error(codes.AlreadyExists, exists.Error())
+		}
+		if exists := new(repositories.EmailAddressExists); errors.As(err, &exists) {
 			return nil, status.Error(codes.AlreadyExists, exists.Error())
 		}
 		return nil, internalError
@@ -93,8 +97,8 @@ func (s *Service) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*p
 	if err := users.Validate(dst); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user: %v", err)
 	}
-	if err := s.userRepo.UpdateUser(ctx, dst); err != nil {
-		if exists := new(users.ExistsError); errors.As(err, &exists) {
+	if err := s.userRepo.Update(ctx, dst); err != nil {
+		if exists := new(repositories.EmailAddressExists); errors.As(err, &exists) {
 			return nil, status.Error(codes.AlreadyExists, exists.Error())
 		}
 		return nil, internalError
@@ -111,8 +115,8 @@ func (s *Service) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*e
 			return nil, internalError
 		}
 	}
-	if err := s.userRepo.DeleteUser(ctx, req.Name); err != nil {
-		if notFound := new(users.NotFoundError); errors.As(err, &notFound) {
+	if err := s.userRepo.Delete(ctx, req.Name); err != nil {
+		if notFound := new(repositories.NotFound); errors.As(err, &notFound) {
 			return nil, status.Error(codes.NotFound, notFound.Error())
 		}
 		return nil, internalError
