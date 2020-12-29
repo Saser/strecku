@@ -17,18 +17,6 @@ func storeLess(u1, u2 *pb.Store) bool {
 	return u1.Name < u2.Name
 }
 
-func seedStores(ctx context.Context, t *testing.T, r Stores, stores []*pb.Store) {
-	t.Helper()
-	for _, store := range stores {
-		if err := r.Create(ctx, store); err != nil {
-			t.Errorf("r.Create(ctx, %v) = %v; want nil", store, err)
-		}
-	}
-	if t.Failed() {
-		t.FailNow()
-	}
-}
-
 type StoresTestSuite struct {
 	suite.Suite
 	newStores func() Stores
@@ -37,7 +25,7 @@ type StoresTestSuite struct {
 func (s *StoresTestSuite) seedStores(ctx context.Context, t *testing.T, stores []*pb.Store) Stores {
 	t.Helper()
 	r := s.newStores()
-	seedStores(ctx, t, r, stores)
+	SeedStores(ctx, t, r, stores)
 	return r
 }
 

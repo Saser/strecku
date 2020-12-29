@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/internal/repositories"
 	"github.com/Saser/strecku/resources/stores"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,9 +22,9 @@ func (s *Service) GetStore(ctx context.Context, req *pb.GetStoreRequest) (*pb.St
 			return nil, internalError
 		}
 	}
-	store, err := s.storeRepo.LookupStore(ctx, name)
+	store, err := s.storeRepo.Lookup(ctx, name)
 	if err != nil {
-		if notFound := new(stores.NotFoundError); errors.As(err, &notFound) {
+		if notFound := new(repositories.NotFound); errors.As(err, &notFound) {
 			return nil, status.Error(codes.NotFound, notFound.Error())
 		}
 		return nil, internalError
@@ -38,7 +39,7 @@ func (s *Service) ListStores(ctx context.Context, req *pb.ListStoresRequest) (*p
 	if req.PageSize > 0 || req.PageToken != "" {
 		return nil, status.Error(codes.Unimplemented, "pagination is not implemented")
 	}
-	allStores, err := s.storeRepo.ListStores(ctx)
+	allStores, err := s.storeRepo.List(ctx)
 	if err != nil {
 		return nil, internalError
 	}
@@ -54,8 +55,8 @@ func (s *Service) CreateStore(ctx context.Context, req *pb.CreateStoreRequest) (
 	if err := stores.Validate(store); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid store: %v", err)
 	}
-	if err := s.storeRepo.CreateStore(ctx, store); err != nil {
-		if exists := new(stores.ExistsError); errors.As(err, &exists) {
+	if err := s.storeRepo.Create(ctx, store); err != nil {
+		if exists := new(repositories.Exists); errors.As(err, &exists) {
 			return nil, status.Error(codes.AlreadyExists, exists.Error())
 		}
 		return nil, internalError
@@ -88,7 +89,7 @@ func (s *Service) UpdateStore(ctx context.Context, req *pb.UpdateStoreRequest) (
 	if err := stores.Validate(dst); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid store: %v", err)
 	}
-	if err := s.storeRepo.UpdateStore(ctx, dst); err != nil {
+	if err := s.storeRepo.Update(ctx, dst); err != nil {
 		return nil, internalError
 	}
 	return dst, nil
@@ -103,8 +104,8 @@ func (s *Service) DeleteStore(ctx context.Context, req *pb.DeleteStoreRequest) (
 			return nil, internalError
 		}
 	}
-	if err := s.storeRepo.DeleteStore(ctx, req.Name); err != nil {
-		if notFound := new(stores.NotFoundError); errors.As(err, &notFound) {
+	if err := s.storeRepo.Delete(ctx, req.Name); err != nil {
+		if notFound := new(repositories.NotFound); errors.As(err, &notFound) {
 			return nil, status.Error(codes.NotFound, notFound.Error())
 		}
 		return nil, internalError

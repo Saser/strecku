@@ -8,7 +8,6 @@ import (
 
 	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/internal/repositories"
-	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/stores/memberships"
 	"github.com/Saser/strecku/resources/stores/payments"
 	"github.com/Saser/strecku/resources/stores/products"
@@ -36,8 +35,11 @@ func seed(ctx context.Context, t *testing.T) *Service {
 			testresources.BobPassword,
 		},
 	)
-	storeRepo := stores.SeedRepository(
+	storeRepo := repositories.NewInMemoryStores()
+	repositories.SeedStores(
+		ctx,
 		t,
+		storeRepo,
 		[]*pb.Store{
 			testresources.Bar,
 			testresources.Mall,

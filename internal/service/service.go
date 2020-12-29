@@ -3,7 +3,6 @@ package service
 import (
 	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/internal/repositories"
-	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/stores/memberships"
 	"github.com/Saser/strecku/resources/stores/payments"
 	"github.com/Saser/strecku/resources/stores/products"
@@ -18,7 +17,7 @@ type Service struct {
 	pb.UnimplementedStreckUServer
 
 	userRepo       repositories.Users
-	storeRepo      *stores.Repository
+	storeRepo      repositories.Stores
 	membershipRepo *memberships.Repository
 	productRepo    *products.Repository
 	purchaseRepo   *purchases.Repository
@@ -27,7 +26,7 @@ type Service struct {
 
 func New(
 	userRepo repositories.Users,
-	storeRepo *stores.Repository,
+	storeRepo repositories.Stores,
 	membershipRepo *memberships.Repository,
 	productRepo *products.Repository,
 	purchaseRepo *purchases.Repository,

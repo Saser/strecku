@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
 )
@@ -31,4 +32,16 @@ type Stores interface {
 	// will be validated using package stores. If no store with that name
 	// exists, a NotFound error will be returned.
 	Delete(ctx context.Context, name string) error
+}
+
+func SeedStores(ctx context.Context, t *testing.T, r Stores, stores []*pb.Store) {
+	t.Helper()
+	for _, store := range stores {
+		if err := r.Create(ctx, store); err != nil {
+			t.Errorf("r.Create(ctx, %v) = %v; want nil", store, err)
+		}
+	}
+	if t.Failed() {
+		t.FailNow()
+	}
 }
