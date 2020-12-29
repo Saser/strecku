@@ -59,7 +59,7 @@ func (u *InMemoryUsers) ResolveEmail(ctx context.Context, emailAddress string) (
 func (u *InMemoryUsers) List(ctx context.Context) ([]*pb.User, error) {
 	allUsers := make([]*pb.User, 0, len(u.users))
 	for _, user := range u.users {
-		allUsers = append(allUsers, user)
+		allUsers = append(allUsers, users.Clone(user))
 	}
 	return allUsers, nil
 }
@@ -77,7 +77,7 @@ func (u *InMemoryUsers) Create(ctx context.Context, user *pb.User, password stri
 	if _, exists := u.names[user.EmailAddress]; exists {
 		return &EmailAddressExists{EmailAddress: user.EmailAddress}
 	}
-	u.users[user.Name] = user
+	u.users[user.Name] = users.Clone(user)
 	u.passwords[user.Name] = password
 	u.names[user.EmailAddress] = user.Name
 	return nil
@@ -96,7 +96,7 @@ func (u *InMemoryUsers) Update(ctx context.Context, user *pb.User) error {
 	}
 	delete(u.names, old.EmailAddress)
 	u.names[user.EmailAddress] = user.Name
-	u.users[user.Name] = user
+	u.users[user.Name] = users.Clone(user)
 	return nil
 }
 
