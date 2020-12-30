@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"testing"
 
 	"github.com/cenkalti/backoff/v4"
 
@@ -25,18 +24,4 @@ func Open(ctx context.Context, connString string) (*sql.DB, error) {
 		return nil, err
 	}
 	return db, nil
-}
-
-func OpenT(ctx context.Context, t *testing.T, connString string) *sql.DB {
-	t.Helper()
-	db, err := Open(ctx, connString)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		if err := db.Close(); err != nil {
-			t.Error(err)
-		}
-	})
-	return db
 }
