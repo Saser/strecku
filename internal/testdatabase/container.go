@@ -1,8 +1,7 @@
-package database
+package testdatabase
 
 import (
 	"net/url"
-	"testing"
 
 	"github.com/ory/dockertest/v3"
 )
@@ -13,11 +12,11 @@ const (
 	dbName   = "strecku"
 )
 
-type Container struct {
+type container struct {
 	res *dockertest.Resource
 }
 
-func NewContainer() (*Container, error) {
+func newContainer() (*container, error) {
 	pool, err := dockertest.NewPool("")
 	if err != nil {
 		return nil, err
@@ -30,29 +29,16 @@ func NewContainer() (*Container, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Container{
+	return &container{
 		res: res,
 	}, nil
 }
 
-func NewContainerT(t *testing.T) *Container {
-	c, err := NewContainer()
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		if err := c.Cleanup(); err != nil {
-			t.Fatal(err)
-		}
-	})
-	return c
-}
-
-func (c *Container) Cleanup() error {
+func (c *container) Cleanup() error {
 	return c.res.Close()
 }
 
-func (c *Container) ConnString() string {
+func (c *container) ConnString() string {
 	u := url.URL{
 		Scheme: "postgres",
 		User:   url.UserPassword(user, password),
