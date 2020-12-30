@@ -80,6 +80,17 @@ type Users interface {
 
 func SeedUsers(ctx context.Context, t *testing.T, r Users, users []*pb.User, passwords []string) {
 	t.Helper()
+	t.Cleanup(func() {
+		all, err := r.List(ctx)
+		if err != nil {
+			t.Error(err)
+		}
+		for _, user := range all {
+			if err := r.Delete(ctx, user.Name); err != nil {
+				t.Error(err)
+			}
+		}
+	})
 	if userCount, passwordCount := len(users), len(passwords); userCount != passwordCount {
 		t.Fatalf("len(users), len(passwords) = %v, %v; want equal", userCount, passwordCount)
 	}

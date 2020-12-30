@@ -7,6 +7,6 @@ import (
 )
 
 func TestInMemoryUsers(t *testing.T) {
-	newUsers := func() Users { return NewInMemoryUsers() }
-	suite.Run(t, &UsersTestSuite{newUsers: newUsers})
+	r := NewInMemoryUsers()
+	suite.Run(t, NewUsersTestSuite(r))
 }

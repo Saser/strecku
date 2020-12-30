@@ -2,24 +2,24 @@ package repositories
 
 import (
 	"context"
+	"database/sql"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type PostgresUsers struct {
 	inmemory *InMemoryUsers
 
-	pool *pgxpool.Pool
+	db *sql.DB
 }
 
 var _ Users = (*PostgresUsers)(nil)
 
-func NewPostgresUsers(pool *pgxpool.Pool) *PostgresUsers {
+func NewPostgresUsers(db *sql.DB) *PostgresUsers {
 	return &PostgresUsers{
 		inmemory: NewInMemoryUsers(),
 
-		pool: pool,
+		db: db,
 	}
 }
 

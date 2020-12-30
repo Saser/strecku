@@ -19,14 +19,19 @@ func userLess(u1, u2 *pb.User) bool {
 
 type UsersTestSuite struct {
 	suite.Suite
-	newUsers func() Users
+	r Users
+}
+
+func NewUsersTestSuite(r Users) *UsersTestSuite {
+	return &UsersTestSuite{
+		r: r,
+	}
 }
 
 func (s *UsersTestSuite) seedUsers(ctx context.Context, t *testing.T, users []*pb.User, passwords []string) Users {
 	t.Helper()
-	r := s.newUsers()
-	SeedUsers(ctx, t, r, users, passwords)
-	return r
+	SeedUsers(ctx, t, s.r, users, passwords)
+	return s.r
 }
 
 func (s *UsersTestSuite) seedAlice(ctx context.Context, t *testing.T) Users {
