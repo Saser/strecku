@@ -24,6 +24,15 @@ func (n Name) Validate() error {
 	return nil
 }
 
+func (n Name) ResourceIDs() map[CollectionID]ResourceID {
+	s := n.segments()
+	ids := make(map[CollectionID]ResourceID, len(s)/2)
+	for i := 0; i < len(s); i += 2 {
+		ids[CollectionID(s[i])] = ResourceID(s[i+1])
+	}
+	return ids
+}
+
 func (n Name) segments() []string {
 	return strings.Split(string(n), "/")
 }

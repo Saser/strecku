@@ -47,3 +47,32 @@ func TestName_Validate(t *testing.T) {
 		}
 	})
 }
+
+func TestName_ResourceIDs(t *testing.T) {
+	for _, test := range []struct {
+		n    Name
+		want map[CollectionID]ResourceID
+	}{
+		{
+			n: Name("users/e71ee48e-1469-4a52-a338-8f78fe1c6cf7"),
+			want: map[CollectionID]ResourceID{
+				"users": "e71ee48e-1469-4a52-a338-8f78fe1c6cf7",
+			},
+		},
+		{
+			n: Name("stores/0464cc9f-506f-415b-9a3f-fb7305026781/users/e71ee48e-1469-4a52-a338-8f78fe1c6cf7"),
+			want: map[CollectionID]ResourceID{
+				"stores": "0464cc9f-506f-415b-9a3f-fb7305026781",
+				"users":  "e71ee48e-1469-4a52-a338-8f78fe1c6cf7",
+			},
+		},
+	} {
+		got := test.n.ResourceIDs()
+		less := func(c1, c2 CollectionID) bool {
+			return c1 < c2
+		}
+		if diff := cmp.Diff(test.want, got, cmpopts.SortMaps(less)); diff != "" {
+			t.Errorf("Name(%q).ResourceIDs() diff (-want +got)\n%s", test.n, diff)
+		}
+	}
+}
