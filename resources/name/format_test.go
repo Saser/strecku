@@ -92,3 +92,81 @@ func TestFormat_String(t *testing.T) {
 		}
 	}
 }
+
+func TestFormat_Parse(t *testing.T) {
+	t.Run("OK", func(t *testing.T) {
+		for _, test := range []struct {
+			f    *Format
+			name string
+		}{
+			{
+				f:    MustParseFormat("users/{user}"),
+				name: "users/78da9161-aef1-49ed-bc92-0f136c95308f",
+			},
+			{
+				f:    MustParseFormat("stores/{store}/products/{product}"),
+				name: "stores/78da9161-aef1-49ed-bc92-0f136c95308f/products/1bba3dfe-5770-4d65-ae3f-1bff9e45b668",
+			},
+		} {
+			if _, err := test.f.Parse(test.name); err != nil {
+				t.Errorf("f.Parse(%q) err = %v; want nil", test.name, err)
+			}
+		}
+	})
+
+	t.Run("Errors", func(t *testing.T) {
+		for _, test := range []struct {
+			f    *Format
+			name string
+		}{
+			{
+				f:    MustParseFormat("users/{user}"),
+				name: "users",
+			},
+			{
+				f:    MustParseFormat("users/{user}"),
+				name: "users/",
+			},
+			{
+				f:    MustParseFormat("users/{user}"),
+				name: "users/not-a-uuid",
+			},
+			{
+				f:    MustParseFormat("users/{user}"),
+				name: "users/78da9161-aef1-49ed-bc92-0f136c95308f/purchases/1bba3dfe-5770-4d65-ae3f-1bff9e45b668",
+			},
+			{
+				f:    MustParseFormat("users/{user}"),
+				name: "stores/78da9161-aef1-49ed-bc92-0f136c95308f",
+			},
+			{
+				f:    MustParseFormat("stores/{store}/products/{product}"),
+				name: "stores/78da9161-aef1-49ed-bc92-0f136c95308f/products",
+			},
+			{
+				f:    MustParseFormat("stores/{store}/products/{product}"),
+				name: "stores/78da9161-aef1-49ed-bc92-0f136c95308f/products/",
+			},
+			{
+				f:    MustParseFormat("stores/{store}/products/{product}"),
+				name: "stores/78da9161-aef1-49ed-bc92-0f136c95308f/products/not-a-uuid",
+			},
+			{
+				f:    MustParseFormat("stores/{store}/products/{product}"),
+				name: "stores/not-a-uuid/products/1bba3dfe-5770-4d65-ae3f-1bff9e45b668",
+			},
+			{
+				f:    MustParseFormat("stores/{store}/products/{product}"),
+				name: "stores/78da9161-aef1-49ed-bc92-0f136c95308f",
+			},
+			{
+				f:    MustParseFormat("stores/{store}/products/{product}"),
+				name: "products/78da9161-aef1-49ed-bc92-0f136c95308f",
+			},
+		} {
+			if _, err := test.f.Parse(test.name); err == nil {
+				t.Errorf("f.Parse(%q) err = nil; want non-nil", test.name)
+			}
+		}
+	})
+}

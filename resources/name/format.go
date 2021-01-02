@@ -91,3 +91,24 @@ func (f *Format) String() string {
 	}
 	return strings.Join(segments, "/")
 }
+
+func (f *Format) Parse(name string) (*Name, error) {
+	segments := strings.Split(name, "/")
+	if got, want := len(segments), len(f.matchers); got != want {
+		return nil, fmt.Errorf("invalid name: got %d segments, want %d", got, want)
+	}
+	indices := make(map[string]int)
+	for i, s := range segments {
+		m := f.matchers[i]
+		if !m.Match(s) {
+			return nil, fmt.Errorf("invalid name: got %q, want name in format %q", name, f.String())
+		}
+		if varName := m.VarName(); varName != "" {
+			indices[varName] = i
+		}
+	}
+	return &Name{
+		segments: segments,
+		indices:  indices,
+	}, nil
+}
