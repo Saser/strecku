@@ -76,6 +76,14 @@ func ParseFormat(s string) (*Format, error) {
 	}, nil
 }
 
+func MustParseFormat(s string) *Format {
+	f, err := ParseFormat(s)
+	if err != nil {
+		panic(err)
+	}
+	return f
+}
+
 func (f *Format) String() string {
 	segments := make([]string, len(f.matchers))
 	for i, m := range f.matchers {
