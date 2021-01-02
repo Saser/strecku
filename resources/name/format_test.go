@@ -1,6 +1,12 @@
 package name
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/google/uuid"
+)
 
 var (
 	good = []string{
@@ -98,18 +104,31 @@ func TestFormat_Parse(t *testing.T) {
 		for _, test := range []struct {
 			f    *Format
 			name string
+			want UUIDs
 		}{
 			{
 				f:    MustParseFormat("users/{user}"),
 				name: "users/78da9161-aef1-49ed-bc92-0f136c95308f",
+				want: UUIDs{
+					"user": uuid.MustParse("78da9161-aef1-49ed-bc92-0f136c95308f"),
+				},
 			},
 			{
 				f:    MustParseFormat("stores/{store}/products/{product}"),
 				name: "stores/78da9161-aef1-49ed-bc92-0f136c95308f/products/1bba3dfe-5770-4d65-ae3f-1bff9e45b668",
+				want: UUIDs{
+					"store":   uuid.MustParse("78da9161-aef1-49ed-bc92-0f136c95308f"),
+					"product": uuid.MustParse("1bba3dfe-5770-4d65-ae3f-1bff9e45b668"),
+				},
 			},
 		} {
-			if _, err := test.f.Parse(test.name); err != nil {
+			got, err := test.f.Parse(test.name)
+			if err != nil {
 				t.Errorf("f.Parse(%q) err = %v; want nil", test.name, err)
+			}
+			less := func(s1, s2 string) bool { return s1 < s2 }
+			if diff := cmp.Diff(test.want, got, cmpopts.SortMaps(less)); diff != "" {
+				t.Errorf("f.Parse(%q) UUIDs != test.want (-want +got)\n%s", test.name, diff)
 			}
 		}
 	})
