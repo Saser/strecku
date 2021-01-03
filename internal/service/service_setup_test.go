@@ -12,7 +12,7 @@ import (
 	"github.com/Saser/strecku/resources/stores/payments"
 	"github.com/Saser/strecku/resources/stores/products"
 	"github.com/Saser/strecku/resources/stores/purchases"
-	"github.com/Saser/strecku/resources/testresources"
+	"github.com/Saser/strecku/testresources"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 )

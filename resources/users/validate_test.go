@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/testresources"
+	"github.com/Saser/strecku/testresources"
 )
 
 func TestValidate(t *testing.T) {
