@@ -8,5 +8,5 @@ import (
 func TestDB(t *testing.T) {
 	Init()
 	t.Cleanup(Cleanup)
-	_ = DB(context.Background(), t)
+	_ = DB(context.Background(), t, "../../database")
 }
