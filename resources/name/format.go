@@ -1,6 +1,7 @@
 package name
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -20,7 +21,45 @@ var (
 		}
 		return regexp.MustCompile("^" + strings.Join(parts, "-") + "$")
 	}()
+
+	ErrInvalidFormat = errors.New("name: invalid format")
+	ErrInvalidName   = errors.New("name: invalid name")
 )
+
+type InvalidFormat struct {
+	Format string
+	Err    error
+}
+
+func (e *InvalidFormat) Error() string {
+	return fmt.Sprintf("invalid format %q: %s", e.Format, e.Err.Error())
+}
+
+func (e *InvalidFormat) Unwrap() error {
+	return e.Err
+}
+
+func (e *InvalidFormat) Is(target error) bool {
+	return target == ErrInvalidFormat
+}
+
+type InvalidName struct {
+	Name   string
+	Format *Format
+	Err    error
+}
+
+func (e *InvalidName) Error() string {
+	return fmt.Sprintf("invalid name %q for format %q: %s", e.Name, e.Format.String(), e.Err.Error())
+}
+
+func (e *InvalidName) Unwrap() error {
+	return e.Err
+}
+
+func (e *InvalidName) Is(target error) bool {
+	return target == ErrInvalidName
+}
 
 type matcher interface {
 	VarName() string
@@ -60,8 +99,8 @@ type Format struct {
 	matchers []matcher
 }
 
-func ParseFormat(s string) (*Format, error) {
-	segments := strings.Split(s, "/")
+func ParseFormat(format string) (*Format, error) {
+	segments := strings.Split(format, "/")
 	matchers := make([]matcher, len(segments))
 	seen := make(map[string]bool)
 	for i, s := range segments {
@@ -71,12 +110,18 @@ func ParseFormat(s string) (*Format, error) {
 		case variableRegexp.MatchString(s):
 			varName := strings.Trim(s, "{}")
 			if seen[varName] {
-				return nil, fmt.Errorf("invalid format: variable %q occurs multiple times", varName)
+				return nil, &InvalidFormat{
+					Format: format,
+					Err:    fmt.Errorf("variable %q occurs multiple times", varName),
+				}
 			}
 			seen[varName] = true
 			matchers[i] = uuidMatcher(varName)
 		default:
-			return nil, fmt.Errorf("invalid format: %q is not a valid format segment", s)
+			return nil, &InvalidFormat{
+				Format: format,
+				Err:    fmt.Errorf("%q is not a valid format segment", s),
+			}
 		}
 	}
 	return &Format{
@@ -84,8 +129,8 @@ func ParseFormat(s string) (*Format, error) {
 	}, nil
 }
 
-func MustParseFormat(s string) *Format {
-	f, err := ParseFormat(s)
+func MustParseFormat(format string) *Format {
+	f, err := ParseFormat(format)
 	if err != nil {
 		panic(err)
 	}
@@ -113,13 +158,21 @@ type UUIDs map[string]uuid.UUID
 func (f *Format) Parse(name string) (UUIDs, error) {
 	segments := strings.Split(name, "/")
 	if got, want := len(segments), len(f.matchers); got != want {
-		return nil, fmt.Errorf("invalid name: got %d segments, want %d", got, want)
+		return nil, &InvalidName{
+			Name:   name,
+			Format: f,
+			Err:    fmt.Errorf("got %d segments, want %d", got, want),
+		}
 	}
 	uuids := make(map[string]uuid.UUID)
 	for i, s := range segments {
 		m := f.matchers[i]
 		if !m.Match(s) {
-			return nil, fmt.Errorf("invalid name: got %q, want name in format %q", name, f.String())
+			return nil, &InvalidName{
+				Name:   name,
+				Format: f,
+				Err:    fmt.Errorf("%q does not match %q", s, m.String()),
+			}
 		}
 		if varName := m.VarName(); varName != "" {
 			uuids[varName] = uuid.MustParse(s)

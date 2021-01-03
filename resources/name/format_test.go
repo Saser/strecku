@@ -1,6 +1,7 @@
 package name
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -49,8 +50,13 @@ func TestParseFormat(t *testing.T) {
 
 	t.Run("Errors", func(t *testing.T) {
 		for _, s := range bad {
-			if _, err := ParseFormat(s); err == nil {
+			_, err := ParseFormat(s)
+			if err == nil {
 				t.Errorf("ParseFormat(%q) err = nil; want non-nil", s)
+			}
+			var want *InvalidFormat
+			if !errors.As(err, &want) {
+				t.Errorf("errors.As(%v, %T) = false; want true", err, &want)
 			}
 		}
 	})
@@ -253,8 +259,13 @@ func TestFormat_Parse(t *testing.T) {
 				name: "products/78da9161-aef1-49ed-bc92-0f136c95308f",
 			},
 		} {
-			if _, err := test.f.Parse(test.name); err == nil {
+			_, err := test.f.Parse(test.name)
+			if err == nil {
 				t.Errorf("f.Parse(%q) err = nil; want non-nil", test.name)
+			}
+			var want *InvalidName
+			if !errors.As(err, &want) {
+				t.Errorf("errors.As(%v, %T) = false; want true", err, &want)
 			}
 		}
 	})
