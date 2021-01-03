@@ -33,6 +33,8 @@ var (
 		"{with-hyphen}",
 		"{with_underscore}",
 		"{with1number}",
+		// Duplicate variables.
+		"stores/{duplicate}/products/{duplicate}",
 	}
 )
 

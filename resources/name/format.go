@@ -63,12 +63,18 @@ type Format struct {
 func ParseFormat(s string) (*Format, error) {
 	segments := strings.Split(s, "/")
 	matchers := make([]matcher, len(segments))
+	seen := make(map[string]bool)
 	for i, s := range segments {
 		switch {
 		case collectionRegexp.MatchString(s):
 			matchers[i] = exactMatcher(s)
 		case variableRegexp.MatchString(s):
-			matchers[i] = uuidMatcher(strings.Trim(s, "{}"))
+			varName := strings.Trim(s, "{}")
+			if seen[varName] {
+				return nil, fmt.Errorf("invalid format: variable %q occurs multiple times", varName)
+			}
+			seen[varName] = true
+			matchers[i] = uuidMatcher(varName)
 		default:
 			return nil, fmt.Errorf("invalid format: %q is not a valid format segment", s)
 		}
