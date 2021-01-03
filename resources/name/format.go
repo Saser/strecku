@@ -86,6 +86,14 @@ func MustParseFormat(s string) *Format {
 	return f
 }
 
+func (f *Format) Append(s string) (*Format, error) {
+	return ParseFormat(f.String() + s)
+}
+
+func (f *Format) MustAppend(s string) *Format {
+	return MustParseFormat(f.String() + s)
+}
+
 func (f *Format) String() string {
 	segments := make([]string, len(f.matchers))
 	for i, m := range f.matchers {

@@ -82,6 +82,74 @@ func TestMustParseFormat(t *testing.T) {
 	})
 }
 
+func TestFormat_Append(t *testing.T) {
+	t.Run("OK", func(t *testing.T) {
+		for _, s := range good {
+			f := MustParseFormat(s)
+			for _, s2 := range []string{
+				"/bar",
+				"/foos/{foo}",
+				"/bars/{bar}/foos/{foo}",
+			} {
+				if _, err := f.Append(s2); err != nil {
+					t.Errorf("f.Append(%q) err = %v; want nil", s2, err)
+				}
+			}
+		}
+	})
+
+	t.Run("Errors", func(t *testing.T) {
+		for _, s := range good {
+			f := MustParseFormat(s)
+			for _, s2 := range bad {
+				s3 := "/" + s2
+				if _, err := f.Append(s3); err == nil {
+					t.Errorf("f.Append(%q) err = nil; want non-nil", s3)
+				}
+			}
+		}
+	})
+}
+
+func TestFormat_MustAppend(t *testing.T) {
+	t.Run("OK", func(t *testing.T) {
+		for _, s := range good {
+			f := MustParseFormat(s)
+			for _, s2 := range []string{
+				"/bar",
+				"/foos/{foo}",
+				"/bars/{bar}/foos/{foo}",
+			} {
+				func() {
+					defer func() {
+						if err := recover(); err != nil {
+							t.Errorf("f.MustAppend(%q) err = %v; want nil", s2, err)
+						}
+					}()
+					_ = f.MustAppend(s2)
+				}()
+			}
+		}
+	})
+
+	t.Run("Errors", func(t *testing.T) {
+		for _, s := range good {
+			f := MustParseFormat(s)
+			for _, s2 := range bad {
+				func() {
+					s3 := "/" + s2
+					defer func() {
+						if err := recover(); err == nil {
+							t.Errorf("f.MustAppend(%q) err = nil; want non-nil", s3)
+						}
+					}()
+					_ = f.MustAppend(s3)
+				}()
+			}
+		}
+	})
+}
+
 func TestFormat_String(t *testing.T) {
 	for _, s := range []string{
 		"users/{user}",
