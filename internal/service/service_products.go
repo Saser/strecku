@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/stores/products"
 	"google.golang.org/grpc/codes"
@@ -15,9 +16,9 @@ import (
 func (s *Service) GetProduct(ctx context.Context, req *pb.GetProductRequest) (*pb.Product, error) {
 	name := req.Name
 	if err := products.ValidateName(name); err != nil {
-		switch err {
-		case products.ErrNameInvalidFormat:
-			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, internalError
 		}
@@ -34,8 +35,8 @@ func (s *Service) GetProduct(ctx context.Context, req *pb.GetProductRequest) (*p
 
 func (s *Service) ListProducts(ctx context.Context, req *pb.ListProductsRequest) (*pb.ListProductsResponse, error) {
 	if err := stores.ValidateName(req.Parent); err != nil {
-		switch err {
-		case stores.ErrNameInvalidFormat:
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
 		default:
 			return nil, internalError
@@ -66,8 +67,8 @@ func (s *Service) ListProducts(ctx context.Context, req *pb.ListProductsRequest)
 
 func (s *Service) CreateProduct(ctx context.Context, req *pb.CreateProductRequest) (*pb.Product, error) {
 	if err := stores.ValidateName(req.Parent); err != nil {
-		switch err {
-		case stores.ErrNameInvalidFormat:
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
 		default:
 			return nil, internalError
@@ -121,9 +122,9 @@ func (s *Service) UpdateProduct(ctx context.Context, req *pb.UpdateProductReques
 
 func (s *Service) DeleteProduct(ctx context.Context, req *pb.DeleteProductRequest) (*emptypb.Empty, error) {
 	if err := products.ValidateName(req.Name); err != nil {
-		switch err {
-		case products.ErrNameInvalidFormat:
-			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, internalError
 		}

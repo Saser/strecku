@@ -1,27 +1,31 @@
 package stores
 
 import (
-	"fmt"
-
-	"github.com/Saser/strecku/resources/names"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/google/uuid"
 )
 
 const CollectionID = "stores"
 
-var (
-	Regexp = names.MustCompile(CollectionID, names.UUID)
-
-	ErrNameInvalidFormat = fmt.Errorf("name must have format %q", CollectionID+"/<uuid>")
-)
+var NameFormat = resourcename.MustParseFormat(CollectionID + "/{store}")
 
 func GenerateName() string {
-	return fmt.Sprintf("%s/%s", CollectionID, uuid.New().String())
+	name, err := NameFormat.Format(resourcename.UUIDs{"store": uuid.New()})
+	if err != nil {
+		panic(err)
+	}
+	return name
+}
+
+func ParseName(name string) (uuid.UUID, error) {
+	uuids, err := NameFormat.Parse(name)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	return uuids["store"], nil
 }
 
 func ValidateName(name string) error {
-	if !Regexp.MatchString(name) {
-		return ErrNameInvalidFormat
-	}
-	return nil
+	_, err := ParseName(name)
+	return err
 }

@@ -1,38 +1,50 @@
 package stores
 
 import (
-	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 )
 
 func TestGenerateName(t *testing.T) {
 	got := GenerateName()
-	prefix := CollectionID + "/"
-	if !strings.HasPrefix(got, prefix) {
-		t.Errorf("GenerateName() = %q; want prefix %q", got, prefix)
-	}
-	id := strings.TrimPrefix(got, prefix)
-	if _, err := uuid.Parse(id); err != nil {
-		t.Errorf("uuid.Parse(%q) err = %v; want nil", id, err)
+	if err := ValidateName(got); err != nil {
+		t.Errorf("ValidateName(GenerateName() = %q) = %v; want nil", got, err)
 	}
 }
 
-func TestValidateName(t *testing.T) {
-	id := "6f2d193c-1460-491d-8157-7dd9535526c6"
-	for _, test := range []struct {
-		name string
-		want error
-	}{
-		{name: "stores/" + id, want: nil},
-		{name: "", want: ErrNameInvalidFormat},
-		{name: "invalidprefix/" + id, want: ErrNameInvalidFormat},
-		{name: id, want: ErrNameInvalidFormat},
-		{name: "stores/not a UUID", want: ErrNameInvalidFormat},
-	} {
-		if got := ValidateName(test.name); got != test.want {
-			t.Errorf("ValidateName(%q) = %v; want %v", test.name, got, test.want)
+func TestParseName_ValidateName(t *testing.T) {
+	t.Run("OK", func(t *testing.T) {
+		want := uuid.MustParse("6f2d193c-1460-491d-8157-7dd9535526c6")
+		name := "stores/" + want.String()
+		got, err := ParseName(name)
+		if err != nil {
+			t.Errorf("ParseName(%q) err = %v; want nil", name, err)
 		}
-	}
+		if !cmp.Equal(got, want) {
+			t.Errorf("ParseName(%q) uuid = %v; want %v", name, got, want)
+		}
+		if err := ValidateName(name); err != nil {
+			t.Errorf("ValidateName(%q) = %v; want nil", name, err)
+		}
+	})
+
+	t.Run("Errors", func(t *testing.T) {
+		id := "6f2d193c-1460-491d-8157-7dd9535526c6"
+		for _, s := range []string{
+			"",
+			"invalidprefix/" + id,
+			id,
+			"stores/not a UUID",
+		} {
+			_, err := ParseName(s)
+			if err == nil {
+				t.Errorf("ParseName(%q) err = nil; want non-nil", s)
+			}
+			if err := ValidateName(s); err == nil {
+				t.Errorf("ValidateName(%q) = nil; want non-nil", s)
+			}
+		}
+	})
 }

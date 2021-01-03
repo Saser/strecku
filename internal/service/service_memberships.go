@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/stores/memberships"
 	"google.golang.org/grpc/codes"
@@ -15,9 +16,9 @@ import (
 func (s *Service) GetMembership(ctx context.Context, req *pb.GetMembershipRequest) (*pb.Membership, error) {
 	name := req.Name
 	if err := memberships.ValidateName(name); err != nil {
-		switch err {
-		case memberships.ErrNameInvalidFormat:
-			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, internalError
 		}
@@ -34,8 +35,8 @@ func (s *Service) GetMembership(ctx context.Context, req *pb.GetMembershipReques
 
 func (s *Service) ListMemberships(ctx context.Context, req *pb.ListMembershipsRequest) (*pb.ListMembershipsResponse, error) {
 	if err := stores.ValidateName(req.Parent); err != nil {
-		switch err {
-		case stores.ErrNameInvalidFormat:
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
 		default:
 			return nil, internalError
@@ -66,8 +67,8 @@ func (s *Service) ListMemberships(ctx context.Context, req *pb.ListMembershipsRe
 
 func (s *Service) CreateMembership(ctx context.Context, req *pb.CreateMembershipRequest) (*pb.Membership, error) {
 	if err := stores.ValidateName(req.Parent); err != nil {
-		switch err {
-		case stores.ErrNameInvalidFormat:
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
 		default:
 			return nil, internalError
@@ -129,9 +130,9 @@ func (s *Service) UpdateMembership(ctx context.Context, req *pb.UpdateMembership
 
 func (s *Service) DeleteMembership(ctx context.Context, req *pb.DeleteMembershipRequest) (*emptypb.Empty, error) {
 	if err := memberships.ValidateName(req.Name); err != nil {
-		switch err {
-		case memberships.ErrNameInvalidFormat:
-			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, internalError
 		}

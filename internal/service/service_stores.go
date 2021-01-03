@@ -6,6 +6,7 @@ import (
 
 	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/internal/repositories"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/stores"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,9 +16,9 @@ import (
 func (s *Service) GetStore(ctx context.Context, req *pb.GetStoreRequest) (*pb.Store, error) {
 	name := req.Name
 	if err := stores.ValidateName(name); err != nil {
-		switch err {
-		case stores.ErrNameInvalidFormat:
-			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, internalError
 		}
@@ -97,9 +98,9 @@ func (s *Service) UpdateStore(ctx context.Context, req *pb.UpdateStoreRequest) (
 
 func (s *Service) DeleteStore(ctx context.Context, req *pb.DeleteStoreRequest) (*emptypb.Empty, error) {
 	if err := stores.ValidateName(req.Name); err != nil {
-		switch err {
-		case stores.ErrNameInvalidFormat:
-			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, internalError
 		}

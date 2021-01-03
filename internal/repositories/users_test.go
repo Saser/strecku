@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/testresources"
 	"github.com/Saser/strecku/resources/users"
 	"github.com/google/go-cmp/cmp"
@@ -139,7 +140,7 @@ func (s *UsersTestSuite) TestLookup() {
 			desc:     "EmptyName",
 			name:     "",
 			wantUser: nil,
-			wantErr:  users.ErrNameInvalidFormat,
+			wantErr:  resourcename.ErrInvalidName,
 		},
 		{
 			desc:     "NotFound",
@@ -366,12 +367,12 @@ func (s *UsersTestSuite) TestDelete() {
 			{
 				desc: "EmptyName",
 				name: "",
-				want: users.ErrNameInvalidFormat,
+				want: resourcename.ErrInvalidName,
 			},
 			{
 				desc: "InvalidName",
 				name: testresources.Beer.Name, // name of a product
-				want: users.ErrNameInvalidFormat,
+				want: resourcename.ErrInvalidName,
 			},
 			{
 				desc: "NotFound",

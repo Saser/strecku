@@ -1,4 +1,4 @@
-package name
+package resourcename
 
 import (
 	"errors"
@@ -22,8 +22,8 @@ var (
 		return regexp.MustCompile("^" + strings.Join(parts, "-") + "$")
 	}()
 
-	ErrInvalidFormat = errors.New("name: invalid format")
-	ErrInvalidName   = errors.New("name: invalid name")
+	ErrInvalidFormat = errors.New("resourcename: invalid format")
+	ErrInvalidName   = errors.New("resourcename: invalid name")
 )
 
 type InvalidFormat struct {

@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/stores/purchases"
 	"google.golang.org/grpc/codes"
@@ -15,9 +16,9 @@ import (
 func (s *Service) GetPurchase(ctx context.Context, req *pb.GetPurchaseRequest) (*pb.Purchase, error) {
 	name := req.Name
 	if err := purchases.ValidateName(name); err != nil {
-		switch err {
-		case purchases.ErrNameInvalidFormat:
-			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, internalError
 		}
@@ -34,8 +35,8 @@ func (s *Service) GetPurchase(ctx context.Context, req *pb.GetPurchaseRequest) (
 
 func (s *Service) ListPurchases(ctx context.Context, req *pb.ListPurchasesRequest) (*pb.ListPurchasesResponse, error) {
 	if err := stores.ValidateName(req.Parent); err != nil {
-		switch err {
-		case stores.ErrNameInvalidFormat:
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
 		default:
 			return nil, internalError
@@ -66,8 +67,8 @@ func (s *Service) ListPurchases(ctx context.Context, req *pb.ListPurchasesReques
 
 func (s *Service) CreatePurchase(ctx context.Context, req *pb.CreatePurchaseRequest) (*pb.Purchase, error) {
 	if err := stores.ValidateName(req.Parent); err != nil {
-		switch err {
-		case stores.ErrNameInvalidFormat:
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
 		default:
 			return nil, internalError
@@ -124,9 +125,9 @@ func (s *Service) UpdatePurchase(ctx context.Context, req *pb.UpdatePurchaseRequ
 
 func (s *Service) DeletePurchase(ctx context.Context, req *pb.DeletePurchaseRequest) (*emptypb.Empty, error) {
 	if err := purchases.ValidateName(req.Name); err != nil {
-		switch err {
-		case purchases.ErrNameInvalidFormat:
-			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, internalError
 		}

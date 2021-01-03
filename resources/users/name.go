@@ -1,27 +1,33 @@
 package users
 
 import (
-	"fmt"
-
-	"github.com/Saser/strecku/resources/names"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/google/uuid"
 )
 
-const CollectionID = "users"
-
-var (
-	Regexp = names.MustCompile(CollectionID, names.UUID)
-
-	ErrNameInvalidFormat = fmt.Errorf("name must have format %q", CollectionID+"/<uuid>")
+const (
+	CollectionID = "users"
 )
 
+var NameFormat = resourcename.MustParseFormat(CollectionID + "/{user}")
+
 func GenerateName() string {
-	return fmt.Sprintf("%s/%s", CollectionID, uuid.New().String())
+	name, err := NameFormat.Format(resourcename.UUIDs{"user": uuid.New()})
+	if err != nil {
+		panic(err)
+	}
+	return name
+}
+
+func ParseName(name string) (uuid.UUID, error) {
+	uuids, err := NameFormat.Parse(name)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	return uuids["user"], nil
 }
 
 func ValidateName(name string) error {
-	if !Regexp.MatchString(name) {
-		return ErrNameInvalidFormat
-	}
-	return nil
+	_, err := ParseName(name)
+	return err
 }

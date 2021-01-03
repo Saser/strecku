@@ -2,11 +2,10 @@ package memberships
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/stores"
-	"github.com/Saser/strecku/resources/users"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
@@ -15,34 +14,50 @@ import (
 func TestGenerateName(t *testing.T) {
 	store := stores.GenerateName()
 	got := GenerateName(store)
-	prefix := store + "/" + CollectionID + "/"
-	if !strings.HasPrefix(got, prefix) {
-		t.Errorf("GenerateName() = %q; want prefix %q", got, prefix)
-	}
-	id := strings.TrimPrefix(got, prefix)
-	if _, err := uuid.Parse(id); err != nil {
-		t.Errorf("uuid.Parse(%q) err = %v; want nil", id, err)
+	if err := ValidateName(got); err != nil {
+		t.Errorf("ValidateName(GenerateName() = %q) = %v; want nil", got, err)
 	}
 }
 
-func TestValidateName(t *testing.T) {
-	storeID := "6729f7fa-dc5a-41ae-b00d-5cd67d5e1e15"
-	store := fmt.Sprintf("%s/%s", stores.CollectionID, storeID)
-	membershipID := "90e3eaaa-4d9c-423f-b468-bb7322fb5d4f"
-	for _, test := range []struct {
-		name string
-		want error
-	}{
-		{name: fmt.Sprintf("%s/%s/%s", store, CollectionID, membershipID), want: nil},
-		{name: "", want: ErrNameInvalidFormat},
-		{name: membershipID, want: ErrNameInvalidFormat},
-		{name: fmt.Sprintf("%s/%s/%s/%s", users.CollectionID, storeID, CollectionID, membershipID), want: ErrNameInvalidFormat},
-		{name: store + "/" + CollectionID + "/not a UUID", want: ErrNameInvalidFormat},
-	} {
-		if got := ValidateName(test.name); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
-			t.Errorf("ValidateName(%q) = %v; want %v", test.name, got, test.want)
+func TestParseName_ValidateName(t *testing.T) {
+	t.Run("OK", func(t *testing.T) {
+		wantStore := uuid.MustParse("6729f7fa-dc5a-41ae-b00d-5cd67d5e1e15")
+		wantMembership := uuid.MustParse("90e3eaaa-4d9c-423f-b468-bb7322fb5d4f")
+		name := "stores/" + wantStore.String() + "/memberships/" + wantMembership.String()
+		gotStore, gotMembership, err := ParseName(name)
+		if err != nil {
+			t.Errorf("ParseName(%q) err = %v; want nil", name, err)
 		}
-	}
+		if !cmp.Equal(gotStore, wantStore) {
+			t.Errorf("ParseName(%q) store = %v; want %v", name, gotStore, wantStore)
+		}
+		if !cmp.Equal(gotMembership, wantMembership) {
+			t.Errorf("ParseName(%q) membership = %v; want %v", name, gotMembership, wantMembership)
+		}
+		if err := ValidateName(name); err != nil {
+			t.Errorf("ValidateName(%q) = %v; want nil", name, err)
+		}
+	})
+
+	t.Run("Errors", func(t *testing.T) {
+		storeID := "6729f7fa-dc5a-41ae-b00d-5cd67d5e1e15"
+		membershipID := "90e3eaaa-4d9c-423f-b468-bb7322fb5d4f"
+		for _, name := range []string{
+			"",
+			membershipID,
+			"users/" + storeID + "/memberships/" + membershipID,
+			"stores/" + storeID + "/memberships/not-a-UUID",
+			"stores/not-a-UUID/memberships/" + membershipID,
+		} {
+			_, _, err := ParseName(name)
+			if err == nil {
+				t.Errorf("ParseName(%q) err = nil; want non-nil", name)
+			}
+			if err := ValidateName(name); err == nil {
+				t.Errorf("ValidateName(%q) = nil; want non-nil", name)
+			}
+		}
+	})
 }
 
 func TestParent(t *testing.T) {
@@ -55,14 +70,14 @@ func TestParent(t *testing.T) {
 		wantErr    error
 	}{
 		{
-			name:       store + "/" + CollectionID + "/" + membershipID,
+			name:       store + "/memberships/" + membershipID,
 			wantParent: store,
 			wantErr:    nil,
 		},
 		{
-			name:       users.CollectionID + "/" + storeID + "/" + CollectionID + "/" + membershipID,
+			name:       "users/" + storeID + "/memberships/" + membershipID,
 			wantParent: "",
-			wantErr:    ErrNameInvalidFormat,
+			wantErr:    resourcename.ErrInvalidName,
 		},
 	} {
 		parent, err := Parent(test.name)

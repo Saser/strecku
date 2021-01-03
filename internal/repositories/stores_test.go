@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/testresources"
 	"github.com/google/go-cmp/cmp"
@@ -85,7 +86,7 @@ func (s *StoresTestSuite) TestLookup() {
 			desc:      "EmptyName",
 			name:      "",
 			wantStore: nil,
-			wantErr:   stores.ErrNameInvalidFormat,
+			wantErr:   resourcename.ErrInvalidName,
 		},
 		{
 			desc:      "NotFound",
@@ -187,7 +188,7 @@ func (s *StoresTestSuite) TestUpdate() {
 			{
 				desc:   "EmptyName",
 				modify: func(bar *pb.Store) { bar.Name = "" },
-				want:   stores.ErrNameInvalidFormat,
+				want:   resourcename.ErrInvalidName,
 			},
 			{
 				desc:   "EmptyDisplayName",
@@ -261,7 +262,7 @@ func (s *StoresTestSuite) TestDelete() {
 			{
 				desc: "EmptyName",
 				name: "",
-				want: stores.ErrNameInvalidFormat,
+				want: resourcename.ErrInvalidName,
 			},
 			{
 				desc: "NotFound",

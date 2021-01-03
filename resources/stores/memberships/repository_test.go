@@ -6,9 +6,8 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
-	"github.com/Saser/strecku/resources/stores"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/testresources"
-	"github.com/Saser/strecku/resources/users"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -220,7 +219,7 @@ func TestRepository_LookupMembership(t *testing.T) {
 			desc:           "EmptyName",
 			name:           "",
 			wantMembership: nil,
-			wantErr:        ErrNameInvalidFormat,
+			wantErr:        resourcename.ErrInvalidName,
 		},
 		{
 			desc:           "NotFound",
@@ -263,14 +262,14 @@ func TestRepository_LookupMembershipBetween(t *testing.T) {
 			user:           "",
 			store:          testresources.Bar.Name,
 			wantMembership: nil,
-			wantErr:        users.ErrNameInvalidFormat,
+			wantErr:        resourcename.ErrInvalidName,
 		},
 		{
 			desc:           "EmptyStore",
 			user:           testresources.Alice.Name,
 			store:          "",
 			wantMembership: nil,
-			wantErr:        stores.ErrNameInvalidFormat,
+			wantErr:        resourcename.ErrInvalidName,
 		},
 		{
 			desc:           "WrongUser",
@@ -533,7 +532,7 @@ func TestRepository_DeleteMembership(t *testing.T) {
 			{
 				desc: "EmptyName",
 				name: "",
-				want: ErrNameInvalidFormat,
+				want: resourcename.ErrInvalidName,
 			},
 			{
 				desc: "NotFound",

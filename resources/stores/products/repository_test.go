@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/testresources"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -111,7 +112,7 @@ func TestRepository_LookupProduct(t *testing.T) {
 			desc:        "EmptyName",
 			name:        "",
 			wantProduct: nil,
-			wantErr:     ErrNameInvalidFormat,
+			wantErr:     resourcename.ErrInvalidName,
 		},
 		{
 			desc:        "NotFound",
@@ -267,7 +268,7 @@ func TestRepository_UpdateProduct(t *testing.T) {
 			{
 				desc:   "EmptyName",
 				modify: func(beer *pb.Product) { beer.Name = "" },
-				want:   ErrNameInvalidFormat,
+				want:   resourcename.ErrInvalidName,
 			},
 			{
 				desc:   "EmptyDisplayName",
@@ -357,7 +358,7 @@ func TestRepository_DeleteProduct(t *testing.T) {
 			{
 				desc: "EmptyName",
 				name: "",
-				want: ErrNameInvalidFormat,
+				want: resourcename.ErrInvalidName,
 			},
 			{
 				desc: "NotFound",

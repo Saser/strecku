@@ -1,39 +1,44 @@
 package purchases
 
 import (
-	"fmt"
-
-	"github.com/Saser/strecku/resources/names"
 	"github.com/Saser/strecku/resources/stores"
 	"github.com/google/uuid"
 )
 
 const CollectionID = "purchases"
 
-var (
-	Regexp = names.MustCompile(
-		fmt.Sprintf("(?P<store>%s)", stores.Regexp.String()),
-		CollectionID, names.UUID,
-	)
-
-	ErrNameInvalidFormat = fmt.Errorf("name must have format %q", stores.CollectionID+"/<uuid>/"+CollectionID+"/<uuid>")
-)
+var NameFormat = stores.NameFormat.MustAppend("/" + CollectionID + "/{purchase}")
 
 func GenerateName(store string) string {
-	return fmt.Sprintf("%s/%s/%s", store, CollectionID, uuid.New().String())
+	uuids, err := stores.NameFormat.Parse(store)
+	if err != nil {
+		panic(err)
+	}
+	uuids["purchase"] = uuid.New()
+	name, err := NameFormat.Format(uuids)
+	if err != nil {
+		panic(err)
+	}
+	return name
+}
+
+func ParseName(name string) (store uuid.UUID, payment uuid.UUID, err error) {
+	uuids, err := NameFormat.Parse(name)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+	return uuids["store"], uuids["purchase"], nil
 }
 
 func ValidateName(name string) error {
-	if !Regexp.MatchString(name) {
-		return ErrNameInvalidFormat
-	}
-	return nil
+	_, _, err := ParseName(name)
+	return err
 }
 
 func Parent(name string) (string, error) {
-	if err := ValidateName(name); err != nil {
+	uuids, err := NameFormat.Parse(name)
+	if err != nil {
 		return "", err
 	}
-	matches := Regexp.FindStringSubmatch(name)
-	return matches[Regexp.SubexpIndex("store")], nil
+	return stores.NameFormat.Format(uuids)
 }

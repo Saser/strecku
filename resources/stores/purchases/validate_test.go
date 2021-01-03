@@ -4,8 +4,10 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/testresources"
-	"github.com/Saser/strecku/resources/users"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestValidate(t *testing.T) {
@@ -16,7 +18,7 @@ func TestValidate(t *testing.T) {
 	}{
 		{
 			modify: func(valid *pb.Purchase) { valid.User = "" },
-			want:   users.ErrNameInvalidFormat,
+			want:   resourcename.ErrInvalidName,
 		},
 		{
 			modify: func(valid *pb.Purchase) { valid.Lines = nil },
@@ -53,7 +55,7 @@ func TestValidate(t *testing.T) {
 	} {
 		purchase := Clone(testresources.Bar_Alice_Beer1)
 		test.modify(purchase)
-		if got := Validate(purchase); got != test.want {
+		if got := Validate(purchase); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 			t.Errorf("Validate(%v) = %v; want %v", purchase, got, test.want)
 		}
 	}

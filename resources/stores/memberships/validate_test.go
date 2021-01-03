@@ -4,8 +4,10 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/testresources"
-	"github.com/Saser/strecku/resources/users"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestValidate(t *testing.T) {
@@ -20,10 +22,10 @@ func TestValidate(t *testing.T) {
 				Administrator: false,
 				Discount:      false,
 			},
-			want: users.ErrNameInvalidFormat,
+			want: resourcename.ErrInvalidName,
 		},
 	} {
-		if got := Validate(test.membership); got != test.want {
+		if got := Validate(test.membership); !cmp.Equal(got, test.want, cmpopts.EquateErrors()) {
 			t.Errorf("Validate(%v) = %v; want %v", test.membership, got, test.want)
 		}
 	}

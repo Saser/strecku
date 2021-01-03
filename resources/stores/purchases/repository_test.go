@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/testresources"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -115,7 +116,7 @@ func TestRepository_LookupPurchase(t *testing.T) {
 			desc:         "EmptyName",
 			name:         "",
 			wantPurchase: nil,
-			wantErr:      ErrNameInvalidFormat,
+			wantErr:      resourcename.ErrInvalidName,
 		},
 		{
 			desc:         "NotFound",
@@ -392,7 +393,7 @@ func TestRepository_DeletePurchase(t *testing.T) {
 			{
 				desc: "EmptyName",
 				name: "",
-				want: ErrNameInvalidFormat,
+				want: resourcename.ErrInvalidName,
 			},
 			{
 				desc: "NotFound",

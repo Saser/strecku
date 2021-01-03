@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	pb "github.com/Saser/strecku/api/v1"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/stores"
 	"github.com/Saser/strecku/resources/stores/payments"
 	"google.golang.org/grpc/codes"
@@ -15,9 +16,9 @@ import (
 func (s *Service) GetPayment(ctx context.Context, req *pb.GetPaymentRequest) (*pb.Payment, error) {
 	name := req.Name
 	if err := payments.ValidateName(name); err != nil {
-		switch err {
-		case payments.ErrNameInvalidFormat:
-			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, internalError
 		}
@@ -34,8 +35,8 @@ func (s *Service) GetPayment(ctx context.Context, req *pb.GetPaymentRequest) (*p
 
 func (s *Service) ListPayments(ctx context.Context, req *pb.ListPaymentsRequest) (*pb.ListPaymentsResponse, error) {
 	if err := stores.ValidateName(req.Parent); err != nil {
-		switch err {
-		case stores.ErrNameInvalidFormat:
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
 		default:
 			return nil, internalError
@@ -66,8 +67,8 @@ func (s *Service) ListPayments(ctx context.Context, req *pb.ListPaymentsRequest)
 
 func (s *Service) CreatePayment(ctx context.Context, req *pb.CreatePaymentRequest) (*pb.Payment, error) {
 	if err := stores.ValidateName(req.Parent); err != nil {
-		switch err {
-		case stores.ErrNameInvalidFormat:
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
 			return nil, status.Errorf(codes.InvalidArgument, "invalid parent: %v", err)
 		default:
 			return nil, internalError
@@ -126,9 +127,9 @@ func (s *Service) UpdatePayment(ctx context.Context, req *pb.UpdatePaymentReques
 
 func (s *Service) DeletePayment(ctx context.Context, req *pb.DeletePaymentRequest) (*emptypb.Empty, error) {
 	if err := payments.ValidateName(req.Name); err != nil {
-		switch err {
-		case payments.ErrNameInvalidFormat:
-			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, internalError
 		}

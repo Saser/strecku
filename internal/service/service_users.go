@@ -6,6 +6,7 @@ import (
 
 	pb "github.com/Saser/strecku/api/v1"
 	"github.com/Saser/strecku/internal/repositories"
+	"github.com/Saser/strecku/resourcename"
 	"github.com/Saser/strecku/resources/users"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,9 +16,9 @@ import (
 func (s *Service) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.User, error) {
 	name := req.Name
 	if err := users.ValidateName(name); err != nil {
-		switch err {
-		case users.ErrNameInvalidFormat:
-			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, internalError
 		}
@@ -108,9 +109,9 @@ func (s *Service) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*p
 
 func (s *Service) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*emptypb.Empty, error) {
 	if err := users.ValidateName(req.Name); err != nil {
-		switch err {
-		case users.ErrNameInvalidFormat:
-			return nil, status.Errorf(codes.InvalidArgument, "invalid name: %v", err)
+		switch {
+		case errors.Is(err, resourcename.ErrInvalidName):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		default:
 			return nil, internalError
 		}
