@@ -6,60 +6,50 @@ import (
 	"testing"
 
 	"github.com/Saser/strecku/internal/database"
-	"github.com/golang-migrate/migrate/v4"
-
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/cenkalti/backoff/v4"
+	"golang.org/x/sync/errgroup"
 )
 
-const version = 2
+func retryConnString(ctx context.Context, tdb *TestDatabase) (string, error) {
+	var connString string
+	op := func() error {
+		var err error
+		connString, err = tdb.ConnString()
+		return err
+	}
+	b := backoff.WithContext(backoff.NewExponentialBackOff(), ctx)
+	if err := backoff.Retry(op, b); err != nil {
+		return "", err
+	}
+	return connString, nil
+}
 
 func DB(ctx context.Context, t *testing.T, migrationsPath string) *sql.DB {
-	mu.Lock()
-	defer mu.Unlock()
-	check()
-
-	connString := defaultContainer.ConnString()
-
-	// Open a database connection to the container. This also makes sure
-	// that the database is up and running.
+	t.Helper()
+	tdb := New(migrationsPath)
+	ctx, cancel := context.WithCancel(ctx)
+	g, ctx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		return tdb.Serve(ctx)
+	})
+	t.Cleanup(func() {
+		cancel()
+		if err := g.Wait(); err != nil {
+			t.Errorf("g.Wait() = %v; want nil", err)
+		}
+	})
+	connString, err := retryConnString(ctx, tdb)
+	if err != nil {
+		t.Fatalf("ConnString(ctx, tdb) err = %v; want nil", err)
+	}
 	db, err := database.Open(ctx, connString)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("database.Open(ctx, %q) err = %v; want nil", connString, err)
 	}
 	t.Cleanup(func() {
 		if err := db.Close(); err != nil {
-			t.Fatal(err)
+			t.Errorf("db.Close() = %v; want nil", err)
 		}
 	})
-
-	// Create a new migration runner, which will create its own database
-	// connection.
-	m, err := migrate.New("file://"+migrationsPath, connString)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		srcErr, dbErr := m.Close()
-		if srcErr != nil {
-			t.Fatal(srcErr)
-		}
-		if dbErr != nil {
-			t.Fatal(dbErr)
-		}
-	}()
-
-	// Make sure that when the context is done, the migration is gracefully
-	// stopped.
-	go func() {
-		<-ctx.Done()
-		m.GracefulStop <- true
-	}()
-
-	// Finally, run the migrations.
-	if err := m.Migrate(version); err != nil {
-		t.Fatal(err)
-	}
-
 	return db
 }
