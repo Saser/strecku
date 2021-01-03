@@ -127,3 +127,21 @@ func (f *Format) Parse(name string) (UUIDs, error) {
 	}
 	return uuids, nil
 }
+
+func (f *Format) Format(uuids UUIDs) (string, error) {
+	segments := make([]string, len(f.matchers))
+	for i, m := range f.matchers {
+		var s string
+		if varName := m.VarName(); varName != "" {
+			u, ok := uuids[varName]
+			if !ok {
+				return "", fmt.Errorf("invalid UUIDs: does not contain variable %q", varName)
+			}
+			s = u.String()
+		} else {
+			s = m.String()
+		}
+		segments[i] = s
+	}
+	return strings.Join(segments, "/"), nil
+}

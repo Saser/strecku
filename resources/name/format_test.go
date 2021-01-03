@@ -259,3 +259,74 @@ func TestFormat_Parse(t *testing.T) {
 		}
 	})
 }
+
+func TestFormat_Format(t *testing.T) {
+	t.Run("OK", func(t *testing.T) {
+		for _, test := range []struct {
+			f     *Format
+			uuids UUIDs
+			want  string
+		}{
+			{
+				f: MustParseFormat("users/{user}"),
+				uuids: UUIDs{
+					"user": uuid.MustParse("78da9161-aef1-49ed-bc92-0f136c95308f"),
+				},
+				want: "users/78da9161-aef1-49ed-bc92-0f136c95308f",
+			},
+			{
+				f: MustParseFormat("stores/{store}/settings"),
+				uuids: UUIDs{
+					"store": uuid.MustParse("78da9161-aef1-49ed-bc92-0f136c95308f"),
+				},
+				want: "stores/78da9161-aef1-49ed-bc92-0f136c95308f/settings",
+			},
+			{
+				f: MustParseFormat("stores/{store}/products/{product}"),
+				uuids: UUIDs{
+					"store":   uuid.MustParse("78da9161-aef1-49ed-bc92-0f136c95308f"),
+					"product": uuid.MustParse("1bba3dfe-5770-4d65-ae3f-1bff9e45b668"),
+				},
+				want: "stores/78da9161-aef1-49ed-bc92-0f136c95308f/products/1bba3dfe-5770-4d65-ae3f-1bff9e45b668",
+			},
+		} {
+			got, err := test.f.Format(test.uuids)
+			if err != nil {
+				t.Errorf("f.Format(%v) err = %v; want nil", test.uuids, err)
+			}
+			if got != test.want {
+				t.Errorf("f.Format(%v) name = %q; want %q", test.uuids, got, test.want)
+			}
+		}
+	})
+
+	t.Run("Errors", func(t *testing.T) {
+		for _, test := range []struct {
+			f     *Format
+			uuids UUIDs
+		}{
+			{
+				f: MustParseFormat("users/{user}"),
+				uuids: UUIDs{
+					"store": uuid.MustParse("78da9161-aef1-49ed-bc92-0f136c95308f"),
+				},
+			},
+			{
+				f: MustParseFormat("stores/{store}/products/{product}"),
+				uuids: UUIDs{
+					"store": uuid.MustParse("78da9161-aef1-49ed-bc92-0f136c95308f"),
+				},
+			},
+			{
+				f: MustParseFormat("stores/{store}/products/{product}"),
+				uuids: UUIDs{
+					"product": uuid.MustParse("78da9161-aef1-49ed-bc92-0f136c95308f"),
+				},
+			},
+		} {
+			if _, err := test.f.Format(test.uuids); err == nil {
+				t.Errorf("f.Format(%v) err = nil; want non-nil", test.uuids)
+			}
+		}
+	})
+}
