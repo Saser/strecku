@@ -84,6 +84,7 @@ func (c *Client) PullOfficialImage(ctx context.Context, imageName string, tag st
 	return nil
 }
 
+// func (c *Client) StartContainer(ctx context.Context, imageName string, tag string, env map[string]string) (string, error) {
 func (c *Client) StartContainer(ctx context.Context, imageName string, tag string) (string, error) {
 	imageLogger := c.logger.With(
 		zap.String("imageName", imageName),
@@ -98,8 +99,13 @@ func (c *Client) StartContainer(ctx context.Context, imageName string, tag strin
 		return "", fmt.Errorf("start container: %w", err)
 	}
 	imageLogger.Info("image pulled, creating container")
+	// envStrings := make([]string, 0, len(env))
+	// for key, value := range env {
+	//	envStrings = append(envStrings, fmt.Sprintf("%s=%s", key, value))
+	//}
 	containerConfig := &container.Config{
 		Image: fmt.Sprintf("%v:%v", imageName, tag),
+		// Env:   envStrings,
 	}
 	hostConfig := &container.HostConfig{
 		PublishAllPorts: true,
