@@ -3,6 +3,7 @@ package testdatabase
 import (
 	"context"
 	"errors"
+	"flag"
 	"net/url"
 	"sync"
 
@@ -24,6 +25,8 @@ const (
 
 var (
 	ErrNotReady = errors.New("testdatabase: not ready")
+
+	deleteContainer = flag.Bool("testdatabase_delete_container", true, "Whether the database container should be deleted during cleanup.")
 )
 
 type TestDatabase struct {
@@ -61,11 +64,13 @@ func (t *TestDatabase) Serve(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if cErr := container.Close(); cErr != nil && err == nil {
-			err = cErr
-		}
-	}()
+	if *deleteContainer {
+		defer func() {
+			if cErr := container.Close(); cErr != nil && err == nil {
+				err = cErr
+			}
+		}()
+	}
 
 	u := url.URL{
 		Scheme: "postgres",

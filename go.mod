@@ -3,6 +3,7 @@ module github.com/Saser/strecku
 go 1.15
 
 require (
+	github.com/Masterminds/squirrel v1.5.0
 	github.com/cenkalti/backoff/v4 v4.0.2
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/golang/protobuf v1.4.3
