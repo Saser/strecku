@@ -9,6 +9,9 @@ import (
 )
 
 func TestTestDatabase_Serve(t *testing.T) {
+	if testing.Short() {
+		t.Skipf("skipping: -short is set")
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	tdb := New("../../database")
 	g, ctx := errgroup.WithContext(ctx)
