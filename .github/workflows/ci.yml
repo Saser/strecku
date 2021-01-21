@@ -20,5 +20,8 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    - name: Test
+    - name: Test (short)
       run: go test -v -short ./...
+
+    - name: Test (long)
+      run: go test -v ./...
