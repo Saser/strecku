@@ -60,7 +60,7 @@ func main() {
 			// the "use of closed network connection"
 			// error which is safe to ignore.
 			//
-			// TODO(issues/4373): remove this check once
+			// TODO(issues/5): remove this check once
 			// Go 1.16 is released.
 			if strings.Contains(err.Error(), "use of closed network connection") {
 				return
